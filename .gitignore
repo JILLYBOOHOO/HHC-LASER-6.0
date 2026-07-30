@@ -1,0 +1,33 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Angular build output
+frontend/dist/
+frontend/.angular/
+
+# Environment / secrets — NEVER commit these
+backend/.env
+frontend/src/environments/environment.prod.ts
+
+# TypeScript build cache
+*.tsbuildinfo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# IDEs
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

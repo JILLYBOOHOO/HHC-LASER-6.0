@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#000000"/>
+  
+  <!-- HHC Text -->
+  <g fill="#ffffff" font-family="Arial, sans-serif" font-weight="900" font-size="180">
+    <text x="256" y="180" text-anchor="middle" dominant-baseline="middle">HHC</text>
+  </g>
+  
+  <!-- Laser.co Text -->
+  <g fill="#ffffff" font-family="Arial, sans-serif" font-weight="300" font-size="64">
+    <text x="256" y="280" text-anchor="middle" dominant-baseline="middle">Laser.co</text>
+  </g>
+  
+  <!-- Divider Line -->
+  <line x1="40" y1="320" x2="472" y2="320" stroke="#ffffff" stroke-width="2"/>
+  
+  <!-- SKIN. MEDSPA Text -->
+  <g fill="#ffffff" font-family="Arial, sans-serif" font-weight="300" font-size="36" letter-spacing="6px">
+    <text x="256" y="380" text-anchor="middle" dominant-baseline="middle">SKIN. MEDSPA</text>
+  </g>
+</svg>

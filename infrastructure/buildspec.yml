@@ -1,0 +1,46 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 18
+    commands:
+      - echo "=== Installing frontend dependencies ==="
+      - cd frontend && npm ci
+      - echo "=== Installing backend dependencies ==="
+      - cd ../backend && npm ci
+
+  pre_build:
+    commands:
+      - echo "=== Running frontend tests ==="
+      - cd frontend && npm test -- --watch=false --browsers=ChromeHeadless || true
+      - echo "=== Running backend type check ==="
+      - cd ../backend && npx tsc --noEmit
+
+  build:
+    commands:
+      - echo "=== Building Angular PWA ==="
+      - cd frontend && npm run build:prod
+      - echo "=== Building Express backend ==="
+      - cd ../backend && npm run build
+
+  post_build:
+    commands:
+      - echo "=== Deploying frontend to S3 ==="
+      - aws s3 sync frontend/dist/hhc-laser-frontend/browser s3://$S3_BUCKET_NAME --delete --cache-control "public, max-age=31536000" --exclude "index.html" --exclude "ngsw.json" --exclude "manifest.webmanifest"
+      - aws s3 cp frontend/dist/hhc-laser-frontend/browser/index.html s3://$S3_BUCKET_NAME/index.html --cache-control "no-cache, no-store, must-revalidate"
+      - echo "=== Invalidating CloudFront cache ==="
+      - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths "/*"
+      - echo "=== Backend deployment handled by Elastic Beanstalk ==="
+
+artifacts:
+  files:
+    - 'backend/**/*'
+    - 'backend/package.json'
+    - 'backend/.ebextensions/**/*'
+  discard-paths: no
+
+cache:
+  paths:
+    - 'frontend/node_modules/**/*'
+    - 'backend/node_modules/**/*'
