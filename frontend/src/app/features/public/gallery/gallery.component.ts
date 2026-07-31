@@ -1,45 +1,83 @@
-import { Component } from '@angular/core';
+import { Component, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
+
+interface GalleryItem {
+  id: number;
+  title: string;
+  description: string | null;
+  category: string;
+  alt_text: string | null;
+  is_featured: boolean;
+  local_path: string;
+}
 
 @Component({
   selector: 'app-gallery',
   standalone: true,
-  imports: [CommonModule, MatCardModule],
+  imports: [CommonModule],
   template: `
     <div class="min-h-screen py-16 px-4 bg-charcoal-900">
       <div class="max-w-7xl mx-auto">
         <!-- Header -->
-        <div class="text-center mb-16">
+        <div class="text-center mb-12">
           <h2 class="text-3xl md:text-5xl font-light text-cream-50 mb-4" style="font-family: var(--font-heading)">
             Our <span class="text-gold-500 italic">Gallery</span>
           </h2>
           <div class="divider-gold mx-auto mb-6"></div>
           <p class="text-cream-400 max-w-2xl mx-auto text-lg leading-relaxed">
-            Take a look at our state-of-the-art facilities and some of the amazing results we've achieved for our clients.
+            See real before-and-after results from Havendale Healthcare (HHC Laser) — laser hair removal, laser resurfacing and skincare treatments in Kingston, Jamaica.
           </p>
+        </div>
+
+        <!-- Category Filter -->
+        <div class="flex flex-wrap justify-center gap-3 mb-12">
+          @for (cat of categories; track cat.key) {
+            <button
+              (click)="selectedCategory.set(cat.key)"
+              [class]="selectedCategory() === cat.key
+                ? 'px-5 py-2 rounded-full text-sm font-medium bg-gold-500 text-charcoal-900 shadow-lg shadow-gold-500/25 transition-all duration-300'
+                : 'px-5 py-2 rounded-full text-sm font-medium bg-charcoal-800 text-cream-300 border border-white/10 hover:border-gold-500/50 hover:text-gold-500 transition-all duration-300'">
+              {{ cat.label }}
+            </button>
+          }
         </div>
 
         <!-- Gallery Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          @for (image of images; track image) {
+          @for (item of filteredGallery(); track item.id) {
             <div class="group relative overflow-hidden rounded-lg aspect-square bg-charcoal-800 shadow-xl border border-white/5 hover:border-gold-500/50 transition-all duration-500 hover:-translate-y-2 cursor-pointer">
-              <img [src]="'/images/' + image" 
-                   [alt]="'Gallery image ' + $index"
+              <img [src]="'/images/' + item.local_path"
+                   [alt]="item.alt_text || item.title"
                    class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100"
-                   loading="lazy">
-              
-              <!-- Hover Overlay -->
+                   loading="lazy"
+                   (error)="handleImageError($event)">
+
+              <!-- Hover Overlay with Title & Description -->
               <div class="absolute inset-0 bg-gradient-to-t from-charcoal-900/90 via-charcoal-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div class="absolute bottom-0 left-0 w-full p-6 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                  <div class="w-8 h-8 rounded-full border border-gold-500 flex items-center justify-center mx-auto bg-charcoal-900/80 backdrop-blur-sm">
-                    <span class="text-gold-500 text-lg">+</span>
-                  </div>
+                <div class="absolute bottom-0 left-0 w-full p-5 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                  <h3 class="text-gold-500 font-semibold text-sm uppercase tracking-wider mb-1">{{ item.title }}</h3>
+                  @if (item.description) {
+                    <p class="text-cream-300 text-xs leading-relaxed line-clamp-2">{{ item.description }}</p>
+                  }
                 </div>
               </div>
+
+              <!-- Featured Badge -->
+              @if (item.is_featured) {
+                <div class="absolute top-3 right-3 bg-gold-500 text-charcoal-900 text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-full">
+                  Featured
+                </div>
+              }
             </div>
           }
         </div>
+
+        <!-- Empty State -->
+        @if (filteredGallery().length === 0) {
+          <div class="text-center py-20">
+            <p class="text-cream-400 text-lg">No images found in this category.</p>
+          </div>
+        }
       </div>
     </div>
   `,
@@ -47,79 +85,143 @@ import { MatCardModule } from '@angular/material/card';
     .aspect-square {
       aspect-ratio: 1 / 1;
     }
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
   `]
 })
 export class GalleryComponent {
-  images = [
-    'live_gallery/gallery_1.webp',
-    'live_gallery/gallery_10.webp',
-    'live_gallery/gallery_11.jpg',
-    'live_gallery/gallery_2.jpg',
-    'live_gallery/gallery_3.webp',
-    'live_gallery/gallery_4.jpg',
-    'live_gallery/gallery_5.png',
-    'live_gallery/gallery_6.webp',
-    'live_gallery/gallery_7.jpg',
-    'live_gallery/gallery_8.jpg',
-    'live_gallery/gallery_9.jpg',
-    '../hhclaser_img/hhclaser_images/live/10_Jawline and Neck.webp',
-    '../hhclaser_img/hhclaser_images/live/11_Bikini Line.webp',
-    '../hhclaser_img/hhclaser_images/live/12_Full Pubic _ Armpits.webp',
-    '../hhclaser_img/hhclaser_images/live/13_Brazilian Only.webp',
-    '../hhclaser_img/hhclaser_images/live/14_Pubic_ Armpit and Brazilian _Special_.webp',
-    '../hhclaser_img/hhclaser_images/live/15_Armpits.png',
-    '../hhclaser_img/hhclaser_images/live/16_Aerola.webp',
-    '../hhclaser_img/hhclaser_images/live/17_Mid_Chest.webp',
-    '../hhclaser_img/hhclaser_images/live/18_Full Chest.webp',
-    '../hhclaser_img/hhclaser_images/live/19_Abdomen.webp',
-    '../hhclaser_img/hhclaser_images/live/20_Full Abdomen.webp',
-    '../hhclaser_img/hhclaser_images/live/21_Full Abdomen and Chest.webp',
-    '../hhclaser_img/hhclaser_images/live/22_Upper Back.webp',
-    '../hhclaser_img/hhclaser_images/live/23_Lower Back.png',
-    '../hhclaser_img/hhclaser_images/live/24_Full Back.webp',
-    '../hhclaser_img/hhclaser_images/live/25_Arms and Shoulders.webp',
-    '../hhclaser_img/hhclaser_images/live/26_Full Legs.webp',
-    '../hhclaser_img/hhclaser_images/live/27_Lower Legs.webp',
-    '../hhclaser_img/hhclaser_images/live/28_Full Thighs.webp',
-    '../hhclaser_img/hhclaser_images/live/29_Inner Thigh.webp',
-    '../hhclaser_img/hhclaser_images/live/30_Posterior Thighs.webp',
-    '../hhclaser_img/hhclaser_images/live/31_Posterior Thighs and Bottom.png',
-    '../hhclaser_img/hhclaser_images/live/32_Full Bottom.webp',
-    '../hhclaser_img/hhclaser_images/live/33_Fingers and Toes.webp',
-    '../hhclaser_img/hhclaser_images/live/34_Full chest.webp',
-    '../hhclaser_img/hhclaser_images/live/35_ACNE _ DARK SPOTS.jpg',
-    '../hhclaser_img/hhclaser_images/live/37_SKIN TIGHTENING.png',
-    '../hhclaser_img/hhclaser_images/live/38_HAIR RESTORATION.jpg',
-    '../hhclaser_img/hhclaser_images/live/39_NON_SURGICAL BBL.jpg',
-    '../hhclaser_img/hhclaser_images/live/40_FAT REDUCTION.jpg',
-    '../hhclaser_img/hhclaser_images/live/41_BOTOX Consultation.jpg',
-    '../hhclaser_img/hhclaser_images/live/42_DERMAL FILLERS _Consultation_.jpg',
-    '../hhclaser_img/hhclaser_images/live/43_IV THERAPY.jpg',
-    '../hhclaser_img/hhclaser_images/live/44_VITAL SHOTS.jpg',
-    '../hhclaser_img/hhclaser_images/live/45_KELOID _Consultation_.jpg',
-    '../hhclaser_img/hhclaser_images/live/46_FUNGUS.jpg',
-    '../hhclaser_img/hhclaser_images/live/47_WEIGHTLOSS _Consultation_.webp',
-    '../hhclaser_img/hhclaser_images/live/48_PRF PLASMA TREATMENT.jpg',
-    '../hhclaser_img/hhclaser_images/live/49_MICRONEEDLING PRP.jpg',
-    '../hhclaser_img/hhclaser_images/live/50_FOLLICULITIS.jpg',
-    '../hhclaser_img/hhclaser_images/live/51_TATTOO REMOVAL.jpg',
-    '../hhclaser_img/hhclaser_images/live/52_SKIN TAG.jpg',
-    '../hhclaser_img/hhclaser_images/live/53_PSEUDOFOLLICULITIS.jpg',
-    '../hhclaser_img/hhclaser_images/live/54_PHOTOREJUVENATION.jpg',
-    '../hhclaser_img/hhclaser_images/live/55_WOOD THERAPY.jpg',
-    '../hhclaser_img/hhclaser_images/live/56_CELLULITES.jpg',
-    '../hhclaser_img/hhclaser_images/live/57_LYMPATHIC DRAINAGE.jpg',
-    '../hhclaser_img/hhclaser_images/live/58_SKIN RESURFACING.jpg',
-    '../hhclaser_img/hhclaser_images/live/59_HEAD _ BODY MASSAGE _ HEAD SPA.jpg',
-    '../hhclaser_img/hhclaser_images/live/60_STRETCH MARKS.jpg',
-    '../hhclaser_img/hhclaser_images/live/61_ENLARGED PORES.jpg',
-    '../hhclaser_img/hhclaser_images/live/62_MICRODERMABRASION.webp',
-    '../hhclaser_img/hhclaser_images/live/63_CHEMICAL PEEL.jpg',
-    '../hhclaser_img/hhclaser_images/live/64_SCARS.jpg',
-    '../hhclaser_img/hhclaser_images/live/65_SEMEGLUTHIDE.jpg',
-    '../hhclaser_img/hhclaser_images/live/67_DARK CIRCLES.webp',
-    '../hhclaser_img/hhclaser_images/live/68_HEAT SHOCK_ BODY_ SKIN DETOX.jpg',
-    '../hhclaser_img/hhclaser_images/live/8_Chin Only.webp',
-    '../hhclaser_img/hhclaser_images/live/9_Chin and Neck.webp'
+  selectedCategory = signal<string>('all');
+
+  categories = [
+    { key: 'all', label: 'All' },
+    { key: 'before_after', label: 'Before & After' },
+    { key: 'treatments', label: 'Treatments' },
+    { key: 'facility', label: 'Facility' },
+    { key: 'general', label: 'General' },
   ];
+
+  galleryItems: GalleryItem[] = [
+    {
+      id: 12,
+      title: 'From the Start',
+      description: 'Been Creating Before & After Pictures Before Instagram',
+      category: 'before_after',
+      alt_text: null,
+      is_featured: false,
+      local_path: 'live_gallery/gallery_12_From the Start.webp'
+    },
+    {
+      id: 11,
+      title: 'LASER HAIR REMOVAL',
+      description: null,
+      category: 'treatments',
+      alt_text: null,
+      is_featured: false,
+      local_path: 'live_gallery/gallery_11_LASER HAIR REMOVAL.jpg'
+    },
+    {
+      id: 1,
+      title: 'Modern Laser Treatment Room',
+      description: 'State-of-the-art laser treatment facility with cutting-edge technology',
+      category: 'facility',
+      alt_text: 'Modern laser treatment room with advanced equipment',
+      is_featured: true,
+      local_path: 'live_gallery/gallery_1_Modern Laser Treatment Room.webp'
+    },
+    {
+      id: 2,
+      title: 'Professional Consultation',
+      description: 'Expert dermatologist consultation for personalized treatment plans',
+      category: 'general',
+      alt_text: 'Professional medical consultation in progress',
+      is_featured: true,
+      local_path: 'live_gallery/gallery_2_Professional Consultation.jpg'
+    },
+    {
+      id: 3,
+      title: 'Laser Hair Removal Results',
+      description: 'Smooth, hair-free skin after laser treatment',
+      category: 'before_after',
+      alt_text: 'Before and after laser hair removal results',
+      is_featured: false,
+      local_path: 'live_gallery/gallery_3_Laser Hair Removal Results.png'
+    },
+    {
+      id: 4,
+      title: 'Skin Rejuvenation Treatment',
+      description: 'Advanced skin rejuvenation therapy in progress',
+      category: 'treatments',
+      alt_text: 'Skin rejuvenation laser treatment',
+      is_featured: false,
+      local_path: 'live_gallery/gallery_4_Skin Rejuvenation Treatment.jpg'
+    },
+    {
+      id: 5,
+      title: 'Luxury Clinic Reception',
+      description: 'Welcoming reception area with modern design',
+      category: 'facility',
+      alt_text: 'Modern luxury clinic reception area',
+      is_featured: false,
+      local_path: 'live_gallery/gallery_5_Luxury Clinic Reception.webp'
+    },
+    {
+      id: 6,
+      title: 'Treatment Room Interior',
+      description: 'Clean and comfortable treatment environment',
+      category: 'facility',
+      alt_text: 'Professional treatment room setup',
+      is_featured: false,
+      local_path: 'live_gallery/gallery_6_Treatment Room Interior.jpg'
+    },
+    {
+      id: 7,
+      title: 'Expert Medical Team',
+      description: 'Our certified laser specialists and medical professionals',
+      category: 'before_after',
+      alt_text: 'Professional medical team members',
+      is_featured: false,
+      local_path: 'live_gallery/gallery_7_Expert Medical Team.jpg'
+    },
+    {
+      id: 8,
+      title: 'Advanced Laser Equipment',
+      description: 'State-of-the-art laser technology for optimal results',
+      category: 'facility',
+      alt_text: 'Advanced medical laser equipment',
+      is_featured: false,
+      local_path: 'live_gallery/gallery_8_Advanced Laser Equipment.jpg'
+    },
+    {
+      id: 9,
+      title: 'Facial Treatment',
+      description: 'Precision facial laser treatment for skin perfection',
+      category: 'treatments',
+      alt_text: 'Facial laser treatment in progress',
+      is_featured: false,
+      local_path: 'live_gallery/gallery_9_Facial Treatment.webp'
+    },
+    {
+      id: 10,
+      title: 'Body Contouring',
+      description: 'Non-invasive body contouring treatment',
+      category: 'treatments',
+      alt_text: 'Body contouring laser treatment',
+      is_featured: false,
+      local_path: 'live_gallery/gallery_10_Body Contouring.jpg'
+    }
+  ];
+
+  filteredGallery = computed(() => {
+    const cat = this.selectedCategory();
+    if (cat === 'all') return this.galleryItems;
+    return this.galleryItems.filter(item => item.category === cat);
+  });
+
+  handleImageError(event: any) {
+    event.target.src = 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+  }
 }
