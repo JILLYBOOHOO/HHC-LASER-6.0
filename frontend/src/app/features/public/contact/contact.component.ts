@@ -6,6 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SettingsService } from '../../../core/services/settings.service';
+import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-contact',
@@ -151,7 +152,7 @@ import { SettingsService } from '../../../core/services/settings.service';
           <!-- Google Map -->
           <div class="rounded-2xl overflow-hidden border border-white/10 min-h-[400px]">
             <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d7588.136446625609!2d-76.79566539999999!3d18.0220372!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8edb3f0006095985%3A0x22ed8ba295760c21!2sHHC%20LASER!5e0!3m2!1sen!2sjm!4v1785449438222!5m2!1sen!2sjm"
+              [src]="mapUrl"
               width="100%"
               height="100%"
               style="border:0; min-height: 420px; display: block;"
@@ -255,8 +256,11 @@ import { SettingsService } from '../../../core/services/settings.service';
 })
 export class ContactComponent {
   settingsService = inject(SettingsService);
+  sanitizer = inject(DomSanitizer);
   contactForm: FormGroup;
   submitted = false;
+  mapUrl = this.sanitizer.bypassSecurityTrustResourceUrl("https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d7588.136446625609!2d-76.79566539999999!3d18.0220372!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8edb3f0006095985%3A0x22ed8ba295760c21!2sHHC%20LASER!5e0!3m2!1sen!2sjm!4v1785449438222!5m2!1sen!2sjm");
+
   
   faqs = [
     { q: 'What is the preparation for Laser Hair Removal?', a: 'Please shave the area 24 hours before your appointment. Do not wax or pluck for 4 weeks prior.' },

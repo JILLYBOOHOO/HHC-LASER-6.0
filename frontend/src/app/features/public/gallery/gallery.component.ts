@@ -7,10 +7,10 @@ import { MatCardModule } from '@angular/material/card';
   standalone: true,
   imports: [CommonModule, MatCardModule],
   template: `
-    <div class="min-h-screen py-16 px-4" style="background: var(--color-charcoal-900);">
+    <div class="min-h-screen py-16 px-4 bg-charcoal-900">
       <div class="max-w-7xl mx-auto">
         <!-- Header -->
-        <div class="text-center mb-16 animate-on-scroll">
+        <div class="text-center mb-16">
           <h2 class="text-3xl md:text-5xl font-light text-cream-50 mb-4" style="font-family: var(--font-heading)">
             Our <span class="text-gold-500 italic">Gallery</span>
           </h2>
@@ -23,7 +23,7 @@ import { MatCardModule } from '@angular/material/card';
         <!-- Gallery Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           @for (image of images; track image) {
-            <div class="group relative overflow-hidden rounded-lg aspect-square bg-charcoal-800 shadow-xl border border-white/5 hover:border-gold-500/50 transition-all duration-500 hover:-translate-y-2 cursor-pointer animate-on-scroll">
+            <div class="group relative overflow-hidden rounded-lg aspect-square bg-charcoal-800 shadow-xl border border-white/5 hover:border-gold-500/50 transition-all duration-500 hover:-translate-y-2 cursor-pointer">
               <img [src]="'/images/' + image" 
                    [alt]="'Gallery image ' + $index"
                    class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100"
@@ -51,17 +51,16 @@ import { MatCardModule } from '@angular/material/card';
 })
 export class GalleryComponent {
   images = [
-    'gallery_1.webp',
-    'gallery_2.jpg',
-    'gallery_3.webp',
-    'gallery_4.jpg',
-    'gallery_5.png',
-    'gallery_6.jpg',
-    'gallery_7.webp',
-    'gallery_8.jpg',
-    'gallery_9.jpg',
-    'gallery_10.jpg',
-    'gallery_11.webp',
-    'gallery_12.jpg'
+    'live_gallery/gallery_1.webp',
+    'live_gallery/gallery_2.jpg',
+    'live_gallery/gallery_3.webp',
+    'live_gallery/gallery_4.jpg',
+    'live_gallery/gallery_5.png',
+    'live_gallery/gallery_6.webp',
+    'live_gallery/gallery_7.jpg',
+    'live_gallery/gallery_8.jpg',
+    'live_gallery/gallery_9.jpg',
+    'live_gallery/gallery_10.webp',
+    'live_gallery/gallery_11.jpg'
   ];
 }

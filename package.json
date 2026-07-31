@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "better-sqlite3": "^13.0.2",
+    "cheerio": "^1.2.0"
+  }
+}

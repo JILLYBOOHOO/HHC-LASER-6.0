@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { SettingsService } from '../../../core/services/settings.service';
+import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-footer',
@@ -96,7 +97,7 @@ import { SettingsService } from '../../../core/services/settings.service';
               </li>
               <li class="mt-6 pt-6 border-t border-white/5">
                 <div class="rounded-xl overflow-hidden border border-white/10 w-full h-48 opacity-80 hover:opacity-100 transition-opacity duration-300">
-                  <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d7588.136446625609!2d-76.79566539999999!3d18.0220372!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8edb3f0006095985%3A0x22ed8ba295760c21!2sHHC%20LASER!5e0!3m2!1sen!2sjm!4v1785449438222!5m2!1sen!2sjm" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+                  <iframe [src]="mapUrl" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
                 </div>
               </li>
             </ul>
@@ -122,7 +123,9 @@ import { SettingsService } from '../../../core/services/settings.service';
 })
 export class FooterComponent {
   settingsService = inject(SettingsService);
+  sanitizer = inject(DomSanitizer);
   currentYear = new Date().getFullYear();
+  mapUrl = this.sanitizer.bypassSecurityTrustResourceUrl("https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d7588.136446625609!2d-76.79566539999999!3d18.0220372!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8edb3f0006095985%3A0x22ed8ba295760c21!2sHHC%20LASER!5e0!3m2!1sen!2sjm!4v1785449438222!5m2!1sen!2sjm");
 
   socials = [
     { label: 'Instagram', icon: 'photo_camera', href: 'https://instagram.com/hhclaserjm' },

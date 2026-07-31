@@ -76,6 +76,10 @@ export const routes: Routes = [
     ],
   },
 
+  { path: 'login', redirectTo: 'auth/login', pathMatch: 'full' },
+  { path: 'register', redirectTo: 'auth/register', pathMatch: 'full' },
+  { path: 'forgot-password', redirectTo: 'auth/forgot-password', pathMatch: 'full' },
+
   // ─── Authentication ──────────────────────────────────────────────────────────
   {
     path: 'auth',
