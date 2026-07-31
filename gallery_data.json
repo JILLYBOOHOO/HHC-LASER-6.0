@@ -1,0 +1,122 @@
+[
+  {
+    "id": 12,
+    "title": "From the Start",
+    "description": "Been Creating Before & After Pictures Before Instagram",
+    "category": "before_after",
+    "alt_text": null,
+    "is_featured": false,
+    "sort_order": 0,
+    "local_path": "live_gallery/gallery_12_From the Start.webp"
+  },
+  {
+    "id": 11,
+    "title": "LASER HAIR REMOVAL",
+    "description": null,
+    "category": "treatments",
+    "alt_text": null,
+    "is_featured": false,
+    "sort_order": 0,
+    "local_path": "live_gallery/gallery_11_LASER HAIR REMOVAL.jpg"
+  },
+  {
+    "id": 1,
+    "title": "Modern Laser Treatment Room",
+    "description": "State-of-the-art laser treatment facility with cutting-edge technology",
+    "category": "facility",
+    "alt_text": "Modern laser treatment room with advanced equipment",
+    "is_featured": true,
+    "sort_order": 1,
+    "local_path": "live_gallery/gallery_1_Modern Laser Treatment Room.webp"
+  },
+  {
+    "id": 2,
+    "title": "Professional Consultation",
+    "description": "Expert dermatologist consultation for personalized treatment plans",
+    "category": "general",
+    "alt_text": "Professional medical consultation in progress",
+    "is_featured": true,
+    "sort_order": 2,
+    "local_path": "live_gallery/gallery_2_Professional Consultation.jpg"
+  },
+  {
+    "id": 3,
+    "title": "Laser Hair Removal Results",
+    "description": "Smooth, hair-free skin after laser treatment",
+    "category": "before_after",
+    "alt_text": "Before and after laser hair removal results",
+    "is_featured": false,
+    "sort_order": 3,
+    "local_path": "live_gallery/gallery_3_Laser Hair Removal Results.png"
+  },
+  {
+    "id": 4,
+    "title": "Skin Rejuvenation Treatment",
+    "description": "Advanced skin rejuvenation therapy in progress",
+    "category": "treatments",
+    "alt_text": "Skin rejuvenation laser treatment",
+    "is_featured": false,
+    "sort_order": 4,
+    "local_path": "live_gallery/gallery_4_Skin Rejuvenation Treatment.jpg"
+  },
+  {
+    "id": 5,
+    "title": "Luxury Clinic Reception",
+    "description": "Welcoming reception area with modern design",
+    "category": "facility",
+    "alt_text": "Modern luxury clinic reception area",
+    "is_featured": false,
+    "sort_order": 5,
+    "local_path": "live_gallery/gallery_5_Luxury Clinic Reception.webp"
+  },
+  {
+    "id": 6,
+    "title": "Treatment Room Interior",
+    "description": "Clean and comfortable treatment environment",
+    "category": "facility",
+    "alt_text": "Professional treatment room setup",
+    "is_featured": false,
+    "sort_order": 6,
+    "local_path": "live_gallery/gallery_6_Treatment Room Interior.jpg"
+  },
+  {
+    "id": 7,
+    "title": "Expert Medical Team",
+    "description": "Our certified laser specialists and medical professionals",
+    "category": "before_after",
+    "alt_text": "Professional medical team members",
+    "is_featured": false,
+    "sort_order": 7,
+    "local_path": "live_gallery/gallery_7_Expert Medical Team.jpg"
+  },
+  {
+    "id": 8,
+    "title": "Advanced Laser Equipment",
+    "description": "State-of-the-art laser technology for optimal results",
+    "category": "facility",
+    "alt_text": "Advanced medical laser equipment",
+    "is_featured": false,
+    "sort_order": 8,
+    "local_path": "live_gallery/gallery_8_Advanced Laser Equipment.jpg"
+  },
+  {
+    "id": 9,
+    "title": "Facial Treatment",
+    "description": "Precision facial laser treatment for skin perfection",
+    "category": "treatments",
+    "alt_text": "Facial laser treatment in progress",
+    "is_featured": false,
+    "sort_order": 9,
+    "local_path": "live_gallery/gallery_9_Facial Treatment.webp"
+  },
+  {
+    "id": 10,
+    "title": "Body Contouring",
+    "description": "Non-invasive body contouring treatment",
+    "category": "treatments",
+    "alt_text": "Body contouring laser treatment",
+    "is_featured": false,
+    "sort_order": 10,
+    "local_path": "live_gallery/gallery_10_Body Contouring.jpg"
+  }
+]

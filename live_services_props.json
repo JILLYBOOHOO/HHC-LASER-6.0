@@ -1,0 +1,1773 @@
+{
+  "errors": {},
+  "name": "HHC Laser .Co",
+  "phone": "(876) 319-6241",
+  "phoneSecondary": "(876) 631-8134",
+  "seo": {
+    "name_primary": "Havendale Healthcare",
+    "name_brand": "HHC Laser",
+    "name_full": "Havendale Healthcare | HHC Laser",
+    "url": "https://hhclaser.com",
+    "default_description": "Havendale Healthcare (HHC Laser) medspa in Kingston, Jamaica: laser hair removal, Botox, fillers, IV therapy, body contouring, weight loss and skincare.",
+    "default_og_image": "/hhc-logo-pwa.svg",
+    "twitter_handle": null,
+    "locale": "en_US",
+    "social": [
+      "https://instagram.com/hhclaser",
+      "https://tiktok.com/@hhclaser"
+    ]
+  },
+  "quote": {
+    "message": "Because you are alive, everything is possible.",
+    "author": "Thich Nhat Hanh"
+  },
+  "auth": {
+    "user": null
+  },
+  "ziggy": {
+    "url": "https://hhclaser.com",
+    "port": null,
+    "defaults": [],
+    "routes": {
+      "resend.webhook": {
+        "uri": "resend/webhook",
+        "methods": [
+          "POST"
+        ]
+      },
+      "switch-location": {
+        "uri": "api/admin/switch-location",
+        "methods": [
+          "POST"
+        ]
+      },
+      "staff-availability.schedule.store": {
+        "uri": "api/admin/staff-availability/schedule",
+        "methods": [
+          "POST"
+        ]
+      },
+      "staff-availability.schedule.update": {
+        "uri": "api/admin/staff-availability/schedule/{schedule}",
+        "methods": [
+          "PUT"
+        ],
+        "parameters": [
+          "schedule"
+        ],
+        "bindings": {
+          "schedule": "id"
+        }
+      },
+      "staff-availability.schedule.destroy": {
+        "uri": "api/admin/staff-availability/schedule/{schedule}",
+        "methods": [
+          "DELETE"
+        ],
+        "parameters": [
+          "schedule"
+        ],
+        "bindings": {
+          "schedule": "id"
+        }
+      },
+      "staff-availability.schedule.bulk-destroy": {
+        "uri": "api/admin/staff-availability/schedule/bulk-delete",
+        "methods": [
+          "POST"
+        ]
+      },
+      "staff-availability.blocked-time.store": {
+        "uri": "api/admin/staff-availability/blocked-time",
+        "methods": [
+          "POST"
+        ]
+      },
+      "staff-availability.blocked-time.update": {
+        "uri": "api/admin/staff-availability/blocked-time/{id}",
+        "methods": [
+          "PUT"
+        ],
+        "parameters": [
+          "id"
+        ]
+      },
+      "staff-availability.blocked-time.destroy": {
+        "uri": "api/admin/staff-availability/blocked-time/{id}",
+        "methods": [
+          "DELETE"
+        ],
+        "parameters": [
+          "id"
+        ]
+      },
+      "home": {
+        "uri": "/",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "home.v2": {
+        "uri": "v2",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "services": {
+        "uri": "services",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "service.treatments": {
+        "uri": "services/{categoryId}/{categorySlug?}",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "wheres": {
+          "categoryId": "[0-9]+"
+        },
+        "parameters": [
+          "categoryId",
+          "categorySlug"
+        ]
+      },
+      "service.show": {
+        "uri": "service/{serviceId}",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "wheres": {
+          "serviceId": "[0-9]+"
+        },
+        "parameters": [
+          "serviceId"
+        ]
+      },
+      "treatments.bookings": {
+        "uri": "treatments/bookings",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "products": {
+        "uri": "products",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "product.show": {
+        "uri": "product/{productId}",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "wheres": {
+          "productId": "[0-9]+"
+        },
+        "parameters": [
+          "productId"
+        ]
+      },
+      "gallery": {
+        "uri": "gallery",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "about": {
+        "uri": "about",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "locations": {
+        "uri": "locations",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "contact": {
+        "uri": "contact",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "contact.store": {
+        "uri": "contact",
+        "methods": [
+          "POST"
+        ]
+      },
+      "help": {
+        "uri": "help",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "faq": {
+        "uri": "faq",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "privacy": {
+        "uri": "privacy",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "terms": {
+        "uri": "terms",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "accessibility": {
+        "uri": "accessibility",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "refund": {
+        "uri": "refund",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "testimonials": {
+        "uri": "testimonials",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "careers": {
+        "uri": "careers",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "consultation": {
+        "uri": "consultation",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "virtual-tour": {
+        "uri": "virtual-tour",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "sitemap": {
+        "uri": "sitemap",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "sitemap.xml": {
+        "uri": "sitemap.xml",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "booking": {
+        "uri": "booking/{categoryId}/{categorySlug?}",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "wheres": {
+          "categoryId": "[0-9]+"
+        },
+        "parameters": [
+          "categoryId",
+          "categorySlug"
+        ]
+      },
+      "booking.select.slot": {
+        "uri": "booking/select-slot",
+        "methods": [
+          "POST"
+        ]
+      },
+      "booking.available.slots": {
+        "uri": "booking/available-slots",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "booking.location.available.dates": {
+        "uri": "booking/location-available-dates",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "booking.detailed.slot.availability": {
+        "uri": "booking/detailed-slot-availability",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "booking.test.blocked.time": {
+        "uri": "booking/test-blocked-time",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "booking.cart": {
+        "uri": "booking/cart",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "cart.update.info": {
+        "uri": "cart/update-info",
+        "methods": [
+          "POST"
+        ]
+      },
+      "booking.send.confirmation": {
+        "uri": "booking/send-confirmation",
+        "methods": [
+          "POST"
+        ]
+      },
+      "patient.info": {
+        "uri": "patient-info",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "patient.info.submit": {
+        "uri": "patient-info/submit",
+        "methods": [
+          "POST"
+        ]
+      },
+      "patient.info.verify.email": {
+        "uri": "patient-info/verify-email",
+        "methods": [
+          "POST"
+        ]
+      },
+      "patient.info.set.password": {
+        "uri": "patient-info/set-password",
+        "methods": [
+          "POST"
+        ]
+      },
+      "patient.info.complete.appointment": {
+        "uri": "patient-info/complete-appointment",
+        "methods": [
+          "POST"
+        ]
+      },
+      "patient.info.store.session": {
+        "uri": "patient-info/store-session-data",
+        "methods": [
+          "POST"
+        ]
+      },
+      "patient.info.old": {
+        "uri": "patient-info-old",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "patient.store.basic": {
+        "uri": "patient/basic-info",
+        "methods": [
+          "POST"
+        ]
+      },
+      "patient.store.contact": {
+        "uri": "patient/contact-info",
+        "methods": [
+          "POST"
+        ]
+      },
+      "patient.process.payment": {
+        "uri": "patient/payment",
+        "methods": [
+          "POST"
+        ]
+      },
+      "checkout.success": {
+        "uri": "checkout/success/{appointmentUuid?}",
+        "methods": [
+          "GET",
+          "POST",
+          "HEAD"
+        ],
+        "parameters": [
+          "appointmentUuid"
+        ]
+      },
+      "checkout.error": {
+        "uri": "checkout/error/{appointmentUuid?}",
+        "methods": [
+          "GET",
+          "POST",
+          "HEAD"
+        ],
+        "parameters": [
+          "appointmentUuid"
+        ]
+      },
+      "payment": {
+        "uri": "payment",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "confirmation": {
+        "uri": "confirmation/{uuid}",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "parameters": [
+          "uuid"
+        ]
+      },
+      "appointment.result": {
+        "uri": "appointments/id/{uuid}",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "parameters": [
+          "uuid"
+        ]
+      },
+      "kiosk.checkin": {
+        "uri": "kiosk/checkin",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "kiosk.logout": {
+        "uri": "kiosk/logout",
+        "methods": [
+          "POST"
+        ]
+      },
+      "kiosk.validate": {
+        "uri": "kiosk/validate-access",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "kiosk.appointment.lookup": {
+        "uri": "kiosk/appointment/{confirmationNumber}",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "parameters": [
+          "confirmationNumber"
+        ]
+      },
+      "kiosk.appointment.checkin": {
+        "uri": "kiosk/checkin-appointment",
+        "methods": [
+          "POST"
+        ]
+      },
+      "patient.dashboard": {
+        "uri": "patient/dashboard",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "patient.dashboard.appointments": {
+        "uri": "patient/dashboard/appointments",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "patient.dashboard.appointments.show": {
+        "uri": "patient/dashboard/appointments/{uuid}",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "parameters": [
+          "uuid"
+        ]
+      },
+      "patient.dashboard.appointments.cancel": {
+        "uri": "patient/dashboard/appointments/{uuid}/cancel",
+        "methods": [
+          "POST"
+        ],
+        "parameters": [
+          "uuid"
+        ]
+      },
+      "patient.dashboard.appointments.reschedule": {
+        "uri": "patient/dashboard/appointments/{uuid}/reschedule",
+        "methods": [
+          "POST"
+        ],
+        "parameters": [
+          "uuid"
+        ]
+      },
+      "patient.dashboard.profile": {
+        "uri": "patient/dashboard/profile",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "patient.dashboard.profile.update": {
+        "uri": "patient/dashboard/profile",
+        "methods": [
+          "PUT"
+        ]
+      },
+      "patient.dashboard.patient-records": {
+        "uri": "patient/dashboard/patient-records",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "dashboard": {
+        "uri": "dashboard",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "profile.edit": {
+        "uri": "settings/profile",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "profile.update": {
+        "uri": "settings/profile",
+        "methods": [
+          "PATCH"
+        ]
+      },
+      "profile.destroy": {
+        "uri": "settings/profile",
+        "methods": [
+          "DELETE"
+        ]
+      },
+      "password.edit": {
+        "uri": "settings/password",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "password.update": {
+        "uri": "settings/password",
+        "methods": [
+          "PUT"
+        ]
+      },
+      "appearance": {
+        "uri": "settings/appearance",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "register": {
+        "uri": "register",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "login": {
+        "uri": "login",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "password.request": {
+        "uri": "forgot-password",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "password.email": {
+        "uri": "forgot-password",
+        "methods": [
+          "POST"
+        ]
+      },
+      "password.reset": {
+        "uri": "reset-password/{token}",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "parameters": [
+          "token"
+        ]
+      },
+      "password.store": {
+        "uri": "reset-password",
+        "methods": [
+          "POST"
+        ]
+      },
+      "verification.notice": {
+        "uri": "verify-email",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "verification.verify": {
+        "uri": "verify-email/{id}/{hash}",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "parameters": [
+          "id",
+          "hash"
+        ]
+      },
+      "verification.send": {
+        "uri": "email/verification-notification",
+        "methods": [
+          "POST"
+        ]
+      },
+      "password.confirm": {
+        "uri": "confirm-password",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "logout": {
+        "uri": "logout",
+        "methods": [
+          "POST"
+        ]
+      },
+      "admin.": {
+        "uri": "admin/test-schedule-creation",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "admin.dashboard": {
+        "uri": "admin",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "admin.search-appointment": {
+        "uri": "admin/search-appointment",
+        "methods": [
+          "POST"
+        ]
+      },
+      "admin.appointments.index": {
+        "uri": "admin/appointments",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "admin.appointments.show": {
+        "uri": "admin/appointments/{appointment}",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "parameters": [
+          "appointment"
+        ],
+        "bindings": {
+          "appointment": "uuid"
+        }
+      },
+      "admin.appointments.cancel": {
+        "uri": "admin/appointments/{appointment}/cancel",
+        "methods": [
+          "PATCH"
+        ],
+        "parameters": [
+          "appointment"
+        ],
+        "bindings": {
+          "appointment": "uuid"
+        }
+      },
+      "admin.appointments.reschedule": {
+        "uri": "admin/appointments/{appointment}/reschedule",
+        "methods": [
+          "PATCH"
+        ],
+        "parameters": [
+          "appointment"
+        ],
+        "bindings": {
+          "appointment": "uuid"
+        }
+      },
+      "admin.appointments.update-status": {
+        "uri": "admin/appointments/{appointment}/status",
+        "methods": [
+          "PATCH"
+        ],
+        "parameters": [
+          "appointment"
+        ],
+        "bindings": {
+          "appointment": "uuid"
+        }
+      },
+      "admin.appointments.update-admin-notes": {
+        "uri": "admin/appointments/{appointment}/admin-notes",
+        "methods": [
+          "PATCH"
+        ],
+        "parameters": [
+          "appointment"
+        ],
+        "bindings": {
+          "appointment": "uuid"
+        }
+      },
+      "admin.checkin-queue": {
+        "uri": "admin/checkin-queue",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "admin.checkin-queue.data": {
+        "uri": "admin/checkin-queue/data",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "admin.checkin-queue.status": {
+        "uri": "admin/checkin-queue/{appointment}/status",
+        "methods": [
+          "PATCH"
+        ],
+        "parameters": [
+          "appointment"
+        ],
+        "bindings": {
+          "appointment": "uuid"
+        }
+      },
+      "admin.checkin-queue.notes": {
+        "uri": "admin/checkin-queue/{appointment}/notes",
+        "methods": [
+          "PATCH"
+        ],
+        "parameters": [
+          "appointment"
+        ],
+        "bindings": {
+          "appointment": "uuid"
+        }
+      },
+      "admin.transactions.index": {
+        "uri": "admin/transactions",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "admin.transactions.show": {
+        "uri": "admin/transactions/{transaction}",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "parameters": [
+          "transaction"
+        ]
+      },
+      "admin.transactions.update-payment-status": {
+        "uri": "admin/transactions/{transaction}/payment-status",
+        "methods": [
+          "PATCH"
+        ],
+        "parameters": [
+          "transaction"
+        ]
+      },
+      "admin.transactions.upload-receipt": {
+        "uri": "admin/transactions/{transaction}/upload-receipt",
+        "methods": [
+          "POST"
+        ],
+        "parameters": [
+          "transaction"
+        ]
+      },
+      "admin.transactions.mark-paid": {
+        "uri": "admin/transactions/{transaction}/mark-paid",
+        "methods": [
+          "PATCH"
+        ],
+        "parameters": [
+          "transaction"
+        ]
+      },
+      "admin.invoices.index": {
+        "uri": "admin/invoices",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "admin.invoices.create": {
+        "uri": "admin/invoices/create",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "admin.invoices.store": {
+        "uri": "admin/invoices",
+        "methods": [
+          "POST"
+        ]
+      },
+      "admin.invoices.search-users": {
+        "uri": "admin/invoices/search-users",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "admin.invoices.show": {
+        "uri": "admin/invoices/{invoice}",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "parameters": [
+          "invoice"
+        ]
+      },
+      "admin.invoices.edit": {
+        "uri": "admin/invoices/{invoice}/edit",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "parameters": [
+          "invoice"
+        ]
+      },
+      "admin.invoices.update": {
+        "uri": "admin/invoices/{invoice}",
+        "methods": [
+          "PUT"
+        ],
+        "parameters": [
+          "invoice"
+        ]
+      },
+      "admin.invoices.mark-paid": {
+        "uri": "admin/invoices/{invoice}/mark-paid",
+        "methods": [
+          "POST"
+        ],
+        "parameters": [
+          "invoice"
+        ]
+      },
+      "admin.invoices.send-reminder": {
+        "uri": "admin/invoices/{invoice}/send-reminder",
+        "methods": [
+          "POST"
+        ],
+        "parameters": [
+          "invoice"
+        ]
+      },
+      "admin.invoices.download": {
+        "uri": "admin/invoices/{invoice}/download",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "parameters": [
+          "invoice"
+        ]
+      },
+      "admin.invoices.destroy": {
+        "uri": "admin/invoices/{invoice}",
+        "methods": [
+          "DELETE"
+        ],
+        "parameters": [
+          "invoice"
+        ]
+      },
+      "admin.patients.index": {
+        "uri": "admin/patients",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "admin.patients.show": {
+        "uri": "admin/patients/{id}/{slug}",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "wheres": {
+          "id": "[0-9]+",
+          "slug": "[a-z0-9-]+"
+        },
+        "parameters": [
+          "id",
+          "slug"
+        ]
+      },
+      "admin.patients.edit": {
+        "uri": "admin/patients/{id}/{slug}/edit",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "wheres": {
+          "id": "[0-9]+",
+          "slug": "[a-z0-9-]+"
+        },
+        "parameters": [
+          "id",
+          "slug"
+        ]
+      },
+      "admin.patients.update": {
+        "uri": "admin/patients/{id}/{slug}",
+        "methods": [
+          "PUT"
+        ],
+        "wheres": {
+          "id": "[0-9]+",
+          "slug": "[a-z0-9-]+"
+        },
+        "parameters": [
+          "id",
+          "slug"
+        ]
+      },
+      "admin.patients.destroy": {
+        "uri": "admin/patients/{id}/{slug}",
+        "methods": [
+          "DELETE"
+        ],
+        "wheres": {
+          "id": "[0-9]+",
+          "slug": "[a-z0-9-]+"
+        },
+        "parameters": [
+          "id",
+          "slug"
+        ]
+      },
+      "admin.patients.legacy.show": {
+        "uri": "admin/patients/{email}",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "wheres": {
+          "email": "[^/]+"
+        },
+        "parameters": [
+          "email"
+        ]
+      },
+      "admin.kiosks.index": {
+        "uri": "admin/kiosks",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "admin.kiosks.store": {
+        "uri": "admin/kiosks",
+        "methods": [
+          "POST"
+        ]
+      },
+      "admin.kiosks.show": {
+        "uri": "admin/kiosks/{kiosk}",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "parameters": [
+          "kiosk"
+        ],
+        "bindings": {
+          "kiosk": "id"
+        }
+      },
+      "admin.kiosks.update": {
+        "uri": "admin/kiosks/{kiosk}",
+        "methods": [
+          "PUT",
+          "PATCH"
+        ],
+        "parameters": [
+          "kiosk"
+        ],
+        "bindings": {
+          "kiosk": "id"
+        }
+      },
+      "admin.kiosks.destroy": {
+        "uri": "admin/kiosks/{kiosk}",
+        "methods": [
+          "DELETE"
+        ],
+        "parameters": [
+          "kiosk"
+        ],
+        "bindings": {
+          "kiosk": "id"
+        }
+      },
+      "admin.kiosks.regenerate-token": {
+        "uri": "admin/kiosks/{kiosk}/regenerate-token",
+        "methods": [
+          "POST"
+        ],
+        "parameters": [
+          "kiosk"
+        ],
+        "bindings": {
+          "kiosk": "id"
+        }
+      },
+      "admin.kiosks.toggle-status": {
+        "uri": "admin/kiosks/{kiosk}/toggle-status",
+        "methods": [
+          "POST"
+        ],
+        "parameters": [
+          "kiosk"
+        ],
+        "bindings": {
+          "kiosk": "id"
+        }
+      },
+      "admin.patients.legacy.edit": {
+        "uri": "admin/patients/{email}/edit",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "wheres": {
+          "email": "[^/]+"
+        },
+        "parameters": [
+          "email"
+        ]
+      },
+      "admin.users.index": {
+        "uri": "admin/users",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "admin.users.create": {
+        "uri": "admin/users/create",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "admin.users.store": {
+        "uri": "admin/users",
+        "methods": [
+          "POST"
+        ]
+      },
+      "admin.users.show": {
+        "uri": "admin/users/{user}",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "parameters": [
+          "user"
+        ],
+        "bindings": {
+          "user": "id"
+        }
+      },
+      "admin.users.edit": {
+        "uri": "admin/users/{user}/edit",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "parameters": [
+          "user"
+        ],
+        "bindings": {
+          "user": "id"
+        }
+      },
+      "admin.users.update": {
+        "uri": "admin/users/{user}",
+        "methods": [
+          "PUT"
+        ],
+        "parameters": [
+          "user"
+        ],
+        "bindings": {
+          "user": "id"
+        }
+      },
+      "admin.users.destroy": {
+        "uri": "admin/users/{user}",
+        "methods": [
+          "DELETE"
+        ],
+        "parameters": [
+          "user"
+        ],
+        "bindings": {
+          "user": "id"
+        }
+      },
+      "admin.users.roles.update": {
+        "uri": "admin/users/{user}/roles",
+        "methods": [
+          "PATCH"
+        ],
+        "parameters": [
+          "user"
+        ]
+      },
+      "admin.users.permissions.update": {
+        "uri": "admin/users/{user}/permissions",
+        "methods": [
+          "PATCH"
+        ],
+        "parameters": [
+          "user"
+        ]
+      },
+      "admin.roles.index": {
+        "uri": "admin/roles",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "admin.roles.create": {
+        "uri": "admin/roles/create",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "admin.roles.store": {
+        "uri": "admin/roles",
+        "methods": [
+          "POST"
+        ]
+      },
+      "admin.roles.edit": {
+        "uri": "admin/roles/{role}/edit",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "parameters": [
+          "role"
+        ],
+        "bindings": {
+          "role": "id"
+        }
+      },
+      "admin.roles.update": {
+        "uri": "admin/roles/{role}",
+        "methods": [
+          "PUT"
+        ],
+        "parameters": [
+          "role"
+        ],
+        "bindings": {
+          "role": "id"
+        }
+      },
+      "admin.roles.destroy": {
+        "uri": "admin/roles/{role}",
+        "methods": [
+          "DELETE"
+        ],
+        "parameters": [
+          "role"
+        ],
+        "bindings": {
+          "role": "id"
+        }
+      },
+      "admin.staff-availability.index": {
+        "uri": "admin/staff-availability",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "admin.services.index": {
+        "uri": "admin/services",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "admin.services.create": {
+        "uri": "admin/services/create",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "admin.services.store": {
+        "uri": "admin/services",
+        "methods": [
+          "POST"
+        ]
+      },
+      "admin.services.show": {
+        "uri": "admin/services/{service}",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "parameters": [
+          "service"
+        ]
+      },
+      "admin.services.edit": {
+        "uri": "admin/services/{service}/edit",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "parameters": [
+          "service"
+        ]
+      },
+      "admin.services.update": {
+        "uri": "admin/services/{service}",
+        "methods": [
+          "PUT",
+          "PATCH"
+        ],
+        "parameters": [
+          "service"
+        ]
+      },
+      "admin.services.destroy": {
+        "uri": "admin/services/{service}",
+        "methods": [
+          "DELETE"
+        ],
+        "parameters": [
+          "service"
+        ]
+      },
+      "admin.services.gallery.upload": {
+        "uri": "admin/services/{service}/gallery",
+        "methods": [
+          "POST"
+        ],
+        "parameters": [
+          "service"
+        ]
+      },
+      "admin.services.gallery.delete": {
+        "uri": "admin/services/{service}/gallery/{galleryImage}",
+        "methods": [
+          "DELETE"
+        ],
+        "parameters": [
+          "service",
+          "galleryImage"
+        ]
+      },
+      "admin.services.gallery-order": {
+        "uri": "admin/services/{service}/gallery-order",
+        "methods": [
+          "POST"
+        ],
+        "parameters": [
+          "service"
+        ]
+      },
+      "admin.products.index": {
+        "uri": "admin/products",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "admin.products.create": {
+        "uri": "admin/products/create",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "admin.products.store": {
+        "uri": "admin/products",
+        "methods": [
+          "POST"
+        ]
+      },
+      "admin.products.show": {
+        "uri": "admin/products/{product}",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "parameters": [
+          "product"
+        ]
+      },
+      "admin.products.edit": {
+        "uri": "admin/products/{product}/edit",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "parameters": [
+          "product"
+        ]
+      },
+      "admin.products.update": {
+        "uri": "admin/products/{product}",
+        "methods": [
+          "PUT",
+          "PATCH"
+        ],
+        "parameters": [
+          "product"
+        ]
+      },
+      "admin.products.destroy": {
+        "uri": "admin/products/{product}",
+        "methods": [
+          "DELETE"
+        ],
+        "parameters": [
+          "product"
+        ]
+      },
+      "admin.products.gallery.upload": {
+        "uri": "admin/products/{product}/gallery",
+        "methods": [
+          "POST"
+        ],
+        "parameters": [
+          "product"
+        ]
+      },
+      "admin.products.gallery.delete": {
+        "uri": "admin/products/{product}/gallery/{galleryImage}",
+        "methods": [
+          "DELETE"
+        ],
+        "parameters": [
+          "product",
+          "galleryImage"
+        ]
+      },
+      "admin.categories.index": {
+        "uri": "admin/categories",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "admin.categories.create": {
+        "uri": "admin/categories/create",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "admin.categories.store": {
+        "uri": "admin/categories",
+        "methods": [
+          "POST"
+        ]
+      },
+      "admin.categories.show": {
+        "uri": "admin/categories/{category}",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "parameters": [
+          "category"
+        ]
+      },
+      "admin.categories.edit": {
+        "uri": "admin/categories/{category}/edit",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "parameters": [
+          "category"
+        ]
+      },
+      "admin.categories.update": {
+        "uri": "admin/categories/{category}",
+        "methods": [
+          "PUT",
+          "PATCH"
+        ],
+        "parameters": [
+          "category"
+        ]
+      },
+      "admin.categories.destroy": {
+        "uri": "admin/categories/{category}",
+        "methods": [
+          "DELETE"
+        ],
+        "parameters": [
+          "category"
+        ]
+      },
+      "admin.gallery.index": {
+        "uri": "admin/gallery",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "admin.gallery.create": {
+        "uri": "admin/gallery/create",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "admin.gallery.store": {
+        "uri": "admin/gallery",
+        "methods": [
+          "POST"
+        ]
+      },
+      "admin.gallery.show": {
+        "uri": "admin/gallery/{gallery}",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "parameters": [
+          "gallery"
+        ],
+        "bindings": {
+          "gallery": "id"
+        }
+      },
+      "admin.gallery.edit": {
+        "uri": "admin/gallery/{gallery}/edit",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "parameters": [
+          "gallery"
+        ],
+        "bindings": {
+          "gallery": "id"
+        }
+      },
+      "admin.gallery.update": {
+        "uri": "admin/gallery/{gallery}",
+        "methods": [
+          "PUT",
+          "PATCH"
+        ],
+        "parameters": [
+          "gallery"
+        ],
+        "bindings": {
+          "gallery": "id"
+        }
+      },
+      "admin.gallery.destroy": {
+        "uri": "admin/gallery/{gallery}",
+        "methods": [
+          "DELETE"
+        ],
+        "parameters": [
+          "gallery"
+        ],
+        "bindings": {
+          "gallery": "id"
+        }
+      },
+      "admin.maintenance-invoices.index": {
+        "uri": "admin/maintenance-invoices",
+        "methods": [
+          "GET",
+          "HEAD"
+        ]
+      },
+      "admin.maintenance-invoices.show": {
+        "uri": "admin/maintenance-invoices/{maintenanceInvoice}",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "parameters": [
+          "maintenanceInvoice"
+        ],
+        "bindings": {
+          "maintenanceInvoice": "id"
+        }
+      },
+      "admin.maintenance-invoices.update-config": {
+        "uri": "admin/maintenance-invoices/config",
+        "methods": [
+          "POST"
+        ]
+      },
+      "storage.local": {
+        "uri": "storage/{path}",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "wheres": {
+          "path": ".*"
+        },
+        "parameters": [
+          "path"
+        ]
+      }
+    },
+    "location": "https://hhclaser.com/treatments/bookings"
+  },
+  "sidebarOpen": true,
+  "flash": {
+    "success": null,
+    "error": null,
+    "warning": null,
+    "info": null
+  },
+  "categories": [
+    {
+      "id": 11,
+      "name": "BODY CONTOUR",
+      "slug": "body-contour",
+      "formatted_price": "JMD 0.00",
+      "image_url": "https://images.pexels.com/photos/5938272/pexels-photo-5938272.jpeg"
+    },
+    {
+      "id": 21,
+      "name": "BOTOX / DERMAL FILLERS",
+      "slug": "botox-dermal-fillers",
+      "formatted_price": "JMD 0.00",
+      "image_url": "https://images.pexels.com/photos/5938272/pexels-photo-5938272.jpeg"
+    },
+    {
+      "id": 23,
+      "name": "CELLULITE Mini Invasive SKIN TIGHTENING",
+      "slug": "cellulite-mini-invasive-skin-tightening",
+      "formatted_price": "JMD 0.00",
+      "image_url": "https://images.pexels.com/photos/5938272/pexels-photo-5938272.jpeg"
+    },
+    {
+      "id": 2,
+      "name": "DARK SPOTS / LASER RESURFACING",
+      "slug": "dark-spots-laser-resurfacing",
+      "formatted_price": "JMD 0.00",
+      "image_url": "https://images.pexels.com/photos/5938272/pexels-photo-5938272.jpeg"
+    },
+    {
+      "id": 24,
+      "name": "DETOX / HEAT SHOCK",
+      "slug": "detox-heat-shock",
+      "formatted_price": "JMD 0.00",
+      "image_url": "https://images.pexels.com/photos/5938272/pexels-photo-5938272.jpeg"
+    },
+    {
+      "id": 10,
+      "name": "FACIALS",
+      "slug": "facials",
+      "formatted_price": "JMD 0.00",
+      "image_url": "https://images.pexels.com/photos/5938272/pexels-photo-5938272.jpeg"
+    },
+    {
+      "id": 17,
+      "name": "FAT REDUCTION",
+      "slug": "fat-reduction",
+      "formatted_price": "JMD 0.00",
+      "image_url": "https://images.pexels.com/photos/5938272/pexels-photo-5938272.jpeg"
+    },
+    {
+      "id": 25,
+      "name": "FUNGAL  TREATMENT",
+      "slug": "fungal-treatment",
+      "formatted_price": "JMD 0.00",
+      "image_url": "https://images.pexels.com/photos/5938272/pexels-photo-5938272.jpeg"
+    },
+    {
+      "id": 3,
+      "name": "HAIR RESTORATION",
+      "slug": "hair-restoration",
+      "formatted_price": "JMD 0.00",
+      "image_url": "https://images.pexels.com/photos/5938272/pexels-photo-5938272.jpeg"
+    },
+    {
+      "id": 9,
+      "name": "IV THERAPY / VITAL SHOTS",
+      "slug": "iv-therapy-vital-shots",
+      "formatted_price": "JMD 0.00",
+      "image_url": "https://images.pexels.com/photos/5938272/pexels-photo-5938272.jpeg"
+    },
+    {
+      "id": 18,
+      "name": "KELOID TREATMENT",
+      "slug": "keloid-treatment",
+      "formatted_price": "JMD 0.00",
+      "image_url": "https://images.pexels.com/photos/5938272/pexels-photo-5938272.jpeg"
+    },
+    {
+      "id": 1,
+      "name": "LASER HAIR REMOVAL & FOLLICULITIS",
+      "slug": "laser-hair-removal-folliculitis",
+      "formatted_price": "JMD 0.00",
+      "image_url": "https://images.pexels.com/photos/5938272/pexels-photo-5938272.jpeg"
+    },
+    {
+      "id": 13,
+      "name": "MASSAGES",
+      "slug": "massages",
+      "formatted_price": "JMD 0.00",
+      "image_url": "https://images.pexels.com/photos/5938272/pexels-photo-5938272.jpeg"
+    },
+    {
+      "id": 20,
+      "name": "MICRONEEDLING - PRF - PRP",
+      "slug": "microneedling-prf-prp",
+      "formatted_price": "JMD 0.00",
+      "image_url": "https://images.pexels.com/photos/5938272/pexels-photo-5938272.jpeg"
+    },
+    {
+      "id": 22,
+      "name": "NON-SURGICAL BBL CONSULTATION",
+      "slug": "non-surgical-bbl-consultation",
+      "formatted_price": "JMD 0.00",
+      "image_url": "https://images.pexels.com/photos/5938272/pexels-photo-5938272.jpeg"
+    },
+    {
+      "id": 26,
+      "name": "PSEUDOFOLLICULITIS",
+      "slug": "pseudofolliculitis",
+      "formatted_price": "JMD 0.00",
+      "image_url": "https://images.pexels.com/photos/5938272/pexels-photo-5938272.jpeg"
+    },
+    {
+      "id": 16,
+      "name": "SCAR REDUCTION",
+      "slug": "scar-reduction",
+      "formatted_price": "JMD 0.00",
+      "image_url": "https://images.pexels.com/photos/5938272/pexels-photo-5938272.jpeg"
+    },
+    {
+      "id": 15,
+      "name": "SKIN TIGHTENING/CELLULITES",
+      "slug": "skin-tighteningcellulites",
+      "formatted_price": "JMD 0.00",
+      "image_url": "https://images.pexels.com/photos/5938272/pexels-photo-5938272.jpeg"
+    },
+    {
+      "id": 14,
+      "name": "STRETCH MARKS/ COLLAGEN STIMULATION",
+      "slug": "stretch-marks-collagen-stimulation",
+      "formatted_price": "JMD 0.00",
+      "image_url": "https://images.pexels.com/photos/5938272/pexels-photo-5938272.jpeg"
+    },
+    {
+      "id": 12,
+      "name": "TATTOO REMOVAL/ SKIN TAGS",
+      "slug": "tattoo-removal-skin-tags",
+      "formatted_price": "JMD 0.00",
+      "image_url": "https://images.pexels.com/photos/5938272/pexels-photo-5938272.jpeg"
+    },
+    {
+      "id": 19,
+      "name": "WEIGHTLOSS MANAGEMENT",
+      "slug": "weightloss-management",
+      "formatted_price": "JMD 0.00",
+      "image_url": "https://images.pexels.com/photos/5938272/pexels-photo-5938272.jpeg"
+    }
+  ]
+}
