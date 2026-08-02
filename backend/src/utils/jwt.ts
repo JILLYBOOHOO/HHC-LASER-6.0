@@ -1,12 +1,14 @@
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env';
 import { UserRole } from '../models/types';
+import { isSupabaseAuthEnabled } from '../config/supabase';
 
 export interface JwtPayload {
   userId: number;
   email: string;
   roles: UserRole[];
   locationId?: number;
+  authUid?: string;
   iat?: number;
   exp?: number;
 }
@@ -14,6 +16,15 @@ export interface JwtPayload {
 export interface RefreshTokenPayload {
   userId: number;
   tokenVersion: number;
+  iat?: number;
+  exp?: number;
+}
+
+export interface SupabaseJwtPayload {
+  sub: string;
+  email?: string;
+  role?: string;
+  aud?: string | string[];
   iat?: number;
   exp?: number;
 }
@@ -44,6 +55,14 @@ export function verifyRefreshToken(token: string): RefreshTokenPayload {
   return jwt.verify(token, env.JWT_REFRESH_SECRET, {
     issuer: 'hhc-laser-api',
   }) as RefreshTokenPayload;
+}
+
+/** Verify a Supabase-issued access token (HS256 with project JWT secret). */
+export function verifySupabaseAccessToken(token: string): SupabaseJwtPayload {
+  if (!isSupabaseAuthEnabled() || !env.SUPABASE_JWT_SECRET) {
+    throw new jwt.JsonWebTokenError('Supabase Auth is not configured');
+  }
+  return jwt.verify(token, env.SUPABASE_JWT_SECRET) as SupabaseJwtPayload;
 }
 
 export function decodeToken(token: string): JwtPayload | null {

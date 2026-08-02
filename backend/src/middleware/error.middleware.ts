@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '../utils/logger';
 import { errorResponse } from '../models/types';
-import pool from '../config/database';
+import { executeUpdate } from '../config/database';
 
 export class AppError extends Error {
   public statusCode: number;
@@ -47,7 +47,7 @@ export function errorHandler(
 
   // Log to database asynchronously
   const userId = (req as any).user?.userId || null;
-  pool.query(
+  executeUpdate(
     'INSERT INTO error_logs (error_type, message, stack_trace, user_id, endpoint, method, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
     [err.name || 'Error', err.message, err.stack || null, userId, req.originalUrl, req.method, 'open']
   ).catch(dbErr => logger.error('Failed to write error log to DB:', dbErr));

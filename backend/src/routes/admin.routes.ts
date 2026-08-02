@@ -152,7 +152,7 @@ router.get('/users',
 
       let sql = `
         SELECT u.id, u.email, u.first_name, u.last_name, u.phone, u.is_active, u.created_at,
-               GROUP_CONCAT(ur.role ORDER BY ur.role SEPARATOR ',') as roles
+               STRING_AGG(ur.role::text, ',' ORDER BY ur.role::text) as roles
         FROM users u
         LEFT JOIN user_roles ur ON ur.user_id = u.id
       `;
@@ -202,7 +202,7 @@ router.post('/users/:id/roles',
       if (!validRoles.includes(role)) throw new AppError('Invalid role.', 400);
 
       await executeUpdate(
-        'INSERT IGNORE INTO user_roles (user_id, role) VALUES (?, ?)',
+        'INSERT INTO user_roles (user_id, role) VALUES (?, ?) ON CONFLICT DO NOTHING',
         [req.params['id'], role]
       );
       res.json(successResponse(undefined, 'Role assigned.'));

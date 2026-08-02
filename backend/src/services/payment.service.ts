@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { executeQuery, executeQueryOne, executeUpdate, withTransaction } from '../config/database';
 import { generateFiservHmac, validateFiservCallback, getFiservTimestamp, generateIdempotencyKey } from '../utils/hmac';
 import { AppError } from '../middleware/error.middleware';
-import { Transaction, PaymentStatus } from '../models/types';
+import { Transaction, TransactionPaymentStatus } from '../models/types';
 import { env } from '../config/env';
 import { logger } from '../utils/logger';
 import { notificationService } from './notification.service';
@@ -35,9 +35,14 @@ export class PaymentService {
     const chargetotal = dto.amountJmd.toFixed(2);
     const currency = '388'; // JMD ISO 4217 code
 
+    const storeName = env.FISERV_STORE_NAME || env.FISERV_STORE_ID || '';
+    if (!storeName) {
+      throw new AppError('Fiserv store name is not configured.', 500);
+    }
+
     // Generate HMAC signature
     const hash = generateFiservHmac({
-      storeId: env.FISERV_STORE_NAME,
+      storeId: storeName,
       timestamp: txnDatetime,
       token: idempotencyKey,
       txnType: 'sale',
@@ -52,11 +57,14 @@ export class PaymentService {
       [dto.appointmentId || null, dto.customerId, idempotencyKey, dto.amountJmd, dto.description]
     );
 
+    if (result.insertId == null) {
+      throw new AppError('Failed to create payment transaction.', 500);
+    }
     const transactionId = result.insertId;
 
     // Build Fiserv form fields
     const formFields: Record<string, string> = {
-      storename: env.FISERV_STORE_NAME,
+      storename: storeName,
       txndatetime: txnDatetime,
       chargetotal,
       currency,
@@ -129,7 +137,7 @@ export class PaymentService {
       return;
     }
 
-    const paymentStatus: PaymentStatus = status === 'APPROVED' ? 'completed' : 'failed';
+    const paymentStatus: TransactionPaymentStatus = status === 'APPROVED' ? 'completed' : 'failed';
 
     await withTransaction(async (conn) => {
       // Update transaction

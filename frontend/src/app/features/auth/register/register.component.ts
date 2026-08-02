@@ -127,6 +127,10 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
               </button>
               @if (registerForm.get('password')?.hasError('required')) {
                 <mat-error>Please create a password.</mat-error>
+              } @else if (registerForm.get('password')?.hasError('minlength')) {
+                <mat-error>Password must be at least 8 characters.</mat-error>
+              } @else if (registerForm.get('password')?.hasError('pattern')) {
+                <mat-error>Use uppercase, lowercase, and a number.</mat-error>
               }
             </mat-form-field>
 
@@ -222,7 +226,12 @@ export class RegisterComponent {
       email: ['', [Validators.required, Validators.email]],
       phone: ['', Validators.required],
       dateOfBirth: ['', Validators.required],
-      password: ['', [Validators.required, Validators.minLength(8)]],
+      // Must match backend: 8+ chars with uppercase, lowercase, and a number
+      password: ['', [
+        Validators.required,
+        Validators.minLength(8),
+        Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/),
+      ]],
       confirmPassword: ['', Validators.required],
     }, { validators: passwordMatchValidator });
     
@@ -269,7 +278,15 @@ export class RegisterComponent {
       },
       error: (err) => {
         this.isLoading.set(false);
-        this.snackBar.open(err.error?.message || 'Registration failed.', 'OK', { duration: 4000 });
+        const fieldErrors = err.error?.errors as Record<string, string[]> | undefined;
+        const firstFieldMsg = fieldErrors
+          ? Object.values(fieldErrors).flat()[0]
+          : undefined;
+        this.snackBar.open(
+          firstFieldMsg || err.error?.message || 'Registration failed.',
+          'OK',
+          { duration: 5000 }
+        );
       }
     });
   }

@@ -43,22 +43,7 @@ export class AuthService {
         }
       }),
       map(res => res.data!.user),
-      catchError(() => {
-        // Fallback for demo resilience when backend API is offline
-        const mockUser: User = {
-          id: Math.floor(Math.random() * 1000) + 10,
-          email: dto.email,
-          first_name: dto.first_name,
-          last_name: dto.last_name,
-          phone: dto.phone,
-          date_of_birth: dto.date_of_birth,
-          roles: ['customer'],
-          is_active: true,
-          created_at: new Date().toISOString()
-        };
-        this.authState.setAuth(mockUser, 'demo-customer-token');
-        return of(mockUser);
-      })
+      catchError(err => throwError(() => err))
     );
   }
 

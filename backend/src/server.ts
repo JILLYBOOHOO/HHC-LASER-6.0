@@ -133,6 +133,15 @@ app.use(errorHandler);
 async function bootstrap(): Promise<void> {
   try {
     await testConnection();
+
+    // Phase 3: ensure Supabase Storage buckets exist (no-op if not configured)
+    try {
+      const { storageService } = await import('./services/storage.service');
+      await storageService.ensureBuckets();
+    } catch (err) {
+      logger.warn('Storage bucket bootstrap skipped/failed:', err);
+    }
+
     startDraftCleanupJob();
 
     const server = app.listen(env.PORT, () => {

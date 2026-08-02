@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import pool from '../config/database';
+import { executeQuery, executeUpdate, withTransaction } from '../config/database';
 import { authenticate } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/rbac.middleware';
 
@@ -8,8 +8,8 @@ const router = Router();
 // GET /api/homepage
 router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
-    const [rows] = await pool.query<any[]>(
-      'SELECT id, section_type, display_order, is_active, config_json FROM homepage_sections WHERE is_active = 1 ORDER BY display_order ASC'
+    const rows = await executeQuery(
+      'SELECT id, section_type, display_order, is_active, config_json FROM homepage_sections WHERE is_active = TRUE ORDER BY display_order ASC'
     );
     res.json({ success: true, data: rows });
   } catch (error) {
@@ -21,7 +21,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 // GET /api/homepage/all (Admin)
 router.get('/all', authenticate, requireRole('admin', 'owner', 'developer'), async (req: Request, res: Response): Promise<void> => {
   try {
-    const [rows] = await pool.query<any[]>(
+    const rows = await executeQuery(
       'SELECT id, section_type, display_order, is_active, config_json FROM homepage_sections ORDER BY display_order ASC'
     );
     res.json({ success: true, data: rows });
@@ -34,26 +34,20 @@ router.get('/all', authenticate, requireRole('admin', 'owner', 'developer'), asy
 // PUT /api/homepage/reorder (Admin)
 router.put('/reorder', authenticate, requireRole('admin', 'owner', 'developer'), async (req: Request, res: Response): Promise<void> => {
   const { items } = req.body; // Array of { id, display_order }
-  const connection = await pool.getConnection();
-  
+
   try {
-    await connection.beginTransaction();
-    
-    for (const item of items) {
-      await connection.query(
-        'UPDATE homepage_sections SET display_order = ? WHERE id = ?',
-        [item.display_order, item.id]
-      );
-    }
-    
-    await connection.commit();
+    await withTransaction(async (conn) => {
+      for (const item of items) {
+        await conn.execute(
+          'UPDATE homepage_sections SET display_order = ? WHERE id = ?',
+          [item.display_order, item.id]
+        );
+      }
+    });
     res.json({ success: true, message: 'Sections reordered successfully' });
   } catch (error) {
-    await connection.rollback();
     console.error('Error reordering homepage sections:', error);
     res.status(500).json({ success: false, message: 'Server error reordering homepage sections' });
-  } finally {
-    connection.release();
   }
 });
 
@@ -61,7 +55,7 @@ router.put('/reorder', authenticate, requireRole('admin', 'owner', 'developer'),
 router.post('/', authenticate, requireRole('admin', 'owner', 'developer'), async (req: Request, res: Response): Promise<void> => {
   const { section_type, display_order, is_active, config_json } = req.body;
   try {
-    const [result] = await pool.query<any>(
+    const result = await executeUpdate(
       'INSERT INTO homepage_sections (section_type, display_order, is_active, config_json) VALUES (?, ?, ?, ?)',
       [section_type, display_order, is_active, JSON.stringify(config_json || {})]
     );
@@ -76,9 +70,9 @@ router.post('/', authenticate, requireRole('admin', 'owner', 'developer'), async
 router.put('/:id', authenticate, requireRole('admin', 'owner', 'developer'), async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   const { section_type, display_order, is_active, config_json } = req.body;
-  
+
   try {
-    await pool.query(
+    await executeUpdate(
       'UPDATE homepage_sections SET section_type = ?, display_order = ?, is_active = ?, config_json = ? WHERE id = ?',
       [section_type, display_order, is_active, JSON.stringify(config_json || {}), id]
     );
@@ -93,7 +87,7 @@ router.put('/:id', authenticate, requireRole('admin', 'owner', 'developer'), asy
 router.delete('/:id', authenticate, requireRole('admin', 'owner', 'developer'), async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   try {
-    await pool.query('DELETE FROM homepage_sections WHERE id = ?', [id]);
+    await executeUpdate('DELETE FROM homepage_sections WHERE id = ?', [id]);
     res.json({ success: true, message: 'Section deleted successfully' });
   } catch (error) {
     console.error('Error deleting homepage section:', error);

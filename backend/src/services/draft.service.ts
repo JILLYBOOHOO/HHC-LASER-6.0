@@ -121,7 +121,7 @@ class DraftService {
   // ─── Cron: delete drafts older than 30 days ─────────────────────────────────
   async deleteExpiredDrafts(): Promise<number> {
     const result = await executeUpdate(
-      `DELETE FROM booking_drafts WHERE updated_at < NOW() - INTERVAL 30 DAY`
+      `DELETE FROM booking_drafts WHERE updated_at < NOW() - INTERVAL '30 days'`
     );
     logger.info(`[DraftService] Expired drafts cleaned up: ${result.affectedRows} removed`);
     return result.affectedRows;
