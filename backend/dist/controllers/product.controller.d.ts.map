@@ -1,0 +1,1 @@
+{"version":3,"file":"product.controller.d.ts","sourceRoot":"","sources":["../../src/controllers/product.controller.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,OAAO,EAAE,QAAQ,EAAE,MAAM,SAAS,CAAC;AAG5C,eAAO,MAAM,iBAAiB;wBAEF,OAAO,OAAO,QAAQ;0BAiBpB,OAAO,OAAO,QAAQ;uBAuBzB,OAAO,OAAO,QAAQ;uBAatB,OAAO,OAAO,QAAQ;uBAkBtB,OAAO,OAAO,QAAQ;uBAqBtB,OAAO,OAAO,QAAQ;CAUhD,CAAC"}

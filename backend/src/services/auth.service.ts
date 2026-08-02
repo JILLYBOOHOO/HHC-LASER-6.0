@@ -5,6 +5,7 @@ import { executeQuery, executeQueryOne, executeUpdate, withTransaction } from '.
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt';
 import { AppError } from '../middleware/error.middleware';
 import { CreateUserDto, User, UserWithRoles, UserRole } from '../models/types';
+import { notificationService } from './notification.service';
 import { logger } from '../utils/logger';
 
 const SALT_ROUNDS = 12;
@@ -55,7 +56,7 @@ export class AuthService {
     if (!user) throw new AppError('Failed to create account.', 500);
 
     const tokens = this.generateTokens(user);
-    logger.info(`[Auth] New user registered: ${user.email} (ID: ${userId!})`);
+    notificationService.sendWelcomeEmail({ email: user.email, first_name: user.first_name });
     const { password_hash, ...safeUser } = user;
     return { ...tokens, user: safeUser };
   }

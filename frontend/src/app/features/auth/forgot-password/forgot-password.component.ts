@@ -27,14 +27,14 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
       <div class="relative w-full max-w-md animate-fade-up">
         <div class="text-center mb-10">
           <a routerLink="/" class="inline-block">
-            <div class="font-heading text-4xl text-white mb-1">HHC LASER</div>
+            <div class="font-heading text-4xl text-black mb-1">HHC LASER</div>
             <div class="text-gold-500 text-xs tracking-widest uppercase">Jamaica's Premier MedSpa</div>
           </a>
         </div>
 
         <div class="glass rounded-2xl p-8 md:p-10">
-          <h2 class="text-white text-2xl font-heading font-light mb-2">Forgot Password?</h2>
-          <p class="text-cream-400 text-sm mb-8">Enter your email address and we will send you a link to reset your password.</p>
+          <h2 class="text-black text-2xl font-heading font-light mb-2">Forgot Password?</h2>
+          <p class="text-neutral-600 text-sm mb-8">Enter your email address and we will send you a link to reset your password.</p>
 
           <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-5">
             <mat-form-field appearance="outline" class="w-full form-field-dark">
@@ -55,7 +55,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
             </button>
           </form>
 
-          <div class="mt-8 text-center border-t border-white/10 pt-6">
+          <div class="mt-8 text-center border-t border-black/10 pt-6">
             <a routerLink="/auth/login" class="text-gold-400 hover:text-gold-300 font-medium transition-colors flex items-center justify-center gap-1">
               <mat-icon class="!text-sm">arrow_back</mat-icon> Back to Login
             </a>
@@ -68,7 +68,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
     ::ng-deep .form-field-dark .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__leading,
     ::ng-deep .form-field-dark .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__notch,
     ::ng-deep .form-field-dark .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__trailing {
-      border-color: rgba(255,255,255,0.15) !important;
+      border-color: rgba(0,0,0,0.15) !important;
     }
     ::ng-deep .mat-mdc-form-field label { color: rgba(248,245,240,0.6); }
     ::ng-deep .mat-mdc-form-field input { color: white; }

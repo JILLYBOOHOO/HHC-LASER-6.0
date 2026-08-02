@@ -54,6 +54,10 @@ export class ApiService {
     return this.http.get<ApiResponse<EmployeeSchedule[]>>(`${this.base}/employees/${employeeId}/schedule`);
   }
 
+  getEmployeePhotos(employeeId: number): Observable<ApiResponse<any[]>> {
+    return this.http.get<ApiResponse<any[]>>(`${this.base}/employees/${employeeId}/photos`);
+  }
+
   getAvailableSlots(employeeId: number, locationId: number, date: string, duration: number): Observable<ApiResponse<string[]>> {
     const params = new HttpParams()
       .set('employee_id', employeeId)
@@ -73,6 +77,10 @@ export class ApiService {
     return this.http.get<ApiResponse<Appointment[]>>(`${this.base}/bookings/my`, { params });
   }
 
+  getBookingById(id: number): Observable<ApiResponse<Appointment>> {
+    return this.http.get<ApiResponse<Appointment>>(`${this.base}/bookings/${id}`);
+  }
+
   getEmployeeBookings(employeeId: number, date?: string): Observable<ApiResponse<Appointment[]>> {
     const params = date ? new HttpParams().set('date', date) : undefined;
     return this.http.get<ApiResponse<Appointment[]>>(`${this.base}/bookings/employee/${employeeId}`, { params });
@@ -82,7 +90,62 @@ export class ApiService {
     return this.http.patch<ApiResponse>(`${this.base}/bookings/${appointmentId}/status`, { status, notes });
   }
 
+  mockPayment(appointmentId: number): Observable<ApiResponse> {
+    return this.http.post<ApiResponse>(`${this.base}/bookings/${appointmentId}/mock-payment`, {});
+  }
+
+  getAvailableDates(employeeId: number, locationId: number, serviceId: number, year: number, month: number): Observable<ApiResponse<string[]>> {
+    const params = new HttpParams()
+      .set('employee_id', employeeId)
+      .set('location_id', locationId)
+      .set('service_id', serviceId)
+      .set('year', year)
+      .set('month', month);
+    return this.http.get<ApiResponse<string[]>>(`${this.base}/bookings/available-dates`, { params });
+  }
+
+  // Admin Availability Management API calls
+  getBlockedDates(): Observable<ApiResponse<any[]>> {
+    return this.http.get<ApiResponse<any[]>>(`${this.base}/bookings/admin/blocked-dates`);
+  }
+
+  addBlockedDate(blockedDate: string, reason: string): Observable<ApiResponse> {
+    return this.http.post<ApiResponse>(`${this.base}/bookings/admin/blocked-dates`, { blocked_date: blockedDate, reason });
+  }
+
+  deleteBlockedDate(blockedDate: string): Observable<ApiResponse> {
+    return this.http.delete<ApiResponse>(`${this.base}/bookings/admin/blocked-dates/${blockedDate}`);
+  }
+
+  getBusinessHours(locationId: number): Observable<ApiResponse<any[]>> {
+    const params = new HttpParams().set('location_id', locationId);
+    return this.http.get<ApiResponse<any[]>>(`${this.base}/bookings/admin/business-hours`, { params });
+  }
+
+  updateBusinessHours(locationId: number, dayOfWeek: number, openTime: string, closeTime: string, isClosed: boolean): Observable<ApiResponse> {
+    return this.http.put<ApiResponse>(`${this.base}/bookings/admin/business-hours`, {
+      location_id: locationId,
+      day_of_week: dayOfWeek,
+      open_time: openTime,
+      close_time: closeTime,
+      is_closed: isClosed
+    });
+  }
+
   // ─── Payments ───────────────────────────────────────────────────────────────
+  createCheckoutSession(appointmentId: number): Observable<ApiResponse<{ idempotencyKey: string; redirectUrl: string; formFields: Record<string, string> }>> {
+    return this.http.post<ApiResponse<{ idempotencyKey: string; redirectUrl: string; formFields: Record<string, string> }>>(`${this.base}/payments/create-checkout`, { appointment_id: appointmentId });
+  }
+
+  /** Creates a Fiserv HPP session directly without requiring a DB appointment record. */
+  createDirectCheckout(amountJmd: number, description: string, orderRef?: string): Observable<ApiResponse<{ idempotencyKey: string; redirectUrl: string; formFields: Record<string, string> }>> {
+    return this.http.post<ApiResponse<{ idempotencyKey: string; redirectUrl: string; formFields: Record<string, string> }>>(`${this.base}/payments/create-direct-checkout`, {
+      amount_jmd: amountJmd,
+      description,
+      order_ref: orderRef,
+    });
+  }
+
   getPaymentStatus(key: string): Observable<ApiResponse<Transaction>> {
     return this.http.get<ApiResponse<Transaction>>(`${this.base}/payments/status/${key}`);
   }
@@ -133,6 +196,20 @@ export class ApiService {
     let params = new HttpParams().set('page', page).set('limit', limit);
     if (search) params = params.set('search', search);
     return this.http.get<ApiResponse<any[]>>(`${this.base}/admin/customers`, { params });
+  }
+
+  getAdminUsers(page = 1, limit = 20, search?: string): Observable<ApiResponse<any[]>> {
+    let params = new HttpParams().set('page', page).set('limit', limit);
+    if (search) params = params.set('search', search);
+    return this.http.get<ApiResponse<any[]>>(`${this.base}/admin/users`, { params });
+  }
+
+  updateUserStatus(userId: number, isActive: boolean): Observable<ApiResponse> {
+    return this.http.patch<ApiResponse>(`${this.base}/admin/users/${userId}/status`, { is_active: isActive });
+  }
+
+  assignUserRole(userId: number, role: string): Observable<ApiResponse> {
+    return this.http.post<ApiResponse>(`${this.base}/admin/users/${userId}/roles`, { role });
   }
 
   getRevenueReport(from?: string, to?: string, locationId?: number): Observable<ApiResponse<any>> {

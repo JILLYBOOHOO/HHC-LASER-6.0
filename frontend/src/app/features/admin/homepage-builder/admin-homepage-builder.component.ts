@@ -22,10 +22,10 @@ interface HomepageSection {
     <div class="p-8 max-w-4xl mx-auto">
       <div class="flex justify-between items-center mb-8">
         <div>
-          <h1 class="text-3xl font-heading text-charcoal-900 mb-2">Homepage Builder</h1>
+          <h1 class="text-3xl font-heading text-white mb-2">Homepage Builder</h1>
           <p class="text-charcoal-500">Drag and drop sections to rearrange your live homepage.</p>
         </div>
-        <button mat-flat-button class="!bg-gold-500 !text-white" (click)="saveOrder()" [disabled]="saving()">
+        <button mat-flat-button class="!bg-gold-500 !text-black" (click)="saveOrder()" [disabled]="saving()">
           {{ saving() ? 'Saving...' : 'Save Layout' }}
         </button>
       </div>
@@ -43,7 +43,7 @@ interface HomepageSection {
               
               <!-- Section Info -->
               <div class="flex-1">
-                <div class="font-medium text-charcoal-900 capitalize text-lg">
+                <div class="font-medium text-white capitalize text-lg">
                   {{ section.section_type.replace('_', ' ') }}
                 </div>
                 <div class="text-xs text-charcoal-400 mt-1">ID: {{ section.id }} | Status: {{ section.is_active ? 'Active' : 'Hidden' }}</div>

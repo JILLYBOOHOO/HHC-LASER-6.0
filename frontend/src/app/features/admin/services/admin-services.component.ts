@@ -1,95 +1,99 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatTableModule } from '@angular/material/table';
-import { MatButtonModule } from '@angular/material/button';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { ApiService } from '../../../core/services/api.service';
-import { Service, ServiceCategory } from '../../../core/models/models';
+import { MatButtonModule } from '@angular/material/button';
+import { ServicesManagementService, TreatmentItem } from '../../../core/services/services-management.service';
+
+
 
 @Component({
   selector: 'app-admin-services',
   standalone: true,
-  imports: [
-    CommonModule, ReactiveFormsModule, MatTableModule, MatButtonModule, 
-    MatIconModule, MatInputModule, MatFormFieldModule, MatSelectModule, MatSlideToggleModule
-  ],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatIconModule, MatButtonModule],
   template: `
-    <div class="p-8 max-w-7xl mx-auto">
+    <div class="p-6 max-w-7xl mx-auto space-y-6 font-sans">
       
-      <div class="flex justify-between items-center mb-8">
+      <!-- Top Title & Action -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 class="text-3xl font-heading text-charcoal-900 mb-2">Manage Services</h1>
-          <p class="text-charcoal-500">Add, edit, or remove treatments and manage featured items.</p>
+          <h1 class="text-3xl font-black text-slate-900 tracking-tight">Services & Treatments</h1>
+          <p class="text-xs font-bold text-slate-500 mt-1">Add, edit, or remove treatments and manage featured items.</p>
         </div>
-        <button mat-flat-button class="!bg-gold-500 !text-white hover:!bg-gold-600" (click)="openAddForm()">
-          <mat-icon>add</mat-icon> Add Treatment
+        <button (click)="openAddForm()" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-900 font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center gap-1.5 self-start sm:self-auto border border-amber-400">
+          <mat-icon class="!text-lg">add_circle</mat-icon>
+          <span>+ Add Treatment</span>
         </button>
       </div>
 
-      <!-- Form Area -->
+      <!-- Add / Edit Treatment Form -->
       @if (showForm()) {
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-cream-200 mb-8">
-          <h2 class="text-xl font-heading text-charcoal-800 mb-6">{{ isEditing() ? 'Edit Treatment' : 'New Treatment' }}</h2>
-          <form [formGroup]="serviceForm" (ngSubmit)="onSubmit()">
+        <div class="bg-white rounded-3xl border-2 border-slate-300 p-6 md:p-8 shadow-xl space-y-6 animate-fade-up">
+          <div class="flex items-center justify-between border-b-2 border-slate-100 pb-4">
+            <h2 class="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <mat-icon class="text-amber-500">spa</mat-icon>
+              <span>{{ isEditing() ? 'Edit Treatment' : 'New Treatment' }}</span>
+            </h2>
+            <button (click)="closeForm()" class="p-1 hover:bg-slate-100 rounded-full text-slate-500"><mat-icon>close</mat-icon></button>
+          </div>
+
+          <form [formGroup]="serviceForm" (ngSubmit)="onSubmit()" class="space-y-4">
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Treatment Name</mat-label>
-                <input matInput formControlName="name" placeholder="Full Abdomen" />
-              </mat-form-field>
+              <div>
+                <label class="text-xs font-extrabold text-slate-900 uppercase tracking-wider block mb-1">Treatment Name *</label>
+                <input type="text" formControlName="name" placeholder="Full Abdomen Laser" class="w-full px-4 py-2.5 bg-slate-50 border-2 border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-slate-800">
+              </div>
               
-              <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Slug (URL)</mat-label>
-                <input matInput formControlName="slug" placeholder="full-abdomen" />
-              </mat-form-field>
+              <div>
+                <label class="text-xs font-extrabold text-slate-900 uppercase tracking-wider block mb-1">Category *</label>
+                <select formControlName="category" class="w-full px-4 py-2.5 bg-slate-50 border-2 border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-slate-800">
+                  <option value="Laser Hair Removal">Laser Hair Removal</option>
+                  <option value="Facial Treatments">Facial Treatments</option>
+                  <option value="Chemical Peels">Chemical Peels</option>
+                  <option value="Body Contouring">Body Contouring</option>
+                </select>
+              </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Category</mat-label>
-                <mat-select formControlName="category_id">
-                  @for (cat of categories(); track cat.id) {
-                    <mat-option [value]="cat.id">{{ cat.name }}</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="text-xs font-extrabold text-slate-900 uppercase tracking-wider block mb-1">Price (JMD J$) *</label>
+                <input type="number" formControlName="price_jmd" placeholder="18000" class="w-full px-4 py-2.5 bg-slate-50 border-2 border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-slate-800">
+              </div>
               
-              <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Image URL</mat-label>
-                <input matInput formControlName="thumbnail_url" placeholder="https://..." />
-              </mat-form-field>
+              <div>
+                <label class="text-xs font-extrabold text-slate-900 uppercase tracking-wider block mb-1">Duration (minutes) *</label>
+                <input type="number" formControlName="duration_minutes" placeholder="30" class="w-full px-4 py-2.5 bg-slate-50 border-2 border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-slate-800">
+              </div>
+
+              <div>
+                 <label class="text-xs font-extrabold text-slate-900 uppercase tracking-wider block mb-1">Thumbnail Image</label>
+                 <input type="file" (change)="onFileSelected($event)" accept="image/*" class="w-full" />
+                 <div *ngIf="imagePreview" class="mt-2"><img [src]="imagePreview" alt="Preview" class="w-20 h-20 rounded-md object-cover" /></div>
+              </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Price (JMD)</mat-label>
-                <input matInput type="number" formControlName="price_jmd" placeholder="18000" />
-              </mat-form-field>
-              
-              <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Duration (mins)</mat-label>
-                <input matInput type="number" formControlName="duration_minutes" placeholder="15" />
-              </mat-form-field>
+            <div>
+              <label class="text-xs font-extrabold text-slate-900 uppercase tracking-wider block mb-1">Description</label>
+              <textarea formControlName="description" rows="3" placeholder="Enter treatment procedure details and recommendations..." class="w-full px-4 py-2.5 bg-slate-50 border-2 border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-slate-800"></textarea>
             </div>
 
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Description</mat-label>
-              <textarea matInput formControlName="description" rows="3" placeholder="Treatment details..."></textarea>
-            </mat-form-field>
+            <div class="flex items-center gap-6 pt-2">
+              <label class="flex items-center gap-2 cursor-pointer text-xs font-extrabold text-slate-900">
+                <input type="checkbox" formControlName="is_featured" class="w-4 h-4 rounded border-slate-400 text-amber-600 focus:ring-0">
+                <span>Featured on Homepage</span>
+              </label>
 
-            <div class="flex gap-8 mb-6">
-              <mat-slide-toggle formControlName="is_featured" color="primary">Featured on Homepage</mat-slide-toggle>
-              <mat-slide-toggle formControlName="is_active" color="primary">Active</mat-slide-toggle>
+              <label class="flex items-center gap-2 cursor-pointer text-xs font-extrabold text-slate-900">
+                <input type="checkbox" formControlName="is_active" class="w-4 h-4 rounded border-slate-400 text-amber-600 focus:ring-0">
+                <span>Active Status</span>
+              </label>
             </div>
 
-            <div class="flex justify-end gap-3">
-              <button type="button" mat-stroked-button (click)="closeForm()">Cancel</button>
-              <button type="submit" mat-flat-button class="!bg-charcoal-900 !text-white" [disabled]="serviceForm.invalid">
+            <div class="flex justify-end gap-3 pt-4 border-t-2 border-slate-100">
+              <button type="button" (click)="closeForm()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl">Cancel</button>
+              <button type="submit" [disabled]="serviceForm.invalid" class="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-black font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md disabled:opacity-50">
                 Save Treatment
               </button>
             </div>
@@ -97,162 +101,167 @@ import { Service, ServiceCategory } from '../../../core/models/models';
         </div>
       }
 
-      <!-- Table -->
-      <div class="bg-white rounded-2xl shadow-sm border border-cream-200 overflow-hidden">
-        <table mat-table [dataSource]="services()" class="w-full">
-          
-          <ng-container matColumnDef="image">
-            <th mat-header-cell *matHeaderCellDef class="w-16"></th>
-            <td mat-cell *matCellDef="let s">
-              <img [src]="s.thumbnail_url || 'https://source.unsplash.com/800x600/?spa'" class="w-10 h-10 rounded-lg object-cover bg-charcoal-50" />
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef>Treatment</th>
-            <td mat-cell *matCellDef="let s">
-              <div class="font-medium text-charcoal-900">{{ s.name }}</div>
-              <div class="text-xs text-charcoal-400">{{ s.category_name }}</div>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="price">
-            <th mat-header-cell *matHeaderCellDef>Price</th>
-            <td mat-cell *matCellDef="let s" class="text-charcoal-600">J$ {{ s.price_jmd | number:'1.2-2' }}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="duration">
-            <th mat-header-cell *matHeaderCellDef>Duration</th>
-            <td mat-cell *matCellDef="let s" class="text-charcoal-600">{{ s.duration_minutes }} mins</td>
-          </ng-container>
-
-          <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef>Status</th>
-            <td mat-cell *matCellDef="let s">
-              @if(s.is_featured) { <mat-icon class="!text-gold-500 !text-sm !w-4 !h-4" title="Featured">star</mat-icon> }
-              @if(!s.is_active) { <span class="text-xs text-red-500 ml-1">Inactive</span> }
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef class="text-right">Actions</th>
-            <td mat-cell *matCellDef="let s" class="text-right">
-              <button mat-icon-button class="!text-charcoal-400 hover:!text-gold-600" (click)="openEditForm(s)">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button mat-icon-button class="!text-charcoal-400 hover:!text-red-600" (click)="deleteService(s.id)">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="hover:bg-cream-50 transition-colors"></tr>
-        </table>
-        
-        @if (services().length === 0 && !loading()) {
-          <div class="p-8 text-center text-charcoal-400">
-            No treatments found. Click "Add Treatment" to create one.
-          </div>
-        }
+      <!-- Services Data Table Card -->
+      <div class="bg-white rounded-3xl border-2 border-slate-200 shadow-md overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse min-w-[800px]">
+            <thead>
+              <tr class="border-b-2 border-slate-200 text-xs font-black text-slate-900 uppercase tracking-wider bg-slate-100/80">
+                <th class="py-4 px-4 w-16 text-center">Image</th>
+                <th class="py-4 px-6">Treatment</th>
+                <th class="py-4 px-6">Price</th>
+                <th class="py-4 px-6">Duration</th>
+                <th class="py-4 px-6">Status</th>
+                <th class="py-4 px-6 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y border-slate-100 text-xs font-medium text-slate-800">
+              @for (s of (services$ | async) || []; track s.id) {
+                <tr class="hover:bg-slate-50 transition-colors">
+                  <td class="py-3 px-4 text-center">
+                    <img loading="lazy" [src]="s.thumbnail_url" class="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-xs mx-auto">
+                  </td>
+                  <td class="py-3 px-6">
+                    <div class="font-black text-slate-900 text-sm">{{ s.name }}</div>
+                    <div class="text-xs font-bold text-slate-500 mt-0.5">{{ s.category }}</div>
+                  </td>
+                  <td class="py-3 px-6 font-black text-slate-900 text-sm">J$ {{ s.price_jmd | number:'1.2-2' }}</td>
+                  <td class="py-3 px-6 font-black text-slate-900 text-sm">{{ s.duration_minutes }} mins</td>
+                  <td class="py-3 px-6">
+                    <div class="flex items-center gap-1.5">
+                      @if (s.is_featured) {
+                        <span class="px-2 py-0.5 bg-amber-100 text-amber-900 font-extrabold text-[10px] rounded-full border border-amber-300 flex items-center gap-0.5">
+                          <mat-icon class="!text-[11px]">star</mat-icon>
+                          <span>Featured</span>
+                        </span>
+                      }
+                      @if (s.is_active) {
+                        <span class="px-2 py-0.5 bg-teal-100 text-teal-900 font-extrabold text-[10px] rounded-full border border-teal-300">Active</span>
+                      } @else {
+                        <span class="px-2 py-0.5 bg-slate-100 text-slate-600 font-extrabold text-[10px] rounded-full border border-slate-300">Inactive</span>
+                      }
+                    </div>
+                  </td>
+                  <td class="py-3 px-6 text-center">
+                    <div class="flex items-center justify-center gap-1">
+                      <button (click)="openEditForm(s)" title="Edit Treatment" class="p-1.5 hover:bg-slate-100 rounded-lg text-blue-600">
+                        <mat-icon class="!text-lg">edit</mat-icon>
+                      </button>
+                      <button (click)="deleteService(s.id)" title="Delete Treatment" class="p-1.5 hover:bg-slate-100 rounded-lg text-rose-600">
+                        <mat-icon class="!text-lg">delete_outline</mat-icon>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </div>
 
     </div>
   `
 })
-export class AdminServicesComponent implements OnInit {
-  private api = inject(ApiService);
-  private fb = inject(FormBuilder);
-
-  displayedColumns = ['image', 'name', 'price', 'duration', 'status', 'actions'];
-  
-  services = signal<Service[]>([]);
-  categories = signal<ServiceCategory[]>([]);
-  
+export class AdminServicesComponent {
   showForm = signal(false);
   isEditing = signal(false);
+  imagePreview: string | null = null;
+  services$: any;
   currentServiceId = signal<number | null>(null);
-  loading = signal(true);
-  
+
   serviceForm: FormGroup;
 
-  constructor() {
+  // Services are loaded via ServicesManagementService; static sample data removed.
+
+  constructor(private fb: FormBuilder, private servicesService: ServicesManagementService) {
+    this.services$ = this.servicesService.services$;
     this.serviceForm = this.fb.group({
       name: ['', Validators.required],
-      slug: ['', Validators.required],
-      category_id: ['', Validators.required],
+      category: ['Laser Hair Removal', Validators.required],
+      price_jmd: [18000, Validators.required],
+      duration_minutes: [30, Validators.required],
+      thumbnail_url: [''], // will be set after upload or preview
+      thumbnail_file: [null],
       description: [''],
-      price_jmd: ['', Validators.required],
-      duration_minutes: [15, Validators.required],
-      thumbnail_url: [''],
-      is_featured: [false],
+      is_featured: [true],
       is_active: [true]
     });
   }
 
-  ngOnInit() {
-    this.loadData();
-  }
-
-  loadData() {
-    this.loading.set(true);
-    
-    this.api.getServiceCategories().subscribe({
-      next: (res) => { if (res.success && res.data) this.categories.set(res.data); }
-    });
-
-    this.api.getServices().subscribe({
-      next: (res) => {
-        if (res.success && res.data) this.services.set(res.data);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false)
-    });
-  }
-
-  openAddForm() {
-    this.isEditing.set(false);
-    this.currentServiceId.set(null);
-    this.serviceForm.reset({ duration_minutes: 15, is_featured: false, is_active: true });
-    this.showForm.set(true);
-  }
-
-  openEditForm(service: Service) {
-    this.isEditing.set(true);
-    this.currentServiceId.set(service.id);
-    this.serviceForm.patchValue(service);
-    this.showForm.set(true);
-  }
-
-  closeForm() {
-    this.showForm.set(false);
-  }
-
-  onSubmit() {
-    if (this.serviceForm.valid) {
-      if (this.isEditing() && this.currentServiceId()) {
-        this.api.updateService(this.currentServiceId()!, this.serviceForm.value).subscribe({
-          next: () => {
-            this.closeForm();
-            this.loadData();
-          }
-        });
-      } else {
-        this.api.createService(this.serviceForm.value).subscribe({
-          next: () => {
-            this.closeForm();
-            this.loadData();
-          }
-        });
-      }
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.serviceForm.patchValue({ thumbnail_file: file });
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.imagePreview = reader.result as string;
+        // also update the hidden thumbnail_url control for preview purposes
+        this.serviceForm.patchValue({ thumbnail_url: this.imagePreview });
+      };
+      reader.readAsDataURL(file);
     }
   }
 
-  deleteService(id: number) {
+  openAddForm(): void {
+    this.isEditing.set(false);
+    this.currentServiceId.set(null);
+    this.imagePreview = null;
+    this.serviceForm.reset({
+      category: 'Laser Hair Removal',
+      price_jmd: 18000,
+      duration_minutes: 30,
+      thumbnail_url: '',
+      thumbnail_file: null,
+      is_featured: true,
+      is_active: true
+    });
+    this.showForm.set(true);
+  }
+
+  openEditForm(service: TreatmentItem): void {
+    this.isEditing.set(true);
+    this.currentServiceId.set(service.id);
+    this.imagePreview = service.thumbnail_url;
+    this.serviceForm.patchValue({
+      ...service,
+      thumbnail_file: null,
+      thumbnail_url: service.thumbnail_url
+    });
+    this.showForm.set(true);
+  }
+
+  closeForm(): void {
+    this.showForm.set(false);
+  }
+
+  onSubmit(): void {
+    if (this.serviceForm.valid) {
+      const formValue = { ...this.serviceForm.value } as any;
+      const imageFile = (this.serviceForm.get('thumbnail_file')?.value as File) || undefined;
+      if (this.isEditing() && this.currentServiceId() !== null) {
+        // Update existing service
+        this.servicesService.updateService(this.currentServiceId()!, formValue, imageFile).subscribe({
+          next: () => this.servicesService.refresh(),
+          error: err => console.error('Update failed', err)
+        });
+      } else {
+        // Add new service
+        this.servicesService.addService(formValue, imageFile).subscribe({
+          next: () => this.servicesService.refresh(),
+          error: err => console.error('Add failed', err)
+        });
+      }
+      this.closeForm();
+    }
+  }
+
+  deleteService(id: number): void {
     if (confirm('Are you sure you want to delete this treatment?')) {
-      this.api.deleteService(id).subscribe({
-        next: () => this.loadData()
+      this.servicesService.deleteService(id).subscribe({
+        next: () => this.servicesService.refresh(),
+        error: err => console.error('Delete failed', err)
       });
     }
   }
 }
+

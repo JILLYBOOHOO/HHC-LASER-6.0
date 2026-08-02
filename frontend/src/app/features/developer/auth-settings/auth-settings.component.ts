@@ -15,12 +15,12 @@ import { SettingsService } from '../../../core/services/settings.service';
   template: `
     <div class="max-w-4xl">
       <div class="mb-8">
-        <h1 class="text-2xl font-bold text-white mb-2">Authentication Settings</h1>
+        <h1 class="text-2xl font-bold text-black mb-2">Authentication Settings</h1>
         <p class="text-gray-400 text-sm">Manage Google OAuth 2.0 configuration and authentication methods.</p>
       </div>
 
       <div class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
-        <h2 class="text-lg font-medium text-white mb-4 flex items-center gap-2">
+        <h2 class="text-lg font-medium text-black mb-4 flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="w-5 h-5">
             <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
             <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
@@ -30,8 +30,8 @@ import { SettingsService } from '../../../core/services/settings.service';
           Google Login
           
           <span class="ml-auto px-2 py-1 rounded text-xs font-bold uppercase tracking-wider"
-                [class.bg-green-500.text-white]="status() === 'enabled'"
-                [class.bg-red-500.text-white]="status() !== 'enabled'">
+                [class.bg-green-500.text-black]="status() === 'enabled'"
+                [class.bg-red-500.text-black]="status() !== 'enabled'">
             {{ status() === 'enabled' ? 'Connected' : 'Configuration Required' }}
           </span>
         </h2>
@@ -40,21 +40,21 @@ import { SettingsService } from '../../../core/services/settings.service';
           <div>
             <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider font-bold">Google Client ID</label>
             <input type="text" formControlName="google_oauth_client_id"
-                   class="w-full bg-gray-950 border border-gray-800 rounded px-4 py-2 text-sm text-white focus:border-blue-500 focus:outline-none transition-colors"
+                   class="w-full bg-gray-950 border border-gray-800 rounded px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none transition-colors"
                    placeholder="e.g. 1234567890-abcde.apps.googleusercontent.com">
           </div>
           
           <div>
             <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider font-bold">Google Client Secret</label>
             <input type="password" formControlName="google_oauth_client_secret"
-                   class="w-full bg-gray-950 border border-gray-800 rounded px-4 py-2 text-sm text-white focus:border-blue-500 focus:outline-none transition-colors"
+                   class="w-full bg-gray-950 border border-gray-800 rounded px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none transition-colors"
                    placeholder="********">
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider font-bold">OAuth Status</label>
-              <select formControlName="google_oauth_mode" class="w-full bg-gray-950 border border-gray-800 rounded px-4 py-2 text-sm text-white focus:border-blue-500 focus:outline-none">
+              <select formControlName="google_oauth_mode" class="w-full bg-gray-950 border border-gray-800 rounded px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none">
                 <option value="production">Production</option>
                 <option value="testing">Testing</option>
               </select>
@@ -62,7 +62,7 @@ import { SettingsService } from '../../../core/services/settings.service';
 
             <div>
               <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider font-bold">Google Login Toggle</label>
-              <select formControlName="google_oauth_status" class="w-full bg-gray-950 border border-gray-800 rounded px-4 py-2 text-sm text-white focus:border-blue-500 focus:outline-none">
+              <select formControlName="google_oauth_status" class="w-full bg-gray-950 border border-gray-800 rounded px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none">
                 <option value="enabled">ON (Enabled)</option>
                 <option value="disabled">OFF (Disabled)</option>
               </select>
@@ -72,7 +72,7 @@ import { SettingsService } from '../../../core/services/settings.service';
           <div>
             <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider font-bold">Allowed Domains</label>
             <input type="text" formControlName="google_oauth_allowed_domains"
-                   class="w-full bg-gray-950 border border-gray-800 rounded px-4 py-2 text-sm text-white focus:border-blue-500 focus:outline-none transition-colors"
+                   class="w-full bg-gray-950 border border-gray-800 rounded px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none transition-colors"
                    placeholder="e.g. hhclaser.com, localhost">
           </div>
           
@@ -86,16 +86,16 @@ import { SettingsService } from '../../../core/services/settings.service';
 
           <div class="flex items-center gap-4 pt-4 mt-6 border-t border-gray-800">
             <button type="submit" [disabled]="form.invalid || isSaving()"
-                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-50">
+                    class="bg-blue-600 hover:bg-blue-700 text-black px-6 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-50">
               @if (isSaving()) {
-                <mat-spinner diameter="16" class="!text-white"></mat-spinner> Saving...
+                <mat-spinner diameter="16" class="!text-black"></mat-spinner> Saving...
               } @else {
                 <mat-icon class="!w-4 !h-4 !text-[16px]">save</mat-icon> Save Configuration
               }
             </button>
 
             <button type="button" (click)="testConnection()"
-                    class="bg-gray-800 hover:bg-gray-700 text-white px-6 py-2 rounded text-sm font-medium transition-colors border border-gray-700">
+                    class="bg-gray-800 hover:bg-gray-700 text-black px-6 py-2 rounded text-sm font-medium transition-colors border border-gray-700">
               Test Connection
             </button>
           </div>

@@ -13,7 +13,7 @@ import { Product } from '../../../core/models/models';
   standalone: true,
   imports: [CommonModule, RouterModule, MatButtonModule, MatIconModule],
   template: `
-    <div class="pt-24 pb-16 min-h-screen" style="background: var(--color-cream)">
+    <div class="pt-4 pb-16 min-h-screen" style="background: var(--color-cream)">
       
       @if (loading()) {
         <div class="flex justify-center items-center py-32">
@@ -31,11 +31,11 @@ import { Product } from '../../../core/models/models';
               
               <!-- Image Gallery Side -->
               <div class="relative bg-charcoal-50 aspect-square md:aspect-auto">
-                <img [src]="product()?.image_url || 'https://images.unsplash.com/photo-1629198688000-71f23e745b6e?q=80&w=800'" 
+                <img loading="lazy" [src]="product()?.image_url || 'https://images.unsplash.com/photo-1629198688000-71f23e745b6e?q=80&w=800'" 
                      [alt]="product()?.name" 
                      class="absolute inset-0 w-full h-full object-cover" />
                 @if (product()!.stock_quantity <= 0) {
-                  <div class="absolute top-6 left-6 z-20 bg-charcoal-900 text-white text-xs font-semibold px-4 py-1.5 rounded-full uppercase tracking-wider">
+                  <div class="absolute top-6 left-6 z-20 bg-white text-black text-xs font-semibold px-4 py-1.5 rounded-full uppercase tracking-wider">
                     Out of Stock
                   </div>
                 }
@@ -44,11 +44,11 @@ import { Product } from '../../../core/models/models';
               <!-- Content Side -->
               <div class="p-8 md:p-12 lg:p-16 flex flex-col justify-center">
                 <div class="text-gold-600 text-sm font-semibold tracking-[0.2em] uppercase mb-4">{{ product()?.category_name }}</div>
-                <h1 class="text-4xl md:text-5xl font-heading text-charcoal-900 mb-6 leading-tight">
+                <h1 class="text-4xl md:text-5xl font-heading text-white mb-6 leading-tight">
                   {{ product()?.name }}
                 </h1>
                 
-                <div class="text-3xl font-medium text-charcoal-800 mb-8">
+                <div class="text-3xl font-medium text-gray-50 mb-8">
                   J$ {{ product()?.price_jmd | number:'1.2-2' }}
                 </div>
 
@@ -69,7 +69,7 @@ import { Product } from '../../../core/models/models';
                   </div>
                 </div>
 
-                <button mat-flat-button class="!bg-charcoal-900 !text-white !h-14 !text-lg !rounded-xl w-full hover:!bg-gold-600 transition-colors"
+                <button mat-flat-button class="!bg-white !text-black !h-14 !text-lg !rounded-xl w-full hover:!bg-gold-600 transition-colors"
                         [disabled]="product()!.stock_quantity <= 0"
                         (click)="openPurchaseDialog()">
                   Contact To Purchase
@@ -83,9 +83,9 @@ import { Product } from '../../../core/models/models';
       } @else {
         <div class="text-center py-32">
           <mat-icon class="text-charcoal-300 !w-16 !h-16 !text-6xl mb-4">inventory_2</mat-icon>
-          <h2 class="text-2xl font-heading text-charcoal-800 mb-2">Product Not Found</h2>
+          <h2 class="text-2xl font-heading text-gray-50 mb-2">Product Not Found</h2>
           <p class="text-charcoal-500 mb-6">The product you are looking for does not exist or has been removed.</p>
-          <a routerLink="/products" mat-flat-button class="!bg-charcoal-900 !text-white">Return to Catalog</a>
+          <a routerLink="/products" mat-flat-button class="!bg-white !text-black">Return to Catalog</a>
         </div>
       }
 

@@ -26,9 +26,9 @@ export class SettingsService {
   settings = signal<BusinessSettings>({
     business_name: 'HHC Laser & Co',
     tagline: 'Jamaica\'s premier destination for advanced laser treatments',
-    email: 'info@hhclaser.com',
-    phone: '(876) 555-0199',
-    address: '48 Constant Spring Rd, Kingston',
+    email: 'infohhcLaser@gmail.com',
+    phone: '(876) 319-6241',
+    address: '48 Constant Spring Road, Kingston, Jamaica',
     google_oauth_status: 'disabled',
   }); // Default fallback values
 

@@ -21,7 +21,7 @@ import { MatIconModule } from '@angular/material/icon';
       <!-- Click-to-call Button -->
       <a href="tel:+18763196241"
          class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg
-                transition-transform hover:scale-110 active:scale-95 bg-charcoal-800 text-gold-500"
+                transition-transform hover:scale-110 active:scale-95 bg-gray-50 text-gold-500"
          aria-label="Call Us">
         <mat-icon class="!text-3xl">phone</mat-icon>
       </a>

@@ -26,7 +26,7 @@ import { MatSliderModule } from '@angular/material/slider';
           <mat-icon>arrow_back</mat-icon>
         </button>
         <div>
-          <h1 class="text-2xl font-heading text-charcoal-800">Treatment Notes</h1>
+          <h1 class="text-2xl font-heading text-gray-50">Treatment Notes</h1>
           <p class="text-charcoal-500">Appointment #{{ appointmentId }} | Client: Olivia Rhoden</p>
         </div>
       </div>
@@ -53,7 +53,7 @@ import { MatSliderModule } from '@angular/material/slider';
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-charcoal-700 mb-2">Pain Level / Discomfort (0-10)</label>
+            <label class="block text-sm font-medium text-gray-100 mb-2">Pain Level / Discomfort (0-10)</label>
             <div class="flex items-center gap-4">
               <span class="text-sm font-bold w-4 text-center">{{ notesForm.get('painLevel')?.value }}</span>
               <mat-slider min="0" max="10" step="1" discrete class="flex-1">

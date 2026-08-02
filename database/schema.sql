@@ -186,12 +186,16 @@ CREATE TABLE IF NOT EXISTS appointments (
   scheduled_date     DATE NOT NULL,
   start_time         TIME NOT NULL,
   end_time           TIME NOT NULL,
+  booking_source     ENUM('website', 'phone', 'walk_in', 'whatsapp', 'social_media', 'admin', 'staff') NOT NULL DEFAULT 'website',
   status             ENUM('pending','confirmed','checked_in','in_treatment','completed','cancelled','no_show') NOT NULL DEFAULT 'pending',
+  payment_status     ENUM('pending_payment', 'paid_online', 'paid_in_store', 'paid_by_phone', 'deposit_paid', 'pay_at_appointment', 'refunded', 'complimentary') NOT NULL DEFAULT 'pending_payment',
+  confirmation_code  VARCHAR(50) UNIQUE DEFAULT NULL,
   notes              TEXT DEFAULT NULL,
   total_amount_jmd   DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   deposit_paid_jmd   DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   created_at         DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at         DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
   INDEX idx_date       (scheduled_date),
   INDEX idx_customer   (customer_user_id),
   INDEX idx_employee   (employee_id),
@@ -243,6 +247,7 @@ CREATE TABLE IF NOT EXISTS transactions (
   id                   INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   appointment_id       INT UNSIGNED DEFAULT NULL,
   customer_user_id     INT UNSIGNED NOT NULL,
+  recorded_by_user_id  INT UNSIGNED DEFAULT NULL,
   fiserv_txn_id        VARCHAR(255) DEFAULT NULL,
   idempotency_key      VARCHAR(64)  NOT NULL UNIQUE,
   amount_jmd           DECIMAL(10,2) NOT NULL,
@@ -251,6 +256,7 @@ CREATE TABLE IF NOT EXISTS transactions (
   payment_method       VARCHAR(50)  DEFAULT NULL,
   fiserv_approval_code VARCHAR(50)  DEFAULT NULL,
   fiserv_response_code VARCHAR(10)  DEFAULT NULL,
+  fiserv_response_message VARCHAR(255) DEFAULT NULL,
   notes                VARCHAR(500) DEFAULT NULL,
   created_at           DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at           DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -259,7 +265,8 @@ CREATE TABLE IF NOT EXISTS transactions (
   INDEX idx_txn_appt     (appointment_id),
   INDEX idx_txn_status   (status),
   CONSTRAINT fk_txn_appt     FOREIGN KEY (appointment_id)   REFERENCES appointments(id) ON DELETE SET NULL,
-  CONSTRAINT fk_txn_customer FOREIGN KEY (customer_user_id) REFERENCES users(id)
+  CONSTRAINT fk_txn_customer FOREIGN KEY (customer_user_id) REFERENCES users(id),
+  CONSTRAINT fk_txn_recorded FOREIGN KEY (recorded_by_user_id) REFERENCES users(id)
 ) ENGINE=InnoDB;
 
 -- ─── MEMBERSHIPS ──────────────────────────────────────────────────────────────

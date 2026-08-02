@@ -10,8 +10,8 @@ import { environment } from '../../../../environments/environment';
   template: `
     <div class="space-y-6">
       <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-white">Error Logs</h1>
-        <button (click)="loadData()" class="px-4 py-2 bg-gray-800 text-gray-300 rounded hover:bg-gray-700 hover:text-white transition-colors text-sm">
+        <h1 class="text-2xl font-bold text-black">Error Logs</h1>
+        <button (click)="loadData()" class="px-4 py-2 bg-gray-800 text-gray-300 rounded hover:bg-gray-700 hover:text-black transition-colors text-sm">
           Refresh Logs
         </button>
       </div>

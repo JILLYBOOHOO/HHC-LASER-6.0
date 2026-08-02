@@ -14,7 +14,7 @@ import { environment } from '../../../../environments/environment';
   template: `
     <div class="p-8 max-w-4xl mx-auto">
       <div class="mb-8">
-        <h1 class="text-3xl font-heading text-charcoal-900 mb-2">Business Settings</h1>
+        <h1 class="text-3xl font-heading text-white mb-2">Business Settings</h1>
         <p class="text-charcoal-500">Update your company information, contact details, and social links.</p>
       </div>
 
@@ -22,7 +22,7 @@ import { environment } from '../../../../environments/environment';
         
         <!-- Brand Info -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-cream-200">
-          <h2 class="text-xl font-heading text-charcoal-800 mb-6 border-b border-cream-100 pb-2">Brand Identity</h2>
+          <h2 class="text-xl font-heading text-gray-50 mb-6 border-b border-cream-100 pb-2">Brand Identity</h2>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <mat-form-field appearance="outline" class="w-full">
@@ -44,7 +44,7 @@ import { environment } from '../../../../environments/environment';
 
         <!-- Contact Info -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-cream-200">
-          <h2 class="text-xl font-heading text-charcoal-800 mb-6 border-b border-cream-100 pb-2">Contact Details</h2>
+          <h2 class="text-xl font-heading text-gray-50 mb-6 border-b border-cream-100 pb-2">Contact Details</h2>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <mat-form-field appearance="outline" class="w-full">
@@ -71,7 +71,7 @@ import { environment } from '../../../../environments/environment';
 
         <!-- Social Links -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-cream-200">
-          <h2 class="text-xl font-heading text-charcoal-800 mb-6 border-b border-cream-100 pb-2">Social Media Links</h2>
+          <h2 class="text-xl font-heading text-gray-50 mb-6 border-b border-cream-100 pb-2">Social Media Links</h2>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <mat-form-field appearance="outline" class="w-full">
@@ -87,7 +87,7 @@ import { environment } from '../../../../environments/environment';
         </div>
         
         <div class="flex justify-end pt-4">
-          <button type="submit" mat-flat-button class="!bg-gold-500 !text-white !px-8 !py-6 text-lg hover:!bg-gold-600 transition-colors" [disabled]="saving()">
+          <button type="submit" mat-flat-button class="!bg-gold-500 !text-black !px-8 !py-6 text-lg hover:!bg-gold-600 transition-colors" [disabled]="saving()">
             {{ saving() ? 'Saving...' : 'Save Settings' }}
           </button>
         </div>

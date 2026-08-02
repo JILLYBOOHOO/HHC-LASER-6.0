@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+
+# Block private/authenticated routes from indexing
+Disallow: /admin/
+Disallow: /customer/dashboard/
+Disallow: /employee/
+Disallow: /developer/
+Disallow: /auth/
+
+# Allow public booking & service paths
+Allow: /services
+Allow: /treatments/bookings
+Allow: /customer/book
+Allow: /about
+Allow: /contact
+Allow: /gallery
+
+# Sitemap location
+Sitemap: https://hhclaser.com/sitemap.xml

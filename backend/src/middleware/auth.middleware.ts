@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken, JwtPayload } from '../utils/jwt';
 import { errorResponse } from '../models/types';
+import { PUBLIC_ROUTES } from '../config/publicRoutes';
 
 declare global {
   namespace Express {
@@ -10,7 +11,15 @@ declare global {
   }
 }
 
+function isPublicRoute(path: string): boolean {
+  return PUBLIC_ROUTES.some((route) => path.startsWith(route));
+}
+
 export function authenticate(req: Request, res: Response, next: NextFunction): void {
+  // Bypass authentication for whitelisted public routes
+  if (isPublicRoute(req.path)) {
+    return next();
+  }
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {

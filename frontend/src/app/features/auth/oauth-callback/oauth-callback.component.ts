@@ -17,12 +17,12 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
       <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 max-w-sm w-full text-center shadow-2xl">
         
         @if (errorCode() === 'ACCOUNT_NOT_FOUND') {
-          <h2 class="text-xl font-medium text-white mb-4">Account Not Found</h2>
+          <h2 class="text-xl font-medium text-black mb-4">Account Not Found</h2>
           <p class="text-sm text-gray-400 mb-6">Welcome! We don't have an account for this email yet. Would you like to create your account?</p>
           
           <div class="flex flex-col gap-3">
             <button (click)="registerWithGoogle()" 
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded py-3 font-medium transition-colors flex items-center justify-center gap-2">
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-black rounded py-3 font-medium transition-colors flex items-center justify-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="w-5 h-5 bg-white rounded-full p-1">
                 <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
                 <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
@@ -32,15 +32,15 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
               REGISTER WITH GOOGLE
             </button>
             <a routerLink="/auth/register" 
-               class="w-full bg-gray-800 hover:bg-gray-700 text-white rounded py-3 font-medium transition-colors inline-block border border-gray-700">
+               class="w-full bg-gray-800 hover:bg-gray-700 text-black rounded py-3 font-medium transition-colors inline-block border border-gray-700">
               USE EMAIL REGISTRATION
             </a>
           </div>
           <div class="mt-6">
-            <a routerLink="/auth/login" class="text-sm text-gray-500 hover:text-white transition-colors underline">Return to Login</a>
+            <a routerLink="/auth/login" class="text-sm text-gray-500 hover:text-black transition-colors underline">Return to Login</a>
           </div>
         } @else {
-          <h2 class="text-xl font-medium text-white mb-6">Authenticating...</h2>
+          <h2 class="text-xl font-medium text-black mb-6">Authenticating...</h2>
           <mat-spinner diameter="40" class="mx-auto mb-4" *ngIf="!errorMsg()"></mat-spinner>
           <p class="text-sm text-gray-400" *ngIf="!errorMsg()">Please wait while we complete your sign-in securely.</p>
           
@@ -48,7 +48,7 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
             <div class="mt-4 p-3 bg-red-900/30 border border-red-500/50 rounded text-red-400 text-sm">
               {{ errorMsg() }}
               <div class="mt-4">
-                <a routerLink="/auth/login" class="text-white hover:text-blue-400 transition-colors underline">Return to Login</a>
+                <a routerLink="/auth/login" class="text-black hover:text-blue-400 transition-colors underline">Return to Login</a>
               </div>
             </div>
           }

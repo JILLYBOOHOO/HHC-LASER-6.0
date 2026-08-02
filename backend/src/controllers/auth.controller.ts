@@ -5,7 +5,7 @@ import { successResponse, errorResponse } from '../models/types';
 import { env } from '../config/env';
 
 export const registerValidators = [
-  body('email').isEmail().withMessage('A valid email address is required.'),
+  body('email').isEmail().normalizeEmail().withMessage('A valid email address is required.'),
   body('password')
     .isLength({ min: 8 }).withMessage('Password must be at least 8 characters.')
     .matches(/(?=.*[A-Z])(?=.*[a-z])(?=.*\d)/)
@@ -17,7 +17,7 @@ export const registerValidators = [
 ];
 
 export const loginValidators = [
-  body('email').isEmail().withMessage('A valid email is required.'),
+  body('email').isEmail().normalizeEmail().withMessage('A valid email is required.'),
   body('password').notEmpty().withMessage('Password is required.'),
 ];
 

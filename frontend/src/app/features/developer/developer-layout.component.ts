@@ -21,27 +21,27 @@ import { AuthService } from '../../core/services/auth.service';
         </div>
 
         <nav class="flex-1 py-4 flex flex-col gap-1 px-3">
-          <a routerLink="/developer/overview" routerLinkActive="bg-gray-800 text-white" 
-             class="flex items-center gap-3 px-3 py-2 rounded text-sm hover:bg-gray-800 hover:text-white transition-colors">
+          <a routerLink="/developer/overview" routerLinkActive="bg-gray-800 text-black" 
+             class="flex items-center gap-3 px-3 py-2 rounded text-sm hover:bg-gray-800 hover:text-black transition-colors">
             <mat-icon class="!w-4 !h-4 !text-[16px]">dashboard</mat-icon>
             System Overview
           </a>
           
-          <a routerLink="/developer/errors" routerLinkActive="bg-gray-800 text-white" 
-             class="flex items-center gap-3 px-3 py-2 rounded text-sm hover:bg-gray-800 hover:text-white transition-colors">
+          <a routerLink="/developer/errors" routerLinkActive="bg-gray-800 text-black" 
+             class="flex items-center gap-3 px-3 py-2 rounded text-sm hover:bg-gray-800 hover:text-black transition-colors">
             <mat-icon class="!w-4 !h-4 !text-[16px] text-red-500">bug_report</mat-icon>
             Error Logs
           </a>
 
-          <a routerLink="/developer/auth-settings" routerLinkActive="bg-gray-800 text-white" 
-             class="flex items-center gap-3 px-3 py-2 rounded text-sm hover:bg-gray-800 hover:text-white transition-colors">
+          <a routerLink="/developer/auth-settings" routerLinkActive="bg-gray-800 text-black" 
+             class="flex items-center gap-3 px-3 py-2 rounded text-sm hover:bg-gray-800 hover:text-black transition-colors">
             <mat-icon class="!w-4 !h-4 !text-[16px] text-blue-400">security</mat-icon>
             Auth Settings
           </a>
         </nav>
 
         <div class="p-4 border-t border-gray-800">
-          <button (click)="logout()" class="flex items-center gap-2 text-sm text-gray-500 hover:text-white w-full px-3 py-2 transition-colors">
+          <button (click)="logout()" class="flex items-center gap-2 text-sm text-gray-500 hover:text-black w-full px-3 py-2 transition-colors">
             <mat-icon class="!w-4 !h-4 !text-[16px]">logout</mat-icon>
             Exit Console
           </button>

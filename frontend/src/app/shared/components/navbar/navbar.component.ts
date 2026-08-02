@@ -1,6 +1,6 @@
 import { Component, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,51 +17,56 @@ import { AuthService } from '../../../core/services/auth.service';
     MatToolbarModule, MatButtonModule, MatIconModule, MatMenuModule, MatDividerModule,
   ],
   template: `
-    <nav class="fixed top-0 left-0 right-0 z-50 transition-all duration-500"
-         [class.navbar-scrolled]="isScrolled()"
-         [class.navbar-top]="!isScrolled()">
-      <div class="container-luxury flex items-center justify-between transition-all duration-500 px-6"
-           [class.h-[90px]]="!isScrolled()"
-           [class.h-[72px]]="isScrolled()">
+    <nav class="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+         [class.navbar-scrolled]="isScrolled() && isHome()"
+         [class.navbar-top]="!isScrolled() && isHome()"
+         [class.navbar-light]="!isHome()">
+      <div class="container-luxury flex items-center justify-between transition-all duration-300 px-6 pt-4"
+           [class.h-[66px]]="!isScrolled() && isHome()"
+           [class.h-[54px]]="isScrolled() || !isHome()">
 
         <!-- Logo -->
         <a routerLink="/" class="flex items-center group">
-          <img src="/HCClogo.jpg" alt="HHC Laser Logo" class="h-10 md:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
+          <img loading="lazy" src="/HCClogo.jpg" alt="HHC Laser Logo" class="h-8 md:h-9 w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
         </a>
 
         <!-- Desktop Nav -->
-        <div class="hidden lg:flex items-center gap-8">
+        <div class="hidden lg:flex items-center gap-6">
           @for (link of navLinks; track link.path) {
             <a [routerLink]="link.path"
                routerLinkActive="active"
                [routerLinkActiveOptions]="{exact: link.exact ?? false}"
-               class="nav-link text-xs text-text-muted hover:text-white tracking-[0.15em] transition-all duration-300
-                      font-semibold uppercase relative py-2">
+               class="nav-link text-xs font-semibold uppercase relative py-1 tracking-[0.15em] transition-all duration-300"
+               [ngClass]="isHome() ? 'text-white/80 hover:text-gold' : 'text-neutral-600 hover:text-black'">
               {{ link.label }}
             </a>
           }
         </div>
 
         <!-- Actions -->
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-6 pt-4">
           @if (!authState.isAuthenticated()) {
             <a routerLink="/auth/login"
-               class="hidden sm:inline-flex items-center gap-2 text-xs text-text-muted hover:text-white transition-colors font-semibold uppercase tracking-[0.1em]">
-              <mat-icon class="!text-sm">person</mat-icon>
+               class="hidden sm:inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white text-black text-[11px] font-bold uppercase tracking-[0.1em] border border-black/10 hover:bg-neutral-200 transition-all">
+              <mat-icon class="!text-xs">person</mat-icon>
               Login
             </a>
-            <a routerLink="/customer/book" class="btn-primary text-[10px] tracking-[0.15em] py-2 px-6">
+            <a routerLink="/customer/book" class="btn-primary text-[10px] tracking-[0.12em] py-1.5 px-5">
               Book Now
             </a>
           } @else {
             <!-- Authenticated user menu -->
+            <a routerLink="/customer/dashboard" class="hidden sm:inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white text-black text-[11px] font-bold uppercase tracking-[0.1em] border border-black/10 hover:bg-neutral-200 transition-all">
+              Dashboard
+            </a>
             <button mat-icon-button [matMenuTriggerFor]="userMenu"
-                    class="!text-text-muted hover:!text-white">
+                    class="transition-colors"
+                    [ngClass]="isHome() ? '!text-text-muted hover:!text-white' : '!text-neutral-600 hover:!text-black'">
               <mat-icon>account_circle</mat-icon>
             </button>
             <mat-menu #userMenu>
-              <div class="px-4 py-3 border-b border-white/5">
-                <div class="font-semibold text-sm text-white">{{ authState.userFullName() }}</div>
+              <div class="mt-8 text-center border-t border-black/10 pt-4">
+                <div class="font-semibold text-sm text-black">{{ authState.userFullName() }}</div>
                 <div class="text-xs text-text-muted">{{ authState.user()?.email }}</div>
               </div>
               @if (authState.isStaff()) {
@@ -75,7 +80,7 @@ import { AuthService } from '../../../core/services/auth.service';
                 </a>
               }
               <a mat-menu-item routerLink="/customer/dashboard">
-                <mat-icon>home</mat-icon> My Portal
+                <mat-icon>home</mat-icon> Dashboard
               </a>
               <a mat-menu-item routerLink="/customer/book">
                 <mat-icon>calendar_today</mat-icon> Book Appointment
@@ -87,8 +92,8 @@ import { AuthService } from '../../../core/services/auth.service';
             </mat-menu>
           }
 
-          <!-- Mobile menu -->
-          <button mat-icon-button class="lg:hidden !text-text-muted hover:!text-white" (click)="toggleMobile()">
+          <!-- Mobile menu (visible on mobile/tablet/small screens, hidden on desktop/large screens) -->
+          <button mat-icon-button class="block lg:!hidden transition-colors" [ngClass]="isHome() ? '!text-text-muted hover:!text-white' : '!text-black'" (click)="toggleMobile()">
             <mat-icon>{{ mobileOpen() ? 'close' : 'menu' }}</mat-icon>
           </button>
         </div>
@@ -96,19 +101,24 @@ import { AuthService } from '../../../core/services/auth.service';
 
       <!-- Mobile Drawer -->
       @if (mobileOpen()) {
-        <div class="lg:hidden glass-dark border-t border-white/5 px-6 py-8 space-y-5 animate-fade-in">
-          @for (link of navLinks; track link.path) {
-            <a [routerLink]="link.path" (click)="mobileOpen.set(false)"
-               class="block text-text-muted hover:text-gold transition-colors py-2.5 text-xs uppercase tracking-[0.2em] font-semibold">
+        <div class="lg:hidden px-6 py-8 space-y-5 animate-fade-in border-t"
+             [ngClass]="isHome() ? 'glass-dark border-white/5' : 'bg-white border-black/10'">
+          <div class="w-28 flex-shrink-0 pt-4">
+            @for (link of navLinks; track link.path) {
+              <a [routerLink]="link.path"
+                 (click)="mobileOpen.set(false)"
+                 class="block transition-colors py-2.5 text-sm uppercase tracking-[0.2em] font-semibold"
+                 [ngClass]="isHome() ? 'text-white/80 hover:text-gold' : 'text-neutral-700 hover:text-black'">
               {{ link.label }}
             </a>
-          }
-          <div class="pt-5 border-t border-white/5 flex flex-col gap-3">
+            }
+          </div>
+          <div class="pt-4 border-t flex flex-col gap-3" [ngClass]="isHome() ? 'border-white/5' : 'border-black/10'">
             @if (!authState.isAuthenticated()) {
-              <a routerLink="/auth/login" (click)="mobileOpen.set(false)" class="btn-secondary text-center text-xs">Login</a>
+              <a routerLink="/auth/login" (click)="mobileOpen.set(false)" class="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-white text-black text-xs font-bold uppercase tracking-[0.1em] border border-black/10 hover:bg-neutral-200 transition-all text-center">Login</a>
               <a routerLink="/customer/book" (click)="mobileOpen.set(false)" class="btn-primary text-center text-xs">Book Now</a>
             } @else {
-              <a routerLink="/customer/dashboard" (click)="mobileOpen.set(false)" class="btn-secondary text-center text-xs">My Portal</a>
+              <a routerLink="/customer/dashboard" (click)="mobileOpen.set(false)" class="btn-secondary text-center text-xs">Dashboard</a>
               <button (click)="logout()" class="btn-secondary text-center w-full text-xs">Logout</button>
             }
           </div>
@@ -129,6 +139,13 @@ import { AuthService } from '../../../core/services/auth.service';
       -webkit-backdrop-filter: blur(12px) saturate(180%);
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
       box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+    .navbar-light {
+      background: #FFFFFF;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
     }
     .nav-link {
       position: relative;
@@ -152,7 +169,7 @@ import { AuthService } from '../../../core/services/auth.service';
       width: 100%;
     }
     .nav-link:hover {
-      color: #ffffff;
+      color: #D6B36A;
     }
     .nav-link:hover::after {
       width: 50%;
@@ -165,6 +182,7 @@ import { AuthService } from '../../../core/services/auth.service';
 export class NavbarComponent {
   isScrolled  = signal(false);
   mobileOpen  = signal(false);
+  isHome      = signal(true);
 
   navLinks = [
     { path: '/',           label: 'Home',       exact: true },
@@ -177,7 +195,14 @@ export class NavbarComponent {
   constructor(
     public authState: AuthStateService,
     private authService: AuthService,
-  ) {}
+    private router: Router
+  ) {
+    this.router.events.subscribe(event => {
+      if (event instanceof NavigationEnd) {
+        this.isHome.set(event.urlAfterRedirects === '/' || event.urlAfterRedirects === '/home');
+      }
+    });
+  }
 
   onScroll(): void {
     this.isScrolled.set(window.scrollY > 60);

@@ -1,6 +1,6 @@
 // ─── User & Auth ──────────────────────────────────────────────────────────────
 
-export type UserRole = 'owner' | 'admin' | 'manager' | 'specialist' | 'customer' | 'developer';
+export type UserRole = 'owner' | 'admin' | 'manager' | 'specialist' | 'customer' | 'developer' | 'staff';
 
 export type AppointmentStatus =
   | 'pending' | 'confirmed' | 'checked_in' | 'in_treatment'
@@ -75,26 +75,20 @@ export interface ServiceCategory {
 export interface Service {
   id: number;
   category_id: number;
-  category_name: string;
-  category_slug: string;
+  category_name?: string;
   name: string;
-  slug: string;
-  description: string;
-  short_description: string;
-  duration_minutes: number;
+  slug?: string;
+  description?: string;
+  short_description?: string;
   price_jmd: number;
-  price_usd?: number;
-  deposit_required: boolean;
-  deposit_amount_jmd?: number;
-  requires_consultation: boolean;
-  preparation_notes?: string;
-  aftercare_notes?: string;
+  duration_minutes: number;
   thumbnail_url?: string;
-  prep_video_url?: string;
-  is_featured: boolean;
-  is_active: boolean;
-  sort_order: number;
+  is_active?: boolean;
+  is_featured?: boolean;
+  sort_order?: number;
 }
+
+
 
 // ─── Employees ────────────────────────────────────────────────────────────────
 
@@ -139,6 +133,11 @@ export interface Appointment {
   total_amount_jmd: number;
   deposit_paid_jmd: number;
   created_at: string;
+  confirmation_code?: string;
+  payment_status?: string;
+  customer_name?: string;
+  customer_email?: string;
+  customer_phone?: string;
 }
 
 export interface BookingGuest {
@@ -317,3 +316,33 @@ export interface Product {
   created_at: string;
   updated_at: string;
 }
+
+// ─── Booking Drafts ────────────────────────────────────────────────────────────
+
+export type BookingStep = 'service' | 'location' | 'type' | 'datetime' | 'details' | 'payment' | 'confirmation';
+
+export interface BookingDraft {
+  id: number;
+  user_id: number;
+  location_id: number | null;
+  employee_id: number | null;
+  service_ids: number[];
+  scheduled_date: string | null;
+  start_time: string | null;
+  customer_info: Record<string, any> | null;
+  current_step: BookingStep;
+  resume_prompt_dismissed: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SaveDraftDto {
+  location_id?: number | null;
+  employee_id?: number | null;
+  service_ids?: number[];
+  scheduled_date?: string | null;
+  start_time?: string | null;
+  customer_info?: Record<string, any> | null;
+  current_step?: BookingStep;
+}
+

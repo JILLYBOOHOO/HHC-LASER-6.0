@@ -7,20 +7,22 @@ import { MatDialog } from '@angular/material/dialog';
 import { ProductService } from '../../../core/services/product.service';
 import { PurchaseDialogComponent } from '../../../shared/components/purchase-dialog/purchase-dialog.component';
 import { Product } from '../../../core/models/models';
+import { SeoService } from '../../../core/services/seo.service';
+import { inject } from '@angular/core';
 
 @Component({
   selector: 'app-products',
   standalone: true,
   imports: [CommonModule, RouterModule, MatButtonModule, MatIconModule],
   template: `
-    <div class="pt-24 pb-16 min-h-screen" style="background: var(--color-cream)">
+    <div class="pt-4 pb-16 min-h-screen" style="background: var(--color-cream)">
       <div class="max-w-7xl mx-auto px-4">
         
         <!-- Header -->
         <div class="text-center mb-16">
           <span class="section-label">Luxury Skincare</span>
           <div class="divider-gold"></div>
-          <h1 class="mt-4 font-heading text-4xl md:text-5xl text-charcoal-800">
+          <h1 class="mt-4 font-heading text-4xl md:text-5xl text-gray-50">
             Professional <span class="text-gold-500">Products</span>
           </h1>
           <p class="mt-4 max-w-2xl mx-auto text-charcoal-500 leading-relaxed">
@@ -41,12 +43,12 @@ import { Product } from '../../../core/models/models';
               
               <!-- Image Container -->
               <div class="relative aspect-square overflow-hidden bg-charcoal-50" [routerLink]="['/products', product.slug]">
-                <div class="absolute inset-0 bg-charcoal-900/10 group-hover:bg-transparent transition-colors duration-500 z-10"></div>
-                <img [src]="product.image_url || 'https://images.unsplash.com/photo-1629198688000-71f23e745b6e?q=80&w=800'" 
+                <div class="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500 z-10"></div>
+                <img loading="lazy" [src]="product.image_url || 'https://images.unsplash.com/photo-1629198688000-71f23e745b6e?q=80&w=800'" 
                      [alt]="product.name" 
                      class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 cursor-pointer" />
                 @if (product.stock_quantity <= 0) {
-                  <div class="absolute top-4 right-4 z-20 bg-charcoal-900 text-white text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">
+                  <div class="absolute top-4 right-4 z-20 bg-white text-black text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">
                     Out of Stock
                   </div>
                 }
@@ -55,7 +57,7 @@ import { Product } from '../../../core/models/models';
               <!-- Product Details -->
               <div class="p-6 flex flex-col flex-grow">
                 <div class="text-gold-600 text-xs font-semibold tracking-wider uppercase mb-2">{{ product.category_name }}</div>
-                <h3 class="text-2xl font-heading text-charcoal-800 mb-2 hover:text-gold-600 transition-colors cursor-pointer" [routerLink]="['/products', product.slug]">
+                <h3 class="text-2xl font-heading text-gray-50 mb-2 hover:text-gold-600 transition-colors cursor-pointer" [routerLink]="['/products', product.slug]">
                   {{ product.name }}
                 </h3>
                 <p class="text-charcoal-500 text-sm leading-relaxed line-clamp-3 mb-6 flex-grow">
@@ -65,7 +67,7 @@ import { Product } from '../../../core/models/models';
                 <div class="flex items-end justify-between mb-6">
                   <div>
                     <div class="text-xs text-charcoal-400 uppercase tracking-wider mb-1">Price</div>
-                    <div class="text-xl font-medium text-charcoal-900">J$ {{ product.price_jmd | number:'1.2-2' }}</div>
+                    <div class="text-xl font-medium text-white">J$ {{ product.price_jmd | number:'1.2-2' }}</div>
                   </div>
                   <div class="text-right">
                     <div class="text-xs text-charcoal-400 uppercase tracking-wider mb-1">Availability</div>
@@ -81,10 +83,10 @@ import { Product } from '../../../core/models/models';
 
                 <!-- Action Buttons -->
                 <div class="flex flex-col sm:flex-row gap-3">
-                  <button mat-stroked-button color="primary" class="flex-1 !border-charcoal-200 !text-charcoal-800" [routerLink]="['/products', product.slug]">
+                  <button mat-stroked-button color="primary" class="flex-1 !border-charcoal-200 !text-gray-50" [routerLink]="['/products', product.slug]">
                     View Details
                   </button>
-                  <button mat-flat-button class="flex-1 !bg-charcoal-900 !text-white" 
+                  <button mat-flat-button class="flex-1 !bg-white !text-black" 
                           [disabled]="product.stock_quantity <= 0"
                           (click)="openPurchaseDialog(product)">
                     Contact To Purchase
@@ -100,6 +102,7 @@ import { Product } from '../../../core/models/models';
   `
 })
 export class ProductsComponent implements OnInit {
+  private seo = inject(SeoService);
 
   constructor(
     public productService: ProductService,
@@ -107,6 +110,12 @@ export class ProductsComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.seo.updatePage({
+      title: 'Luxury Medical Skincare Products Jamaica | HHC Laser & Co.',
+      description: 'Shop luxury medical-grade skincare products at HHC Laser & Co. Kingston Jamaica. Achieve radiant skin with our clinically proven cleansers, serums, and treatments.',
+      canonicalPath: '/products',
+      keywords: 'Medical Skincare Jamaica, Luxury Skincare Kingston, HHC Laser Products, Clinical Skincare Jamaica',
+    });
     this.productService.loadProducts();
   }
 

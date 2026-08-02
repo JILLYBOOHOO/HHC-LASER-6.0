@@ -42,7 +42,7 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
          style="background: linear-gradient(135deg, #111111 0%, #1a1a1a 60%, #0d0d0d 100%)">
       
       <!-- Back to site -->
-      <a routerLink="/" class="absolute top-6 left-6 flex items-center gap-2 text-cream-400 hover:text-gold-400 transition-colors">
+      <a routerLink="/" class="absolute top-6 left-6 flex items-center gap-2 text-neutral-600 hover:text-gold-400 transition-colors">
         <mat-icon>arrow_back</mat-icon>
         <span class="text-sm font-medium tracking-widest uppercase">Back to Website</span>
       </a>
@@ -53,13 +53,13 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
           <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gold-900/30 border border-gold-500/30 mb-4">
             <mat-icon class="!text-3xl text-gold-400">spa</mat-icon>
           </div>
-          <h1 class="font-heading text-3xl text-white tracking-wide">HHC LASER</h1>
+          <h1 class="font-heading text-3xl text-black tracking-wide">HHC LASER</h1>
           <p class="text-gold-500 text-sm tracking-widest mt-2 uppercase">Member Registration</p>
         </div>
 
         <!-- Register Card -->
-        <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
-          <h2 class="text-2xl font-heading text-white mb-6 text-center">REGISTER</h2>
+        <div class="bg-black/5 backdrop-blur-xl border border-black/10 rounded-2xl p-8 shadow-2xl">
+          <h2 class="text-2xl font-heading text-black mb-6 text-center">REGISTER</h2>
 
 
 
@@ -92,7 +92,7 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
             <mat-form-field appearance="outline" class="w-full form-field-dark">
               <mat-label>Email Address</mat-label>
               <input matInput type="email" formControlName="email" name="email" autocomplete="email">
-              <mat-icon matPrefix class="text-cream-400 mr-2">email</mat-icon>
+              <mat-icon matPrefix class="text-neutral-600 mr-2">email</mat-icon>
               @if (registerForm.get('email')?.hasError('required')) {
                 <mat-error>Please enter your email address.</mat-error>
               } @else if (registerForm.get('email')?.hasError('email')) {
@@ -103,26 +103,26 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
             <mat-form-field appearance="outline" class="w-full form-field-dark">
               <mat-label>Phone Number</mat-label>
               <input matInput type="tel" formControlName="phone" name="phone" autocomplete="tel">
-              <mat-icon matPrefix class="text-cream-400 mr-2">phone</mat-icon>
+              <mat-icon matPrefix class="text-neutral-600 mr-2">phone</mat-icon>
               @if (registerForm.get('phone')?.hasError('required')) {
                 <mat-error>Please enter your phone number.</mat-error>
               }
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="w-full form-field-dark">
-              <mat-label>Age</mat-label>
-              <input matInput type="number" formControlName="age" name="age">
-              <mat-icon matPrefix class="text-cream-400 mr-2">cake</mat-icon>
-              @if (registerForm.get('age')?.hasError('required')) {
-                <mat-error>Please enter your age.</mat-error>
+              <mat-label>Date of Birth (D.O.B)</mat-label>
+              <input matInput type="date" formControlName="dateOfBirth" name="dateOfBirth">
+              <mat-icon matPrefix class="text-neutral-600 mr-2">cake</mat-icon>
+              @if (registerForm.get('dateOfBirth')?.hasError('required')) {
+                <mat-error>Please enter your date of birth.</mat-error>
               }
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="w-full form-field-dark">
               <mat-label>Password</mat-label>
               <input matInput [type]="hidePassword() ? 'password' : 'text'" formControlName="password" name="password" autocomplete="new-password">
-              <mat-icon matPrefix class="text-cream-400 mr-2">lock</mat-icon>
-              <button mat-icon-button matSuffix type="button" (click)="hidePassword.set(!hidePassword())" class="text-cream-400">
+              <mat-icon matPrefix class="text-neutral-600 mr-2">lock</mat-icon>
+              <button mat-icon-button matSuffix type="button" (click)="hidePassword.set(!hidePassword())" class="text-neutral-600">
                 <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
               </button>
               @if (registerForm.get('password')?.hasError('required')) {
@@ -133,8 +133,8 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
             <mat-form-field appearance="outline" class="w-full form-field-dark">
               <mat-label>Confirm Password</mat-label>
               <input matInput [type]="hideConfirmPassword() ? 'password' : 'text'" formControlName="confirmPassword" name="confirmPassword" autocomplete="new-password">
-              <mat-icon matPrefix class="text-cream-400 mr-2">lock_outline</mat-icon>
-              <button mat-icon-button matSuffix type="button" (click)="hideConfirmPassword.set(!hideConfirmPassword())" class="text-cream-400">
+              <mat-icon matPrefix class="text-neutral-600 mr-2">lock_outline</mat-icon>
+              <button mat-icon-button matSuffix type="button" (click)="hideConfirmPassword.set(!hideConfirmPassword())" class="text-neutral-600">
                 <mat-icon>{{ hideConfirmPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
               </button>
               @if (registerForm.get('confirmPassword')?.hasError('required')) {
@@ -145,21 +145,18 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
             </mat-form-field>
 
             <button type="submit" 
-                    class="w-full h-12 bg-gold-600 hover:bg-gold-500 text-white rounded-lg font-medium tracking-wide transition-colors mt-2 flex items-center justify-center"
+                    class="w-full h-12 bg-gold-600 hover:bg-gold-500 text-black rounded-lg font-medium tracking-wide transition-colors mt-2 flex items-center justify-center"
                     [disabled]="isLoading()">
               @if (isLoading()) {
-                <span class="flex items-center justify-center gap-2">
-                  <mat-spinner diameter="24" class="mr-2"></mat-spinner>
-                  Creating Account...
-                </span>
+                <mat-spinner diameter="24" class="mr-2"></mat-spinner>
               } @else {
                 Create Account
               }
             </button>
           </form>
 
-          <div class="mt-8 text-center border-t border-white/10 pt-6">
-            <p class="text-cream-500 text-sm">
+          <div class="mt-8 text-center border-t border-black/10 pt-6">
+            <p class="text-neutral-500 text-sm">
               Already have an account? 
               <a routerLink="/auth/login" class="text-gold-400 hover:text-gold-300 font-medium transition-colors">Sign in here</a>
             </p>
@@ -183,6 +180,10 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
       caret-color: #c9a96e !important;
     }
     
+    ::ng-deep .form-field-dark input[type="date"] {
+      color-scheme: dark;
+    }
+
     ::ng-deep .form-field-dark .mdc-notched-outline__leading {
       border-right: none !important;
     }
@@ -220,7 +221,7 @@ export class RegisterComponent {
       lastName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       phone: ['', Validators.required],
-      age: ['', Validators.required],
+      dateOfBirth: ['', Validators.required],
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', Validators.required],
     }, { validators: passwordMatchValidator });
@@ -251,37 +252,24 @@ export class RegisterComponent {
     this.showFormError.set(false);
     this.isLoading.set(true);
     
-    const { firstName, lastName, email, phone, password, age } = this.registerForm.value;
-    const formattedEmail = email.trim().toLowerCase();
+    const { firstName, lastName, email, phone, dateOfBirth, password } = this.registerForm.value;
 
     this.authService.register({
       first_name: firstName,
       last_name: lastName,
-      email: formattedEmail,
+      email,
       phone,
+      date_of_birth: dateOfBirth,
       password,
-      age
-    } as any).subscribe({
+    }).subscribe({
       next: () => {
         this.isLoading.set(false);
-        this.snackBar.open('Your account has been created successfully.', 'OK', { duration: 3000 });
-        this.router.navigate(['/auth/login']);
+        this.snackBar.open('Registration successful!', 'OK', { duration: 3000 });
+        this.router.navigate(['/customer']);
       },
       error: (err) => {
         this.isLoading.set(false);
-        
-        let msg = 'Something went wrong while processing your request. Please try again.';
-        if (err.status === 0) {
-          msg = "We're unable to connect to our servers right now. Please check your internet connection or try again in a few moments.";
-        } else if (err.status >= 500) {
-          msg = "Our services are temporarily unavailable. Please try again shortly.";
-        } else if (err.status === 409) {
-          msg = "An account with this email address already exists.";
-        } else if (err.error?.message) {
-          msg = err.error.message;
-        }
-        
-        this.snackBar.open(msg, 'OK', { duration: 4000 });
+        this.snackBar.open(err.error?.message || 'Registration failed.', 'OK', { duration: 4000 });
       }
     });
   }

@@ -9,6 +9,7 @@ import cookieParser from 'cookie-parser';
 import hpp from 'hpp';
 
 import { env } from './config/env';
+import { authenticate } from './middleware/auth.middleware';
 import { testConnection } from './config/database';
 import { logger } from './utils/logger';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
@@ -19,6 +20,7 @@ import bookingRoutes from './routes/bookings.routes';
 import serviceRoutes from './routes/services.routes';
 import employeeRoutes from './routes/employees.routes';
 import paymentRoutes from './routes/payments.routes';
+import fiservPaymentRoutes from './routes/fiserv-payment.routes';
 import membershipRoutes from './routes/memberships.routes';
 import adminRoutes from './routes/admin.routes';
 import medicalRoutes from './routes/medical.routes';
@@ -28,6 +30,8 @@ import homepageRoutes from './routes/homepage.routes';
 import mediaRoutes from './routes/media.routes';
 import developerRoutes from './routes/developer.routes';
 import developerAuthRoutes from './routes/developer-auth.routes';
+import draftRoutes from './routes/drafts.routes';
+import { startDraftCleanupJob } from './jobs/cleanup-drafts.job';
 const app = express();
 
 // ─── Trust Proxy (for AWS ALB / EB) ──────────────────────────────────────────
@@ -107,6 +111,9 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/fiserv', fiservPaymentRoutes);
+// Global authentication applies to all routes after this point
+app.use(authenticate);
 app.use('/api/memberships', membershipRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/medical', medicalRoutes);
@@ -116,6 +123,7 @@ app.use('/api/homepage', homepageRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/developer', developerRoutes);
 app.use('/api/developer/oauth', developerAuthRoutes);
+app.use('/api/drafts', draftRoutes);
 
 // ─── 404 & Error Handlers ─────────────────────────────────────────────────────
 app.use(notFoundHandler);
@@ -125,6 +133,7 @@ app.use(errorHandler);
 async function bootstrap(): Promise<void> {
   try {
     await testConnection();
+    startDraftCleanupJob();
 
     const server = app.listen(env.PORT, () => {
       logger.info(`🚀 HHC LASER API running on port ${env.PORT} [${env.NODE_ENV}]`);

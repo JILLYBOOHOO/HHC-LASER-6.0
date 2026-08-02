@@ -1,190 +1,431 @@
-import nodemailer from 'nodemailer';
 import { executeQuery, executeQueryOne } from '../config/database';
 import { env } from '../config/env';
 import { logger } from '../utils/logger';
 import { User } from '../models/types';
+import {
+  getBookingConfirmationTemplate,
+  getAppointmentReminderTemplate,
+  getAppointmentRescheduledTemplate,
+  getCancellationTemplate,
+  getPaymentReceiptTemplate,
+  getWelcomeEmailTemplate,
+  getPasswordResetTemplate,
+  getEmailVerificationTemplate,
+  getAdminNotificationTemplate,
+  BookingConfirmationData,
+  AppointmentReminderData,
+  RescheduledData,
+  CancellationData,
+  PaymentReceiptData,
+  WelcomeEmailData,
+  PasswordResetData,
+  EmailVerificationData,
+  AdminNotificationData
+} from './email.templates';
 
-interface EmailOptions {
+export type DedicatedSender = 'appointments' | 'support' | 'billing' | 'noreply';
+
+interface SendEmailParams {
   to: string;
   subject: string;
   html: string;
+  category?: DedicatedSender;
+  idempotencyKey?: string;
 }
 
 export class NotificationService {
-  private transporter: nodemailer.Transporter;
+  private sentEmailHashes = new Set<string>();
 
-  constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: 'email-smtp.us-east-1.amazonaws.com',
-      port: 587,
-      secure: false,
-      auth: {
-        user: env.AWS_ACCESS_KEY_ID,
-        pass: env.AWS_SECRET_ACCESS_KEY,
-      },
-    });
-  }
+  /**
+   * Core private email sender with retry logic & idempotency checks
+   */
+  private async sendEmail(params: SendEmailParams, retryCount = 0): Promise<boolean> {
+    const { to, subject, html, category = 'noreply', idempotencyKey } = params;
 
-  private async sendEmail(options: EmailOptions): Promise<void> {
+    // 1. Idempotency Check (Prevent duplicate emails for the same event)
+    const eventHash = idempotencyKey || `${to}:${subject}`;
+    if (this.sentEmailHashes.has(eventHash)) {
+      logger.info(`[Resend Email] Duplicate email suppressed for key: ${eventHash}`);
+      return true;
+    }
+
     try {
-      await this.transporter.sendMail({
-        from: `HHC LASER Jamaica <${env.SES_FROM_EMAIL}>`,
-        replyTo: env.SES_REPLY_TO,
-        ...options,
+      const apiKey = env.RESEND_API_KEY || process.env.RESEND_API_KEY;
+      if (!apiKey) {
+        logger.warn(`[Resend Email] RESEND_API_KEY not configured. Simulated send to ${to}: "${subject}"`);
+        await this.logNotification('email', to, subject, 'simulated');
+        this.sentEmailHashes.add(eventHash);
+        return true;
+      }
+
+      // 2. Sender email calculation based on production domain flag
+      let fromEmail = `HHC Laser & Co <${env.EMAIL_DEV_SENDER}>`; // Default sandbox sender during domain transfer
+      if (env.EMAIL_ENABLE_PRODUCTION_DOMAIN) {
+        switch (category) {
+          case 'appointments':
+            fromEmail = `HHC Laser & Co <${env.EMAIL_FROM_APPOINTMENTS}>`;
+            break;
+          case 'support':
+            fromEmail = `HHC Laser & Co <${env.EMAIL_FROM_SUPPORT}>`;
+            break;
+          case 'billing':
+            fromEmail = `HHC Laser & Co <${env.EMAIL_FROM_BILLING}>`;
+            break;
+          case 'noreply':
+          default:
+            fromEmail = `HHC Laser & Co <${env.EMAIL_FROM_NOREPLY}>`;
+            break;
+        }
+      }
+
+      // 3. Dispatch via Resend API
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: [to],
+          subject: subject,
+          html: html,
+          reply_to: env.EMAIL_FROM_SUPPORT
+        })
       });
 
-      await this.logNotification('email', options.to, options.subject, 'sent');
-      logger.info(`[Email] Sent to ${options.to}: ${options.subject}`);
+      const resData: any = await response.json();
+
+      if (response.ok) {
+        this.sentEmailHashes.add(eventHash);
+        await this.logNotification('email', to, subject, 'sent');
+        logger.info(`[Resend Email] Sent successfully to ${to} (Resend ID: ${resData.id}): "${subject}"`);
+        return true;
+      } else {
+        // Retry logic for 5xx errors or network glitches (up to 2 retries)
+        if (response.status >= 500 && retryCount < 2) {
+          logger.warn(`[Resend Email] Provider status ${response.status}. Retrying attempt ${retryCount + 1}...`);
+          await new Promise(r => setTimeout(r, 1500 * (retryCount + 1)));
+          return this.sendEmail(params, retryCount + 1);
+        }
+
+        await this.logNotification('email', to, subject, 'failed');
+        logger.warn(`[Resend Email] Provider status ${response.status} for ${to}: ${JSON.stringify(resData)}`);
+        return false;
+      }
     } catch (error) {
-      await this.logNotification('email', options.to, options.subject, 'failed');
-      logger.error(`[Email] Failed to send to ${options.to}:`, error);
+      if (retryCount < 2) {
+        logger.warn(`[Resend Email] Network exception. Retrying attempt ${retryCount + 1}...`);
+        await new Promise(r => setTimeout(r, 1500 * (retryCount + 1)));
+        return this.sendEmail(params, retryCount + 1);
+      }
+      await this.logNotification('email', to, subject, 'failed');
+      logger.error(`[Resend Email] Failed to send email to ${to}:`, error);
+      return false;
     }
   }
 
-  async sendAppointmentConfirmation(customerId: number, appointmentDetails: {
-    date: string;
-    time: string;
-    services: string;
-    location: string;
-    employeeName: string;
-    totalAmount: number;
-    appointmentId: number;
-    confirmationCode: string;
-  }): Promise<void> {
-    const user = await executeQueryOne<User>('SELECT * FROM users WHERE id = ?', [customerId]);
-    if (!user) return;
-
-    const html = `
-      <!DOCTYPE html>
-      <html>
-      <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
-      <body style="margin:0;padding:0;background:#f8f5f0;font-family:'Georgia',serif;">
-        <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
-          <div style="background:linear-gradient(135deg,#1a1a1a 0%,#2c2c2c 100%);padding:40px 32px;text-align:center;">
-            <h1 style="color:#c9a96e;font-size:28px;margin:0;letter-spacing:2px;font-weight:400;">HHC LASER</h1>
-            <p style="color:#f8f5f0;margin:8px 0 0;font-size:13px;letter-spacing:1px;text-transform:uppercase;">Jamaica's Premier MedSpa</p>
-          </div>
-          <div style="padding:40px 32px;">
-            <h2 style="color:#1a1a1a;font-size:22px;font-weight:400;margin:0 0 8px;">Appointment Confirmed ✓</h2>
-            <p style="color:#666;font-size:15px;line-height:1.6;">Dear ${user.first_name}, your appointment has been confirmed. We look forward to seeing you.</p>
-            <div style="background:#f8f5f0;border-radius:8px;padding:24px;margin:24px 0;">
-              <table style="width:100%;border-collapse:collapse;">
-                <tr><td style="padding:8px 0;color:#888;font-size:13px;text-transform:uppercase;letter-spacing:1px;">Date</td><td style="padding:8px 0;color:#1a1a1a;font-size:15px;font-weight:600;">${appointmentDetails.date}</td></tr>
-                <tr><td style="padding:8px 0;color:#888;font-size:13px;text-transform:uppercase;letter-spacing:1px;">Time</td><td style="padding:8px 0;color:#1a1a1a;font-size:15px;font-weight:600;">${appointmentDetails.time}</td></tr>
-                <tr><td style="padding:8px 0;color:#888;font-size:13px;text-transform:uppercase;letter-spacing:1px;">Services</td><td style="padding:8px 0;color:#1a1a1a;font-size:15px;">${appointmentDetails.services}</td></tr>
-                <tr><td style="padding:8px 0;color:#888;font-size:13px;text-transform:uppercase;letter-spacing:1px;">Specialist</td><td style="padding:8px 0;color:#1a1a1a;font-size:15px;">${appointmentDetails.employeeName}</td></tr>
-                <tr><td style="padding:8px 0;color:#888;font-size:13px;text-transform:uppercase;letter-spacing:1px;">Location</td><td style="padding:8px 0;color:#1a1a1a;font-size:15px;">${appointmentDetails.location}</td></tr>
-                <tr><td style="padding:8px 0;color:#888;font-size:13px;text-transform:uppercase;letter-spacing:1px;">Total</td><td style="padding:8px 0;color:#c9a96e;font-size:18px;font-weight:700;">JMD $${appointmentDetails.totalAmount.toLocaleString()}</td></tr>
-              </table>
-            </div>
-            
-            <div style="background:#fff; border: 2px dashed #c9a96e; padding: 24px; text-align: center; margin-bottom: 24px; border-radius: 8px;">
-              <p style="color:#888; font-size:12px; text-transform:uppercase; letter-spacing:2px; margin:0 0 8px;">Your Confirmation Code</p>
-              <div style="font-size:32px; font-weight:700; color:#1a1a1a; letter-spacing:4px;">${appointmentDetails.confirmationCode}</div>
-              <p style="color:#666; font-size:13px; margin:8px 0 0;">Please present this code when you arrive for your booking.</p>
-            </div>
-
-            <div style="text-align:center;margin:32px 0;">
-              <a href="${env.FRONTEND_URL}/customer/bookings/${appointmentDetails.appointmentId}" style="background:#c9a96e;color:#1a1a1a;text-decoration:none;padding:14px 32px;border-radius:4px;font-size:14px;font-weight:600;letter-spacing:1px;text-transform:uppercase;">View Appointment</a>
-            </div>
-          </div>
-          <div style="background:#1a1a1a;padding:24px 32px;text-align:center;">
-            <p style="color:#888;font-size:12px;margin:0;">© ${new Date().getFullYear()} HHC LASER Jamaica. All rights reserved.</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-
-    await this.sendEmail({
-      to: user.email,
-      subject: `Appointment Confirmed — ${appointmentDetails.date} at ${appointmentDetails.time}`,
-      html,
+  /**
+   * Non-blocking queue wrapper so API responses return instantly
+   */
+  private queueEmail(params: SendEmailParams): void {
+    setImmediate(() => {
+      this.sendEmail(params).catch(err => {
+        logger.error('[NotificationQueue] Background dispatch error:', err);
+      });
     });
   }
 
+  // ─── PUBLIC EMAIL WORKFLOW METHODS ──────────────────────────────────────────
+
+  /**
+   * 1. Booking Confirmation Email (appointments@hhclaser.com)
+   */
+  async sendAppointmentConfirmation(customerId: number, details: {
+    date: string;
+    time: string;
+    duration?: string;
+    services: string;
+    location?: string;
+    employeeName?: string;
+    totalAmount: number;
+    appointmentId: number;
+    confirmationCode: string;
+    paymentRef?: string;
+  }): Promise<void> {
+    const user = await executeQueryOne<User>('SELECT * FROM users WHERE id = ?', [customerId]);
+    if (!user || !user.email) return;
+
+    const googleCalStart = details.date.replace(/-/g, '') + 'T120000Z';
+    const googleCalEnd = details.date.replace(/-/g, '') + 'T130000Z';
+    const googleCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(details.services)}&dates=${googleCalStart}/${googleCalEnd}&details=${encodeURIComponent('Treatment session at HHC Laser & Co')}&location=${encodeURIComponent(details.location || '48 Constant Spring Road, Kingston')}`;
+
+    const html = getBookingConfirmationTemplate({
+      frontendUrl: env.FRONTEND_URL,
+      customerName: `${user.first_name} ${user.last_name}`.trim(),
+      confirmationCode: details.confirmationCode,
+      bookingId: details.appointmentId,
+      treatmentName: details.services,
+      date: details.date,
+      time: details.time,
+      duration: details.duration || '60 min',
+      location: details.location || '48 Constant Spring Road, Kingston, Jamaica',
+      amountPaidJmd: details.totalAmount,
+      paymentRef: details.paymentRef || `FISERV-${details.confirmationCode}`,
+      googleCalendarUrl: googleCalUrl
+    });
+
+    this.queueEmail({
+      to: user.email,
+      subject: `Booking Confirmed #${details.confirmationCode} — HHC Laser & Co`,
+      html,
+      category: 'appointments',
+      idempotencyKey: `booking_confirm:${details.appointmentId}`
+    });
+
+    // Notify Admin of new booking
+    this.sendAdminNotification({
+      title: 'New Booking Created',
+      message: `A new booking has been confirmed for ${user.first_name} ${user.last_name}.`,
+      details: [
+        { label: 'Booking Code', value: details.confirmationCode },
+        { label: 'Customer', value: `${user.first_name} ${user.last_name} (${user.email})` },
+        { label: 'Treatment', value: details.services },
+        { label: 'Date & Time', value: `${details.date} at ${details.time}` },
+        { label: 'Amount Paid', value: `JMD $${details.totalAmount.toLocaleString()}` }
+      ]
+    });
+  }
+
+  /**
+   * 2. Appointment Reminder Email (appointments@hhclaser.com)
+   */
+  async sendAppointmentReminder(customerId: number, details: {
+    date: string;
+    time: string;
+    services: string;
+    location?: string;
+    confirmationCode: string;
+    reminderType?: '7_days' | '24_hours' | '2_hours';
+  }): Promise<void> {
+    const user = await executeQueryOne<User>('SELECT * FROM users WHERE id = ?', [customerId]);
+    if (!user || !user.email) return;
+
+    const html = getAppointmentReminderTemplate({
+      frontendUrl: env.FRONTEND_URL,
+      customerName: user.first_name,
+      treatmentName: details.services,
+      date: details.date,
+      time: details.time,
+      location: details.location || '48 Constant Spring Road, Kingston, Jamaica',
+      confirmationCode: details.confirmationCode,
+      reminderType: details.reminderType || '24_hours'
+    });
+
+    this.queueEmail({
+      to: user.email,
+      subject: `Reminder: Appointment tomorrow at ${details.time} — HHC Laser & Co`,
+      html,
+      category: 'appointments',
+      idempotencyKey: `reminder:${details.confirmationCode}:${details.reminderType || '24h'}`
+    });
+  }
+
+  /**
+   * 3. Appointment Rescheduled Email (appointments@hhclaser.com)
+   */
+  async sendAppointmentRescheduled(customerId: number, details: {
+    treatmentName: string;
+    oldDate: string;
+    oldTime: string;
+    newDate: string;
+    newTime: string;
+    location?: string;
+    confirmationCode: string;
+  }): Promise<void> {
+    const user = await executeQueryOne<User>('SELECT * FROM users WHERE id = ?', [customerId]);
+    if (!user || !user.email) return;
+
+    const html = getAppointmentRescheduledTemplate({
+      frontendUrl: env.FRONTEND_URL,
+      customerName: user.first_name,
+      treatmentName: details.treatmentName,
+      oldDate: details.oldDate,
+      oldTime: details.oldTime,
+      newDate: details.newDate,
+      newTime: details.newTime,
+      location: details.location || '48 Constant Spring Road, Kingston, Jamaica',
+      confirmationCode: details.confirmationCode
+    });
+
+    this.queueEmail({
+      to: user.email,
+      subject: `Appointment Rescheduled — HHC Laser & Co`,
+      html,
+      category: 'appointments'
+    });
+  }
+
+  /**
+   * 4. Appointment Cancelled Email (support@hhclaser.com)
+   */
+  async sendAppointmentCancelled(customerId: number, details: {
+    treatmentName: string;
+    date: string;
+    time: string;
+    reason?: string;
+    refundInfo?: string;
+  }): Promise<void> {
+    const user = await executeQueryOne<User>('SELECT * FROM users WHERE id = ?', [customerId]);
+    if (!user || !user.email) return;
+
+    const html = getCancellationTemplate({
+      frontendUrl: env.FRONTEND_URL,
+      customerName: user.first_name,
+      treatmentName: details.treatmentName,
+      date: details.date,
+      time: details.time,
+      reason: details.reason,
+      refundInfo: details.refundInfo
+    });
+
+    this.queueEmail({
+      to: user.email,
+      subject: `Appointment Cancellation Notice — HHC Laser & Co`,
+      html,
+      category: 'support'
+    });
+
+    // Notify Admin of cancellation
+    this.sendAdminNotification({
+      title: 'Booking Cancelled',
+      message: `Appointment for ${user.first_name} ${user.last_name} has been cancelled.`,
+      details: [
+        { label: 'Customer', value: `${user.first_name} ${user.last_name}` },
+        { label: 'Treatment', value: details.treatmentName },
+        { label: 'Date', value: details.date },
+        { label: 'Reason', value: details.reason || 'None specified' }
+      ]
+    });
+  }
+
+  /**
+   * 5. Payment Receipt Email (billing@hhclaser.com)
+   */
   async sendPaymentConfirmation(customerId: number, details: {
     amount: number;
     approvalCode: string;
     idempotencyKey: string;
-    appointmentId: number | null;
+    appointmentId?: number | null;
   }): Promise<void> {
     const user = await executeQueryOne<User>('SELECT * FROM users WHERE id = ?', [customerId]);
-    if (!user) return;
+    if (!user || !user.email) return;
 
-    const html = `
-      <!DOCTYPE html>
-      <html>
-      <body style="margin:0;padding:0;background:#f8f5f0;font-family:'Georgia',serif;">
-        <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;">
-          <div style="background:linear-gradient(135deg,#1a1a1a,#2c2c2c);padding:40px 32px;text-align:center;">
-            <h1 style="color:#c9a96e;font-size:28px;margin:0;">HHC LASER</h1>
-          </div>
-          <div style="padding:40px 32px;text-align:center;">
-            <div style="width:64px;height:64px;background:#22c55e;border-radius:50%;margin:0 auto 24px;display:flex;align-items:center;justify-content:center;">
-              <span style="color:white;font-size:32px;">✓</span>
-            </div>
-            <h2 style="color:#1a1a1a;font-size:24px;">Payment Successful</h2>
-            <p style="color:#666;font-size:15px;">Dear ${user.first_name}, your payment of <strong style="color:#c9a96e;">JMD $${details.amount.toLocaleString()}</strong> has been received.</p>
-            <p style="color:#888;font-size:13px;">Approval Code: <strong>${details.approvalCode}</strong></p>
-            <p style="color:#888;font-size:13px;">Reference: <code>${details.idempotencyKey}</code></p>
-          </div>
-          <div style="background:#1a1a1a;padding:24px;text-align:center;">
-            <p style="color:#888;font-size:12px;margin:0;">© ${new Date().getFullYear()} HHC LASER Jamaica</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
+    const html = getPaymentReceiptTemplate({
+      frontendUrl: env.FRONTEND_URL,
+      customerName: `${user.first_name} ${user.last_name}`.trim(),
+      amountJmd: details.amount,
+      approvalCode: details.approvalCode,
+      referenceKey: details.idempotencyKey,
+      transactionDate: new Date().toLocaleDateString('en-US', { dateStyle: 'medium' }),
+      description: 'Fiserv MedSpa Service Deposit'
+    });
 
-    await this.sendEmail({
+    this.queueEmail({
       to: user.email,
-      subject: `Payment Confirmed — JMD $${details.amount.toLocaleString()}`,
+      subject: `Payment Receipt JMD $${details.amount.toLocaleString()} — HHC Laser & Co`,
       html,
+      category: 'billing',
+      idempotencyKey: `payment_receipt:${details.idempotencyKey}`
+    });
+
+    // Notify Admin of payment
+    this.sendAdminNotification({
+      title: 'Payment Received',
+      message: `A payment of JMD $${details.amount.toLocaleString()} was processed.`,
+      details: [
+        { label: 'Customer', value: `${user.first_name} ${user.last_name}` },
+        { label: 'Amount', value: `JMD $${details.amount.toLocaleString()}` },
+        { label: 'Approval Code', value: details.approvalCode },
+        { label: 'Ref', value: details.idempotencyKey }
+      ]
     });
   }
 
-  async sendAppointmentReminder(customerId: number, appointmentDetails: {
-    date: string;
-    time: string;
-    services: string;
-    location: string;
-    appointmentId: number;
-  }): Promise<void> {
-    const user = await executeQueryOne<User>('SELECT * FROM users WHERE id = ?', [customerId]);
-    if (!user) return;
+  /**
+   * 6. Welcome Email (noreply@hhclaser.com)
+   */
+  async sendWelcomeEmail(user: { email: string; first_name: string }): Promise<void> {
+    const html = getWelcomeEmailTemplate({
+      frontendUrl: env.FRONTEND_URL,
+      customerName: user.first_name
+    });
 
-    const html = `
-      <!DOCTYPE html>
-      <html>
-      <body style="margin:0;padding:0;background:#f8f5f0;font-family:'Georgia',serif;">
-        <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;">
-          <div style="background:linear-gradient(135deg,#1a1a1a,#2c2c2c);padding:40px 32px;text-align:center;">
-            <h1 style="color:#c9a96e;font-size:28px;margin:0;">HHC LASER</h1>
-          </div>
-          <div style="padding:40px 32px;">
-            <h2 style="color:#1a1a1a;text-align:center;">Appointment Reminder 🔔</h2>
-            <p style="color:#666;font-size:15px;text-align:center;">Dear ${user.first_name}, this is a friendly reminder about your upcoming appointment.</p>
-            <div style="background:#f8f5f0;border-radius:8px;padding:24px;margin:24px 0;">
-              <p><strong>Date:</strong> ${appointmentDetails.date}</p>
-              <p><strong>Time:</strong> ${appointmentDetails.time}</p>
-              <p><strong>Services:</strong> ${appointmentDetails.services}</p>
-              <p><strong>Location:</strong> ${appointmentDetails.location}</p>
-            </div>
-            <p style="color:#888;font-size:13px;text-align:center;">Please arrive 10 minutes early. If you need to reschedule, contact us at least 24 hours in advance.</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-
-    await this.sendEmail({
+    this.queueEmail({
       to: user.email,
-      subject: `Reminder: Your appointment is tomorrow at ${appointmentDetails.time}`,
+      subject: `Welcome to HHC Laser & Co ✨`,
       html,
+      category: 'noreply'
+    });
+
+    // Notify Admin of new registration
+    this.sendAdminNotification({
+      title: 'New Customer Registered',
+      message: `${user.first_name} registered a new account on HHC Laser & Co.`,
+      details: [
+        { label: 'Name', value: user.first_name },
+        { label: 'Email', value: user.email }
+      ]
     });
   }
 
+  /**
+   * 7. Password Reset Email (noreply@hhclaser.com)
+   */
+  async sendPasswordReset(user: { email: string; first_name: string }, resetToken: string): Promise<void> {
+    const resetUrl = `${env.FRONTEND_URL}/auth/reset-password?token=${encodeURIComponent(resetToken)}`;
+    const html = getPasswordResetTemplate({
+      frontendUrl: env.FRONTEND_URL,
+      customerName: user.first_name,
+      resetUrl,
+      expiresInMinutes: 15
+    });
+
+    this.queueEmail({
+      to: user.email,
+      subject: `Password Reset Request — HHC Laser & Co`,
+      html,
+      category: 'noreply'
+    });
+  }
+
+  /**
+   * 8. Admin Alert Notification (noreply@hhclaser.com to infohhcLaser@gmail.com)
+   */
+  async sendAdminNotification(data: {
+    title: string;
+    message: string;
+    details: { label: string; value: string }[];
+  }): Promise<void> {
+    const adminEmail = 'infohhcLaser@gmail.com';
+    const html = getAdminNotificationTemplate({
+      frontendUrl: env.FRONTEND_URL,
+      title: data.title,
+      message: data.message,
+      details: data.details
+    });
+
+    this.queueEmail({
+      to: adminEmail,
+      subject: `[Admin Alert] ${data.title}`,
+      html,
+      category: 'noreply'
+    });
+  }
+
+  /**
+   * Database Notification Logging
+   */
   private async logNotification(type: string, recipient: string, subject: string, status: string): Promise<void> {
     try {
       await executeQuery(
@@ -192,7 +433,7 @@ export class NotificationService {
         [type, recipient, subject, status]
       );
     } catch (err) {
-      logger.error('[Notification] Failed to log notification:', err);
+      logger.error('[Notification] Failed to write entry to notifications_log table:', err);
     }
   }
 }

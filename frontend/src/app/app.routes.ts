@@ -12,42 +12,42 @@ export const routes: Routes = [
         path: '',
         loadComponent: () => import('./features/public/home/home.component')
           .then(m => m.HomeComponent),
-        title: 'HHC LASER Jamaica — Premier MedSpa',
+        title: 'HHC Laser & Co. | Premier Medical Spa Kingston Jamaica | Laser Hair Removal, Botox, Fillers',
       },
       {
         path: 'services',
         loadComponent: () => import('./features/public/services/services.component')
           .then(m => m.ServicesComponent),
-        title: 'Our Services — HHC LASER Jamaica',
+        title: 'Medical Spa Services Kingston Jamaica | Laser Hair Removal, Botox, IV Therapy | HHC Laser',
       },
       {
         path: 'services/:slug',
-        loadComponent: () => import('./shared/components/not-found/not-found.component')
-          .then(m => m.NotFoundComponent),
+        loadComponent: () => import('./features/public/service-detail/service-detail.component')
+          .then(m => m.ServiceDetailComponent),
       },
       {
         path: 'gallery',
         loadComponent: () => import('./features/public/gallery/gallery.component')
           .then(m => m.GalleryComponent),
-        title: 'Gallery — HHC LASER Jamaica',
+        title: 'Results Gallery | Med Spa Before & After | HHC Laser Jamaica',
       },
       {
         path: 'about',
         loadComponent: () => import('./features/public/about/about.component')
           .then(m => m.AboutComponent),
-        title: 'About Us — HHC LASER Jamaica',
+        title: 'About HHC Laser & Co. | Medical Aesthetic Clinic Kingston Jamaica',
       },
       {
         path: 'contact',
         loadComponent: () => import('./features/public/contact/contact.component')
           .then(m => m.ContactComponent),
-        title: 'Contact — HHC LASER Jamaica',
+        title: 'Contact HHC Laser Jamaica | Book a Med Spa Consultation Kingston',
       },
       {
         path: 'products',
         loadComponent: () => import('./features/public/products/products.component')
           .then(m => m.ProductsComponent),
-        title: 'Luxury Skincare Products — HHC LASER Jamaica',
+        title: 'Luxury Medical Skincare Products Jamaica | HHC Laser & Co.',
       },
       {
         path: 'products/:slug',
@@ -59,7 +59,7 @@ export const routes: Routes = [
         path: 'faq',
         loadComponent: () => import('./features/public/faq/faq.component')
           .then(m => m.FaqComponent),
-        title: 'FAQ — HHC LASER Jamaica',
+        title: 'FAQ | Laser Hair Removal, Botox & Med Spa Questions | HHC Laser Jamaica',
       },
       {
         path: 'refund-policy',
@@ -73,12 +73,44 @@ export const routes: Routes = [
           .then(m => m.TermsOfServiceComponent),
         title: 'Terms of Service — HHC LASER Jamaica',
       },
+      {
+        path: 'privacy',
+        loadComponent: () => import('./features/public/privacy-policy/privacy-policy.component')
+          .then(m => m.PrivacyPolicyComponent),
+        title: 'Privacy Policy — HHC LASER Jamaica',
+      },
+      {
+        path: 'booking/success',
+        loadComponent: () => import('./features/customer/booking/payment-success.component')
+          .then(m => m.PaymentSuccessComponent),
+        title: 'Payment Successful — HHC LASER',
+      },
+      {
+        path: 'booking/failure',
+        loadComponent: () => import('./features/customer/booking/payment-failure.component')
+          .then(m => m.PaymentFailureComponent),
+        title: 'Payment Failed — HHC LASER',
+      },
+      {
+        path: 'payment/success',
+        loadComponent: () => import('./features/public/payment-result/payment-result.component')
+          .then(m => m.PaymentResultComponent),
+        title: 'Payment Successful — HHC LASER',
+      },
+      {
+        path: 'payment/failure',
+        loadComponent: () => import('./features/public/payment-result/payment-result.component')
+          .then(m => m.PaymentResultComponent),
+        title: 'Payment Failed — HHC LASER',
+      },
+      {
+        path: 'pay/:orderId',
+        loadComponent: () => import('./features/public/pay/payment-link.component')
+          .then(m => m.PaymentLinkComponent),
+        title: 'Secure Payment — HHC LASER',
+      }
     ],
   },
-
-  { path: 'login', redirectTo: 'auth/login', pathMatch: 'full' },
-  { path: 'register', redirectTo: 'auth/register', pathMatch: 'full' },
-  { path: 'forgot-password', redirectTo: 'auth/forgot-password', pathMatch: 'full' },
 
   // ─── Authentication ──────────────────────────────────────────────────────────
   {
@@ -141,8 +173,8 @@ export const routes: Routes = [
       },
       {
         path: 'bookings',
-        loadComponent: () => import('./shared/components/not-found/not-found.component')
-          .then(m => m.NotFoundComponent),
+        loadComponent: () => import('./features/customer/bookings/customer-bookings.component')
+          .then(m => m.CustomerBookingsComponent),
         title: 'My Appointments — HHC LASER',
       },
       {
@@ -152,8 +184,8 @@ export const routes: Routes = [
       },
       {
         path: 'profile',
-        loadComponent: () => import('./shared/components/not-found/not-found.component')
-          .then(m => m.NotFoundComponent),
+        loadComponent: () => import('./features/customer/profile/customer-profile.component')
+          .then(m => m.CustomerProfileComponent),
         title: 'My Profile — HHC LASER',
       },
       {
@@ -170,14 +202,14 @@ export const routes: Routes = [
       },
       {
         path: 'payment-success',
-        loadComponent: () => import('./shared/components/not-found/not-found.component')
-          .then(m => m.NotFoundComponent),
+        loadComponent: () => import('./features/customer/payment-success/payment-success.component')
+          .then(m => m.PaymentSuccessComponent),
         title: 'Payment Confirmed — HHC LASER',
       },
       {
         path: 'payment-failed',
-        loadComponent: () => import('./shared/components/not-found/not-found.component')
-          .then(m => m.NotFoundComponent),
+        loadComponent: () => import('./features/customer/payment-failed/payment-failed.component')
+          .then(m => m.PaymentFailedComponent),
         title: 'Payment Failed — HHC LASER',
         data: { failed: true },
       },
@@ -200,19 +232,19 @@ export const routes: Routes = [
       },
       {
         path: 'clients',
-        loadComponent: () => import('./shared/components/not-found/not-found.component')
-          .then(m => m.NotFoundComponent),
+        loadComponent: () => import('./features/employee/clients/employee-clients.component')
+          .then(m => m.EmployeeClientsComponent),
         title: 'My Clients — HHC LASER',
       },
       {
         path: 'clients/:id',
-        loadComponent: () => import('./shared/components/not-found/not-found.component')
-          .then(m => m.NotFoundComponent),
+        loadComponent: () => import('./features/employee/clients/employee-client-detail.component')
+          .then(m => m.EmployeeClientDetailComponent),
       },
       {
         path: 'photo-vault',
-        loadComponent: () => import('./shared/components/not-found/not-found.component')
-          .then(m => m.NotFoundComponent),
+        loadComponent: () => import('./features/employee/photo-vault/employee-photo-vault.component')
+          .then(m => m.EmployeePhotoVaultComponent),
         title: 'Photo Vault — HHC LASER',
       },
       {
@@ -244,23 +276,81 @@ export const routes: Routes = [
         title: 'Manage Bookings — HHC LASER',
       },
       {
-        path: 'customers',
-        loadComponent: () => import('./shared/components/not-found/not-found.component')
-          .then(m => m.NotFoundComponent),
-        title: 'Manage Customers — HHC LASER',
+        path: 'gallery',
+        loadComponent: () => import('./features/admin/gallery/admin-gallery.component')
+          .then(m => m.AdminGalleryComponent),
+        title: 'Gallery — HHC LASER Admin',
       },
       {
-        path: 'staff',
-        loadComponent: () => import('./shared/components/not-found/not-found.component')
-          .then(m => m.NotFoundComponent),
-        title: 'Manage Staff — HHC LASER',
-        canActivate: [roleGuard(['owner', 'admin'])],
+        path: 'transactions',
+        loadComponent: () => import('./features/admin/transactions/admin-transactions.component')
+          .then(m => m.AdminTransactionsComponent),
+        title: 'Transactions — HHC LASER Admin',
+      },
+      {
+        path: 'provider-availability',
+        loadComponent: () => import('./features/admin/provider-availability/admin-provider-availability.component')
+          .then(m => m.AdminProviderAvailabilityComponent),
+        title: 'Provider Availability — HHC LASER Admin',
+      },
+      {
+        path: 'check-in',
+        loadComponent: () => import('./features/admin/queue/admin-queue.component')
+          .then(m => m.AdminQueueComponent),
+        title: 'Check-in Queue — HHC LASER Admin',
+      },
+      {
+        path: 'categories',
+        loadComponent: () => import('./features/admin/services/admin-services.component')
+          .then(m => m.AdminServicesComponent),
+        title: 'Categories — HHC LASER Admin',
       },
       {
         path: 'services',
         loadComponent: () => import('./features/admin/services/admin-services.component')
           .then(m => m.AdminServicesComponent),
         title: 'Manage Services — HHC LASER',
+      },
+      {
+        path: 'products',
+        loadComponent: () => import('./features/admin/products/admin-products.component')
+          .then(m => m.AdminProductsComponent),
+        title: 'Manage Products — HHC LASER',
+      },
+      {
+        path: 'invoices',
+        loadComponent: () => import('./features/admin/transactions/admin-transactions.component')
+          .then(m => m.AdminTransactionsComponent),
+        title: 'Invoices — HHC LASER Admin',
+      },
+      {
+        path: 'maintenance-invoices',
+        loadComponent: () => import('./features/admin/transactions/admin-transactions.component')
+          .then(m => m.AdminTransactionsComponent),
+        title: 'Maintenance Invoices — HHC LASER Admin',
+      },
+      {
+        path: 'patients',
+        loadComponent: () => import('./features/admin/patients/admin-patients.component')
+          .then(m => m.AdminPatientsComponent),
+        title: 'Patients — HHC LASER Admin',
+      },
+      {
+        path: 'users',
+        loadComponent: () => import('./features/admin/users/admin-users.component')
+          .then(m => m.AdminUsersComponent),
+        title: 'Users — HHC LASER Admin',
+      },
+      {
+        path: 'staff',
+        redirectTo: 'users',
+        pathMatch: 'full',
+      },
+      {
+        path: 'roles',
+        loadComponent: () => import('./features/admin/roles/admin-roles.component')
+          .then(m => m.AdminRolesComponent),
+        title: 'Roles & Permissions — HHC LASER Admin',
       },
       {
         path: 'homepage',
@@ -282,8 +372,8 @@ export const routes: Routes = [
       },
       {
         path: 'reports',
-        loadComponent: () => import('./shared/components/not-found/not-found.component')
-          .then(m => m.NotFoundComponent),
+        loadComponent: () => import('./features/admin/reports/admin-reports.component')
+          .then(m => m.AdminReportsComponent),
         title: 'Reports & Analytics — HHC LASER',
         canActivate: [roleGuard(['owner', 'admin'])],
       },

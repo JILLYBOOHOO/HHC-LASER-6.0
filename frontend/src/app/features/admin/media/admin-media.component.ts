@@ -24,14 +24,14 @@ interface MediaItem {
       
       <div class="flex justify-between items-center mb-8">
         <div>
-          <h1 class="text-3xl font-heading text-charcoal-900 mb-2">Media Library</h1>
+          <h1 class="text-3xl font-heading text-white mb-2">Media Library</h1>
           <p class="text-charcoal-500">Manage images and videos used across your website.</p>
         </div>
         
         <!-- File Input hidden, triggered by button -->
         <input type="file" #fileInput (change)="onFileSelected($event)" class="hidden" accept="image/*,video/mp4" />
         
-        <button mat-flat-button class="!bg-gold-500 !text-white hover:!bg-gold-600" (click)="fileInput.click()" [disabled]="uploading()">
+        <button mat-flat-button class="!bg-gold-500 !text-black hover:!bg-gold-600" (click)="fileInput.click()" [disabled]="uploading()">
           <mat-icon>{{ uploading() ? 'hourglass_empty' : 'upload' }}</mat-icon> 
           {{ uploading() ? 'Uploading...' : 'Upload Media' }}
         </button>
@@ -49,19 +49,19 @@ interface MediaItem {
               <!-- Preview -->
               <div class="aspect-square bg-gray-100 relative">
                 @if (item.file_type === 'image') {
-                  <img [src]="item.file_url" class="w-full h-full object-cover" />
+                  <img loading="lazy" [src]="item.file_url" class="w-full h-full object-cover" />
                 } @else if (item.file_type === 'video') {
                   <div class="w-full h-full flex items-center justify-center bg-gray-900">
-                    <mat-icon class="text-white !text-4xl !w-10 !h-10">play_circle</mat-icon>
+                    <mat-icon class="text-black !text-4xl !w-10 !h-10">play_circle</mat-icon>
                   </div>
                 }
                 
                 <!-- Overlay actions -->
-                <div class="absolute inset-0 bg-charcoal-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                  <button mat-icon-button class="text-white hover:text-gold-400" (click)="copyUrl(item.file_url)" title="Copy URL">
+                <div class="absolute inset-0 bg-white/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <button mat-icon-button class="text-black hover:text-gold-400" (click)="copyUrl(item.file_url)" title="Copy URL">
                     <mat-icon>content_copy</mat-icon>
                   </button>
-                  <button mat-icon-button class="text-white hover:text-red-400" (click)="deleteMedia(item.id)" title="Delete">
+                  <button mat-icon-button class="text-black hover:text-red-400" (click)="deleteMedia(item.id)" title="Delete">
                     <mat-icon>delete</mat-icon>
                   </button>
                 </div>
@@ -69,7 +69,7 @@ interface MediaItem {
 
               <!-- Info -->
               <div class="p-3">
-                <div class="text-sm font-medium text-charcoal-800 truncate" [title]="item.file_name">{{ item.file_name }}</div>
+                <div class="text-sm font-medium text-gray-50 truncate" [title]="item.file_name">{{ item.file_name }}</div>
                 <div class="text-xs text-charcoal-400 flex justify-between mt-1">
                   <span class="uppercase">{{ item.file_type }}</span>
                   <span>{{ (item.size_bytes / 1024 / 1024) | number:'1.2-2' }} MB</span>

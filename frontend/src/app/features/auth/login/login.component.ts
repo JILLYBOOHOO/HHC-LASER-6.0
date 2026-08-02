@@ -22,12 +22,11 @@ import { environment } from '../../../../environments/environment';
     MatIconModule, MatProgressSpinnerModule, MatSnackBarModule, MatCheckboxModule,
   ],
   template: `
-    <div class="min-h-screen flex items-center justify-center px-4 py-12"
-         style="background: linear-gradient(135deg, #111111 0%, #1a1a1a 60%, #0d0d0d 100%)">
+    <div class="min-h-screen flex items-center justify-center px-4 py-12 bg-white">
 
       <!-- Background Texture -->
-      <div class="fixed inset-0 pointer-events-none"
-           style="background-image: radial-gradient(circle, rgba(201,169,110,0.05) 1px, transparent 1px);
+      <div class="fixed inset-0 pointer-events-none opacity-40"
+           style="background-image: radial-gradient(circle, rgba(0,0,0,0.05) 1px, transparent 1px);
                   background-size: 40px 40px;">
       </div>
 
@@ -35,17 +34,15 @@ import { environment } from '../../../../environments/environment';
         <!-- Logo -->
         <div class="text-center mb-10">
           <a routerLink="/" class="inline-block">
-            <div class="font-heading text-4xl text-white mb-1">HHC LASER</div>
-            <div class="text-gold-500 text-xs tracking-widest uppercase">Jamaica's Premier MedSpa</div>
+            <div class="font-heading text-4xl text-neutral-900 mb-1">HHC LASER</div>
+            <div class="text-neutral-700 text-xs tracking-widest uppercase font-semibold">Jamaica's Premier MedSpa</div>
           </a>
         </div>
 
-        <!-- Card -->
-        <div class="glass rounded-2xl p-8 md:p-10">
-          <h2 class="text-white text-2xl font-heading font-light mb-2">Welcome Back</h2>
-          <p class="text-cream-400 text-sm mb-8">Sign in to your account to manage bookings and more.</p>
-
-
+        <!-- Black Card -->
+        <div class="bg-black rounded-2xl p-8 md:p-10 shadow-2xl border border-white/10 text-white">
+          <h2 class="text-white text-2xl font-heading font-medium mb-2">Welcome Back</h2>
+          <p class="text-neutral-400 text-sm mb-8">Sign in to your account to manage bookings and more.</p>
 
           <!-- Form -->
           <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-5">
@@ -53,7 +50,7 @@ import { environment } from '../../../../environments/environment';
               <mat-label>Email Address</mat-label>
               <input matInput type="email" formControlName="email" autocomplete="email" name="email"
                      placeholder="your@email.com">
-              <mat-icon matPrefix class="text-gold-500 !text-sm mr-2">email</mat-icon>
+              <mat-icon matPrefix class="text-gold-400 !text-sm mr-2">email</mat-icon>
               @if (form.get('email')?.invalid && form.get('email')?.touched) {
                 <mat-error>Please enter a valid email address.</mat-error>
               }
@@ -63,25 +60,29 @@ import { environment } from '../../../../environments/environment';
               <mat-label>Password</mat-label>
               <input matInput [type]="showPassword() ? 'text' : 'password'"
                      formControlName="password" autocomplete="current-password" name="password">
-              <mat-icon matPrefix class="text-gold-500 !text-sm mr-2">lock</mat-icon>
-              <button mat-icon-button matSuffix type="button"
+              <mat-icon matPrefix class="text-gold-400 !text-sm mr-2">lock</mat-icon>
+              <button mat-icon-button matSuffix type="button" class="!text-neutral-400"
                       (click)="showPassword.set(!showPassword())">
                 <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
               </button>
               @if (form.get('password')?.invalid && form.get('password')?.touched) {
-                <mat-error>Please enter your password.</mat-error>
+                <mat-error>Password is required.</mat-error>
               }
             </mat-form-field>
 
             @if (errorMessage()) {
-              <div class="bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-3">
-                <p class="text-red-400 text-sm">{{ errorMessage() }}</p>
+              <div class="bg-red-900/30 border border-red-500/40 rounded-lg px-4 py-3">
+                <p class="text-red-300 text-sm">{{ errorMessage() }}</p>
               </div>
             }
 
-            <div class="flex items-center justify-end">
+            <div class="flex items-center justify-between">
+              <mat-checkbox formControlName="rememberMe" color="primary"
+                            class="remember-me-checkbox">
+                <span class="text-neutral-300 text-sm font-medium">Remember me</span>
+              </mat-checkbox>
               <a routerLink="/auth/forgot-password"
-                 class="text-xs text-gold-400 hover:text-gold-300 transition-colors font-medium">
+                 class="text-xs text-gold-400 hover:text-gold-300 transition-colors font-semibold">
                 Forgot password?
               </a>
             </div>
@@ -89,29 +90,26 @@ import { environment } from '../../../../environments/environment';
             <button type="submit" class="btn-primary w-full text-base py-3"
                     [disabled]="isLoading() || form.invalid">
               @if (isLoading()) {
-                <span class="flex items-center justify-center gap-2">
-                  <mat-spinner diameter="20" color="warn"></mat-spinner>
-                  Signing In...
-                </span>
+                <mat-spinner diameter="20" color="warn"></mat-spinner>
               } @else {
                 Sign In
               }
             </button>
           </form>
 
-          <p class="text-center text-cream-400 text-sm mt-8">
+          <p class="text-center text-neutral-400 text-sm mt-8">
             New customer?
-            <a routerLink="/auth/register" class="text-gold-400 hover:text-gold-300 font-medium ml-1">
+            <a routerLink="/auth/register" class="text-gold-400 hover:text-gold-300 font-semibold ml-1">
               Register here
             </a>
           </p>
         </div>
 
-        <p class="text-center text-cream-600 text-xs mt-8">
+        <p class="text-center text-neutral-600 text-xs mt-8">
           By signing in, you agree to our
-          <a routerLink="/privacy" class="text-gold-500 hover:underline">Privacy Policy</a>
+          <a routerLink="/privacy" class="text-neutral-900 underline font-medium hover:text-black">Privacy Policy</a>
           and
-          <a routerLink="/terms-of-service" class="text-gold-500 hover:underline">Terms of Service</a>.
+          <a routerLink="/terms-of-service" class="text-neutral-900 underline font-medium hover:text-black">Terms of Service</a>.
         </p>
       </div>
     </div>
@@ -120,18 +118,29 @@ import { environment } from '../../../../environments/environment';
     ::ng-deep .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__leading,
     ::ng-deep .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__notch,
     ::ng-deep .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__trailing {
-      border-color: rgba(255,255,255,0.15) !important;
+      border-color: rgba(255,255,255,0.2) !important;
     }
     ::ng-deep .mdc-notched-outline__leading { border-right: none !important; }
     ::ng-deep .mdc-notched-outline__notch { border-left: none !important; border-right: none !important; }
     ::ng-deep .mdc-notched-outline__trailing { border-left: none !important; }
 
-    ::ng-deep .mat-mdc-form-field label { color: rgba(248,245,240,0.6); }
-    ::ng-deep .mat-mdc-form-field input { color: white; }
+    ::ng-deep .mat-mdc-form-field label { color: rgba(255,255,255,0.7) !important; }
+    ::ng-deep .mat-mdc-form-field input { color: #ffffff !important; }
     ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
     ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__notch,
     ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing {
-      border-color: #c9a96e !important;
+      border-color: #d6b36a !important;
+    }
+
+    /* Remember Me checkbox styling */
+    .remember-me-checkbox {
+      ::ng-deep .mdc-checkbox__background {
+        border-color: rgba(255, 255, 255, 0.4) !important;
+      }
+      ::ng-deep .mdc-checkbox--selected .mdc-checkbox__background {
+        background-color: #d6b36a !important;
+        border-color: #d6b36a !important;
+      }
     }
   `],
 })
@@ -152,6 +161,7 @@ export class LoginComponent {
     this.form = this.fb.group({
       email:    ['', [Validators.required, Validators.email]],
       password: ['', Validators.required],
+      rememberMe: [false],
     });
   }
 
@@ -160,32 +170,15 @@ export class LoginComponent {
     this.isLoading.set(true);
     this.errorMessage.set('');
 
-    const value = { ...this.form.value };
-    value.email = value.email.trim().toLowerCase();
-
-    this.authService.login(value).subscribe({
+    const rememberMe = this.form.value.rememberMe || false;
+    this.authService.login(this.form.value, rememberMe).subscribe({
       next: (user) => {
         this.isLoading.set(false);
-        this.snackBar.open('Welcome back!', 'OK', { duration: 3000 });
         this.handleSuccessfulLogin(user);
       },
       error: (err) => {
         this.isLoading.set(false);
-        
-        let msg = 'Something went wrong while processing your request. Please try again.';
-        if (err.status === 0) {
-          msg = "We're unable to connect to our servers right now. Please check your internet connection or try again in a few moments.";
-        } else if (err.status >= 500) {
-          msg = "Our services are temporarily unavailable. Please try again shortly.";
-        } else if (err.status === 401) {
-          msg = "The email address or password you entered is incorrect.";
-        } else if (err.status === 404) {
-          msg = "We couldn't find an account with that email address.";
-        } else if (err.error?.message) {
-          msg = err.error.message;
-        }
-        
-        this.errorMessage.set(msg);
+        this.errorMessage.set(err.error?.message || 'Login failed. Please check your credentials.');
       },
     });
   }
@@ -208,12 +201,16 @@ export class LoginComponent {
     const returnUrl = this.route.snapshot.queryParams['returnUrl'];
     if (returnUrl) {
       this.router.navigateByUrl(returnUrl);
+    } else if (user.roles.includes('customer')) {
+      // Route customers to the public services page or a dedicated customer dashboard
+      this.router.navigate(['/services']);
     } else if (user.roles.some((r: string) => ['owner','admin','manager'].includes(r))) {
       this.router.navigate(['/admin']);
     } else if (user.roles.includes('specialist')) {
       this.router.navigate(['/employee']);
     } else {
-      this.router.navigate(['/customer']);
+      // Fallback for any other role (e.g., staff)
+      this.router.navigate(['/services']);
     }
   }
 }

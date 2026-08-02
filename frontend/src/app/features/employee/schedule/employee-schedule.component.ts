@@ -13,88 +13,103 @@ import { RouterModule } from '@angular/router';
   standalone: true,
   imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule, MatChipsModule, MatMenuModule, RouterModule],
   template: `
-    <div class="p-4 md:p-8 max-w-7xl mx-auto">
+    <div class="p-4 md:p-8 max-w-7xl mx-auto font-sans bg-[#fcfbfa] min-h-screen">
       
       <!-- Header -->
       <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 class="text-2xl font-heading text-charcoal-800">My Schedule</h1>
-          <p class="text-charcoal-500">Welcome, {{ authState.user()?.first_name || 'Specialist' }}. Here is your schedule for today.</p>
+          <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">My Schedule</h1>
+          <p class="text-slate-600 font-medium text-sm mt-1">Welcome, <span class="font-bold text-slate-900">{{ authState.user()?.first_name || 'Specialist' }}</span>. Here is your schedule for today.</p>
         </div>
-        <div class="flex items-center gap-4 bg-white px-4 py-2 rounded-xl shadow-sm border border-cream-200">
-          <button mat-icon-button class="text-charcoal-500"><mat-icon>chevron_left</mat-icon></button>
-          <div class="font-medium text-charcoal-800 whitespace-nowrap">Today, Aug 15</div>
-          <button mat-icon-button class="text-charcoal-500"><mat-icon>chevron_right</mat-icon></button>
+        <div class="flex flex-wrap items-center gap-3">
+          <a routerLink="/booking" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-black font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center gap-2">
+            <mat-icon class="!text-base">add_circle</mat-icon>
+            <span class="uppercase tracking-wider">+ Make Appointment for Customer</span>
+          </a>
+          <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200">
+            <button mat-icon-button class="text-slate-600 hover:text-slate-900"><mat-icon>chevron_left</mat-icon></button>
+            <div class="font-extrabold text-slate-900 text-sm whitespace-nowrap">Today, Aug 15</div>
+            <button mat-icon-button class="text-slate-600 hover:text-slate-900"><mat-icon>chevron_right</mat-icon></button>
+          </div>
         </div>
       </div>
 
       <!-- Schedule Timeline -->
-      <div class="bg-white rounded-2xl shadow-sm border border-cream-200 p-6">
+      <div class="bg-white rounded-3xl shadow-sm border-2 border-slate-200 p-6 md:p-8">
         <div class="space-y-6">
           
           @for (apt of appointments; track apt.id) {
             <div class="flex flex-col md:flex-row gap-4 group">
-              <!-- Time -->
-              <div class="w-24 flex-shrink-0 pt-1">
-                <div class="text-sm font-semibold text-charcoal-800">{{ apt.time }}</div>
-                <div class="text-xs text-charcoal-400">{{ apt.duration }}</div>
+              <!-- Time Column -->
+              <div class="w-28 flex-shrink-0 pt-2">
+                <div class="text-base font-black text-slate-900 tracking-tight">{{ apt.time }}</div>
+                <div class="text-xs font-bold text-amber-700 mt-0.5">{{ apt.duration }}</div>
               </div>
               
-              <!-- Card -->
-              <div class="flex-1 card p-5 border-l-4 transition-all hover:shadow-md"
+              <!-- Appointment Card Box -->
+              <div class="flex-1 bg-white rounded-2xl p-6 border-2 border-slate-200 border-l-8 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-6"
                    [ngClass]="{
-                     'border-l-gold-500 bg-gold-50/30': apt.status === 'In Treatment',
-                     'border-l-green-500 bg-white': apt.status === 'Completed',
-                     'border-l-blue-500 bg-white': apt.status === 'Arrived',
-                     'border-l-red-500 bg-cream-50 opacity-60': apt.status === 'No Show',
-                     'border-l-charcoal-200 bg-white': apt.status === 'Confirmed'
+                     'border-l-emerald-500 bg-emerald-50/20': apt.status === 'Completed',
+                     'border-l-amber-500 bg-amber-50/30': apt.status === 'In Treatment',
+                     'border-l-blue-500 bg-blue-50/20': apt.status === 'Arrived',
+                     'border-l-rose-500 bg-rose-50/20 opacity-70': apt.status === 'No Show',
+                     'border-l-slate-400 bg-slate-50/40': apt.status === 'Confirmed'
                    }">
                 
-                <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                  <div>
-                    <div class="flex items-center gap-3 mb-1">
-                      <h3 class="font-heading text-lg font-semibold text-charcoal-800">{{ apt.clientName }}</h3>
-                      <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded"
-                            [ngClass]="{
-                              'bg-gold-100 text-gold-700': apt.status === 'In Treatment',
-                              'bg-green-100 text-green-700': apt.status === 'Completed',
-                              'bg-blue-100 text-blue-700': apt.status === 'Arrived',
-                              'bg-red-100 text-red-700': apt.status === 'No Show',
-                              'bg-charcoal-100 text-charcoal-600': apt.status === 'Confirmed'
-                            }">
-                        {{ apt.status }}
-                      </span>
-                    </div>
-                    <p class="text-charcoal-600 font-medium text-sm mb-2">{{ apt.service }}</p>
-                    <div class="flex flex-wrap gap-x-4 gap-y-2 text-xs text-charcoal-500">
-                      <span class="flex items-center gap-1"><mat-icon class="!text-sm">room</mat-icon> {{ apt.room }}</span>
-                      <span class="flex items-center gap-1"><mat-icon class="!text-sm">info</mat-icon> {{ apt.notes || 'No specific notes.' }}</span>
-                    </div>
+                <div class="space-y-2">
+                  <div class="flex items-center gap-3">
+                    <h3 class="text-xl font-black text-slate-900 tracking-tight">{{ apt.clientName }}</h3>
+                    <span class="px-3 py-1 text-[11px] font-black uppercase tracking-wider rounded-full"
+                          [ngClass]="{
+                            'bg-amber-100 text-amber-800 border border-amber-300': apt.status === 'In Treatment',
+                            'bg-emerald-100 text-emerald-800 border border-emerald-300': apt.status === 'Completed',
+                            'bg-blue-100 text-blue-800 border border-blue-300': apt.status === 'Arrived',
+                            'bg-rose-100 text-rose-800 border border-rose-300': apt.status === 'No Show',
+                            'bg-slate-200 text-slate-800 border border-slate-300': apt.status === 'Confirmed'
+                          }">
+                      {{ apt.status }}
+                    </span>
                   </div>
+                  
+                  <p class="text-slate-800 font-extrabold text-sm">{{ apt.service }}</p>
+                  
+                  <div class="flex flex-wrap items-center gap-4 text-xs font-bold text-slate-600 pt-1">
+                    <span class="flex items-center gap-1 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
+                      <mat-icon class="!text-sm text-amber-600">room</mat-icon> {{ apt.room }}
+                    </span>
+                    <span class="flex items-center gap-1 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
+                      <mat-icon class="!text-sm text-slate-500">info</mat-icon> {{ apt.notes || 'No specific notes.' }}
+                    </span>
+                  </div>
+                </div>
 
-                  <div class="flex sm:flex-col items-center sm:items-end gap-2">
-                    <button mat-button [matMenuTriggerFor]="statusMenu" class="!bg-charcoal-50 text-charcoal-600 border border-charcoal-200 w-full sm:w-auto">
-                      Update Status <mat-icon>arrow_drop_down</mat-icon>
+                <!-- Action Controls -->
+                <div class="flex items-center gap-3 self-start sm:self-center">
+                  <button [matMenuTriggerFor]="statusMenu" 
+                          class="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-black font-extrabold text-xs rounded-xl shadow-sm transition-all flex items-center gap-2">
+                    <span>Update Status</span>
+                    <mat-icon class="!text-base text-amber-400">arrow_drop_down</mat-icon>
+                  </button>
+                  <mat-menu #statusMenu="matMenu">
+                    <button mat-menu-item (click)="updateStatus(apt, 'Arrived')">
+                      <mat-icon class="text-blue-500">how_to_reg</mat-icon> Mark Arrived
                     </button>
-                    <mat-menu #statusMenu="matMenu">
-                      <button mat-menu-item (click)="updateStatus(apt, 'Arrived')">
-                        <mat-icon class="text-blue-500">how_to_reg</mat-icon> Mark Arrived
-                      </button>
-                      <button mat-menu-item (click)="updateStatus(apt, 'In Treatment')">
-                        <mat-icon class="text-gold-500">spa</mat-icon> In Treatment
-                      </button>
-                      <button mat-menu-item (click)="updateStatus(apt, 'Completed')">
-                        <mat-icon class="text-green-500">check_circle</mat-icon> Completed
-                      </button>
-                      <button mat-menu-item (click)="updateStatus(apt, 'No Show')">
-                        <mat-icon class="text-red-500">cancel</mat-icon> No Show
-                      </button>
-                    </mat-menu>
-                    
-                    <a [routerLink]="['/employee/treatment-notes', apt.id]" mat-icon-button class="text-charcoal-400 hover:text-gold-600" matTooltip="Add Treatment Notes">
-                      <mat-icon>edit_document</mat-icon>
-                    </a>
-                  </div>
+                    <button mat-menu-item (click)="updateStatus(apt, 'In Treatment')">
+                      <mat-icon class="text-amber-500">spa</mat-icon> In Treatment
+                    </button>
+                    <button mat-menu-item (click)="updateStatus(apt, 'Completed')">
+                      <mat-icon class="text-emerald-500">check_circle</mat-icon> Completed
+                    </button>
+                    <button mat-menu-item (click)="updateStatus(apt, 'No Show')">
+                      <mat-icon class="text-rose-500">cancel</mat-icon> No Show
+                    </button>
+                  </mat-menu>
+                  
+                  <a [routerLink]="['/employee/treatment-notes', apt.id]" 
+                     class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 hover:text-amber-600 hover:bg-slate-200 transition-all shadow-xs" 
+                     title="Add Treatment Notes">
+                    <mat-icon class="!text-lg">edit_document</mat-icon>
+                  </a>
                 </div>
 
               </div>

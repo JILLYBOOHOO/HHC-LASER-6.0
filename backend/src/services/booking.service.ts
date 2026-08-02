@@ -22,11 +22,64 @@ export class BookingService {
     const { employeeId, locationId, date, startTime, endTime, excludeAppointmentId } = params;
     const conflicts: string[] = [];
 
-    // Check employee conflicts
+    // 1. Check if date is blocked globally
+    const isBlocked = await executeQueryOne(
+      'SELECT id FROM blocked_dates WHERE blocked_date = ?',
+      [date]
+    );
+    if (isBlocked) {
+      conflicts.push('The selected date is blocked/unavailable.');
+      return { available: false, conflicts };
+    }
+
+    // 2. Check if date is a holiday for this location
+    const isHoliday = await executeQueryOne(
+      'SELECT id FROM location_holidays WHERE location_id = ? AND holiday_date = ?',
+      [locationId, date]
+    );
+    if (isHoliday) {
+      conflicts.push('The selected date is a holiday.');
+      return { available: false, conflicts };
+    }
+
+    // 3. Check if business is closed on this day of week
+    const [year, month, day] = date.split('-').map(Number);
+    const dayOfWeek = new Date(year, month - 1, day).getDay();
+    const bizHours = await executeQueryOne<{ is_closed: boolean }>(
+      'SELECT is_closed FROM business_hours WHERE location_id = ? AND day_of_week = ?',
+      [locationId, dayOfWeek]
+    );
+    if (bizHours && bizHours.is_closed) {
+      conflicts.push('The business is closed on this day of the week.');
+      return { available: false, conflicts };
+    }
+
+    // 4. Check if employee is scheduled/working on this day of week
+    const schedule = await executeQueryOne<{ start_time: string; end_time: string; is_available: boolean }>(
+      `SELECT start_time, end_time, is_available FROM employee_schedules
+       WHERE employee_id = ? AND location_id = ? AND day_of_week = ?`,
+      [employeeId, locationId, dayOfWeek]
+    );
+    if (!schedule || !schedule.is_available) {
+      conflicts.push('The specialist is not working on this day.');
+      return { available: false, conflicts };
+    }
+
+    // 5. Check if the start/end times fall within the specialist's working hours
+    const slotStartStr = startTime.slice(0, 5);
+    const slotEndStr = endTime.slice(0, 5);
+    const workStartStr = schedule.start_time.slice(0, 5);
+    const workEndStr = schedule.end_time.slice(0, 5);
+    if (slotStartStr < workStartStr || slotEndStr > workEndStr) {
+      conflicts.push('The selected time falls outside of the specialist\'s working hours.');
+      return { available: false, conflicts };
+    }
+
+    // 6. Check employee conflicts with existing appointments
     const employeeConflict = await executeQueryOne<Appointment>(
       `SELECT id FROM appointments 
        WHERE employee_id = ? AND scheduled_date = ? 
-       AND status NOT IN ('cancelled', 'no_show')
+       AND status NOT IN ('cancelled', 'no_show', 'pending')
        AND start_time < ? AND end_time > ?
        ${excludeAppointmentId ? 'AND id != ?' : ''}`,
       excludeAppointmentId
@@ -96,11 +149,12 @@ export class BookingService {
     const confirmationCode = crypto.randomBytes(3).toString('hex').toUpperCase();
 
     return withTransaction(async (conn) => {
+      const mainServiceId = dto.service_ids[0];
       const [apptResult] = await conn.execute(
         `INSERT INTO appointments 
          (booking_type, group_id, customer_user_id, booked_for_user_id, employee_id, location_id, 
-          scheduled_date, start_time, end_time, status, notes, confirmation_code, total_amount_jmd, deposit_paid_jmd)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, 0)`,
+          scheduled_date, start_time, end_time, status, notes, confirmation_code, total_amount_jmd, deposit_paid_jmd, service_id, booking_source)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, 0, ?, ?)`,
         [
           dto.booking_type,
           groupId,
@@ -114,6 +168,8 @@ export class BookingService {
           dto.notes || null,
           confirmationCode,
           totalAmountJmd,
+          mainServiceId,
+          dto.booking_source || 'website'
         ]
       ) as any;
 
@@ -156,6 +212,90 @@ export class BookingService {
     });
   }
 
+  async createAdminAppointment(staffUserId: number, customerId: number, dto: CreateAppointmentDto & { payment_status?: any }): Promise<Appointment> {
+    const { totalDurationMinutes, totalAmountJmd, services } = await this.calculateServiceTotals(dto.service_ids);
+    const endTime = this.addMinutes(dto.start_time, totalDurationMinutes);
+
+    // Check availability with same rules
+    const { available, conflicts } = await this.checkAvailability({
+      employeeId: dto.employee_id,
+      locationId: dto.location_id,
+      date: dto.scheduled_date,
+      startTime: dto.start_time,
+      endTime,
+    });
+
+    if (!available) {
+      throw new AppError(`Booking conflict: ${conflicts.join(' ')}`, 409);
+    }
+
+    const groupId = dto.booking_type === 'group' ? uuidv4() : null;
+    const confirmationCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+
+    return withTransaction(async (conn) => {
+      const mainServiceId = dto.service_ids[0];
+      const initialStatus = 'pending';
+      const [apptResult] = await conn.execute(
+        `INSERT INTO appointments 
+         (booking_type, group_id, customer_user_id, booked_for_user_id, employee_id, location_id, 
+          scheduled_date, start_time, end_time, status, notes, confirmation_code, total_amount_jmd, deposit_paid_jmd, service_id, booking_source, payment_status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)`,
+        [
+          dto.booking_type,
+          groupId,
+          customerId,
+          dto.booked_for_user_id || customerId,
+          dto.employee_id,
+          dto.location_id,
+          dto.scheduled_date,
+          dto.start_time,
+          endTime,
+          initialStatus,
+          dto.notes || null,
+          confirmationCode,
+          totalAmountJmd,
+          mainServiceId,
+          dto.booking_source || 'admin',
+          dto.payment_status || 'pending_payment'
+        ]
+      ) as any;
+
+      const appointmentId = apptResult.insertId;
+
+      for (const service of services) {
+        await conn.execute(
+          `INSERT INTO appointment_services (appointment_id, service_id, price_jmd, duration_minutes)
+           VALUES (?, ?, ?, ?)`,
+          [appointmentId, service.id, service.price_jmd, service.duration_minutes]
+        );
+      }
+
+      await conn.execute(
+        `INSERT INTO appointment_status_log (appointment_id, new_status, changed_by_user_id, notes)
+         VALUES (?, ?, ?, 'Appointment created by admin/staff')`,
+        [appointmentId, initialStatus, staffUserId]
+      );
+
+      if (dto.booking_type === 'group' && dto.group_guests?.length) {
+        for (const guest of dto.group_guests) {
+          await conn.execute(
+            `INSERT INTO appointment_guests (appointment_id, group_id, first_name, last_name, email, phone)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [appointmentId, groupId, guest.first_name, guest.last_name, guest.email || null, guest.phone || null]
+          );
+        }
+      }
+
+      const appointment = await executeQueryOne<Appointment>(
+        'SELECT * FROM appointments WHERE id = ?',
+        [appointmentId]
+      );
+
+      logger.info(`[Booking] Appointment ${appointmentId} created by staff ${staffUserId} for customer ${customerId}`);
+      return appointment!;
+    });
+  }
+
   async getAppointmentsByCustomer(customerId: number, page: number, limit: number): Promise<{ appointments: any[]; total: number }> {
     const offset = (page - 1) * limit;
     const countRow = await executeQueryOne<{ count: number }>(
@@ -182,6 +322,28 @@ export class BookingService {
     );
 
     return { appointments, total: countRow?.count || 0 };
+  }
+
+  async getAppointmentById(appointmentId: number): Promise<any | null> {
+    return executeQueryOne(
+      `SELECT a.*,
+              l.name as location_name,
+              CONCAT(eu.first_name, ' ', eu.last_name) as employee_name,
+              CONCAT(cu.first_name, ' ', cu.last_name) as customer_name,
+              cu.email as customer_email,
+              cu.phone as customer_phone,
+              GROUP_CONCAT(s.name SEPARATOR ', ') as services
+       FROM appointments a
+       JOIN users cu ON cu.id = a.customer_user_id
+       JOIN locations l ON l.id = a.location_id
+       JOIN employees e ON e.id = a.employee_id
+       JOIN users eu ON eu.id = e.user_id
+       JOIN appointment_services aps ON aps.appointment_id = a.id
+       JOIN services s ON s.id = aps.service_id
+       WHERE a.id = ?
+       GROUP BY a.id`,
+      [appointmentId]
+    );
   }
 
   async getAppointmentsByEmployee(employeeId: number, date?: string): Promise<any[]> {
@@ -237,8 +399,30 @@ export class BookingService {
   }): Promise<string[]> {
     const { employeeId, locationId, date, durationMinutes } = params;
 
+    // 1. Check if date is blocked globally
+    const isBlocked = await executeQueryOne(
+      'SELECT id FROM blocked_dates WHERE blocked_date = ?',
+      [date]
+    );
+    if (isBlocked) return [];
+
+    // 2. Check if date is a holiday for this location
+    const isHoliday = await executeQueryOne(
+      'SELECT id FROM location_holidays WHERE location_id = ? AND holiday_date = ?',
+      [locationId, date]
+    );
+    if (isHoliday) return [];
+
+    // 3. Check if business is closed on this day of week
+    const [year, month, day] = date.split('-').map(Number);
+    const dayOfWeek = new Date(year, month - 1, day).getDay();
+    const bizHours = await executeQueryOne<{ is_closed: boolean }>(
+      'SELECT is_closed FROM business_hours WHERE location_id = ? AND day_of_week = ?',
+      [locationId, dayOfWeek]
+    );
+    if (bizHours && bizHours.is_closed) return [];
+
     // Get employee schedule for this day
-    const dayOfWeek = new Date(date).getDay();
     const schedule = await executeQueryOne<{ start_time: string; end_time: string; is_available: boolean }>(
       `SELECT start_time, end_time, is_available FROM employee_schedules
        WHERE employee_id = ? AND location_id = ? AND day_of_week = ?`,
@@ -277,6 +461,78 @@ export class BookingService {
     }
 
     return slots;
+  }
+
+  async getAvailableDates(params: {
+    employeeId: number;
+    locationId: number;
+    serviceId: number;
+    year: number;
+    month: number;
+  }): Promise<string[]> {
+    const { employeeId, locationId, serviceId, year, month } = params;
+
+    // Get service duration
+    const service = await executeQueryOne<{ duration_minutes: number }>(
+      'SELECT duration_minutes FROM services WHERE id = ?',
+      [serviceId]
+    );
+    const duration = service ? service.duration_minutes : 60;
+
+    const totalDays = new Date(year, month, 0).getDate();
+    const availableDates: string[] = [];
+
+    const promises = Array.from({ length: totalDays }, (_, i) => {
+      const dayNum = i + 1;
+      const pad = (n: number) => n < 10 ? '0' + n : n;
+      const dateStr = `${year}-${pad(month)}-${pad(dayNum)}`;
+
+      // Only allow today and future dates
+      const todayStr = new Date().toISOString().slice(0, 10);
+      if (dateStr < todayStr) return Promise.resolve();
+
+      return this.getAvailableSlots({
+        employeeId,
+        locationId,
+        date: dateStr,
+        durationMinutes: duration
+      }).then(slots => {
+        if (slots.length > 0) {
+          availableDates.push(dateStr);
+        }
+      });
+    });
+
+    await Promise.all(promises);
+    return availableDates.sort();
+  }
+
+  async getBlockedDates(): Promise<any[]> {
+    return executeQuery('SELECT * FROM blocked_dates ORDER BY blocked_date ASC');
+  }
+
+  async addBlockedDate(blockedDate: string, reason: string): Promise<void> {
+    await executeUpdate(
+      'INSERT INTO blocked_dates (blocked_date, reason) VALUES (?, ?) ON DUPLICATE KEY UPDATE reason = ?',
+      [blockedDate, reason, reason]
+    );
+  }
+
+  async deleteBlockedDate(blockedDate: string): Promise<void> {
+    await executeUpdate('DELETE FROM blocked_dates WHERE blocked_date = ?', [blockedDate]);
+  }
+
+  async getBusinessHours(locationId: number): Promise<any[]> {
+    return executeQuery('SELECT * FROM business_hours WHERE location_id = ? ORDER BY day_of_week ASC', [locationId]);
+  }
+
+  async updateBusinessHours(locationId: number, dayOfWeek: number, openTime: string, closeTime: string, isClosed: boolean): Promise<void> {
+    await executeUpdate(
+      `INSERT INTO business_hours (location_id, day_of_week, open_time, close_time, is_closed) 
+       VALUES (?, ?, ?, ?, ?) 
+       ON DUPLICATE KEY UPDATE open_time = ?, close_time = ?, is_closed = ?`,
+      [locationId, dayOfWeek, openTime, closeTime, isClosed ? 1 : 0, openTime, closeTime, isClosed ? 1 : 0]
+    );
   }
 }
 

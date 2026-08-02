@@ -19,7 +19,7 @@ export class JwtInterceptor implements HttpInterceptor {
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const token = this.authState.token();
-    const authReq = token ? this.addToken(req, token) : req;
+    const authReq = token && token.trim() ? this.addToken(req, token) : req;
 
     return next.handle(authReq).pipe(
       catchError((error: HttpErrorResponse) => {
