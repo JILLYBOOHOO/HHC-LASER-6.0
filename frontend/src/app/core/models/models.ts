@@ -135,6 +135,9 @@ export interface Appointment {
   created_at: string;
   confirmation_code?: string;
   payment_status?: string;
+  customer_name?: string;
+  customer_email?: string;
+  customer_phone?: string;
 }
 
 export interface BookingGuest {

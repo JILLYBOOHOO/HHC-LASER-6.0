@@ -97,9 +97,9 @@ export class EmployeeClientDetailComponent implements OnInit {
               const first = all[0];
               if (first) {
                 this.client.set({
-                  name: first.customer_name,
-                  email: first.customer_email,
-                  phone: first.customer_phone,
+                  name: first.customer_name || 'Unknown',
+                  email: first.customer_email || '',
+                  phone: first.customer_phone || '',
                 });
               }
               this.loading.set(false);
