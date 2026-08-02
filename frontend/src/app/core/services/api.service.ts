@@ -54,6 +54,10 @@ export class ApiService {
     return this.http.get<ApiResponse<EmployeeSchedule[]>>(`${this.base}/employees/${employeeId}/schedule`);
   }
 
+  getEmployeePhotos(employeeId: number): Observable<ApiResponse<any[]>> {
+    return this.http.get<ApiResponse<any[]>>(`${this.base}/employees/${employeeId}/photos`);
+  }
+
   getAvailableSlots(employeeId: number, locationId: number, date: string, duration: number): Observable<ApiResponse<string[]>> {
     const params = new HttpParams()
       .set('employee_id', employeeId)
@@ -71,6 +75,10 @@ export class ApiService {
   getMyBookings(page = 1, limit = 10): Observable<ApiResponse<Appointment[]>> {
     const params = new HttpParams().set('page', page).set('limit', limit);
     return this.http.get<ApiResponse<Appointment[]>>(`${this.base}/bookings/my`, { params });
+  }
+
+  getBookingById(id: number): Observable<ApiResponse<Appointment>> {
+    return this.http.get<ApiResponse<Appointment>>(`${this.base}/bookings/${id}`);
   }
 
   getEmployeeBookings(employeeId: number, date?: string): Observable<ApiResponse<Appointment[]>> {
@@ -188,6 +196,20 @@ export class ApiService {
     let params = new HttpParams().set('page', page).set('limit', limit);
     if (search) params = params.set('search', search);
     return this.http.get<ApiResponse<any[]>>(`${this.base}/admin/customers`, { params });
+  }
+
+  getAdminUsers(page = 1, limit = 20, search?: string): Observable<ApiResponse<any[]>> {
+    let params = new HttpParams().set('page', page).set('limit', limit);
+    if (search) params = params.set('search', search);
+    return this.http.get<ApiResponse<any[]>>(`${this.base}/admin/users`, { params });
+  }
+
+  updateUserStatus(userId: number, isActive: boolean): Observable<ApiResponse> {
+    return this.http.patch<ApiResponse>(`${this.base}/admin/users/${userId}/status`, { is_active: isActive });
+  }
+
+  assignUserRole(userId: number, role: string): Observable<ApiResponse> {
+    return this.http.post<ApiResponse>(`${this.base}/admin/users/${userId}/roles`, { role });
   }
 
   getRevenueReport(from?: string, to?: string, locationId?: number): Observable<ApiResponse<any>> {

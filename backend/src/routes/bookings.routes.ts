@@ -256,6 +256,23 @@ router.get('/employee/:employeeId',
   }
 );
 
+// GET /api/bookings/:id
+router.get('/:id',
+  authenticate,
+  async (req, res, next) => {
+    try {
+      const appointment = await bookingService.getAppointmentById(parseInt(req.params['id']));
+      if (!appointment) throw new AppError('Appointment not found.', 404);
+
+      const isOwner = appointment.customer_user_id === req.user!.userId;
+      const isStaff = ['specialist', 'manager', 'admin', 'owner'].some(r => req.user!.roles.includes(r));
+      if (!isOwner && !isStaff) throw new AppError('Access denied.', 403);
+
+      res.json(successResponse(appointment));
+    } catch (e) { next(e); }
+  }
+);
+
 // PATCH /api/bookings/:id/status
 router.patch('/:id/status',
   authenticate,

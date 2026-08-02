@@ -324,6 +324,28 @@ export class BookingService {
     return { appointments, total: countRow?.count || 0 };
   }
 
+  async getAppointmentById(appointmentId: number): Promise<any | null> {
+    return executeQueryOne(
+      `SELECT a.*,
+              l.name as location_name,
+              CONCAT(eu.first_name, ' ', eu.last_name) as employee_name,
+              CONCAT(cu.first_name, ' ', cu.last_name) as customer_name,
+              cu.email as customer_email,
+              cu.phone as customer_phone,
+              GROUP_CONCAT(s.name SEPARATOR ', ') as services
+       FROM appointments a
+       JOIN users cu ON cu.id = a.customer_user_id
+       JOIN locations l ON l.id = a.location_id
+       JOIN employees e ON e.id = a.employee_id
+       JOIN users eu ON eu.id = e.user_id
+       JOIN appointment_services aps ON aps.appointment_id = a.id
+       JOIN services s ON s.id = aps.service_id
+       WHERE a.id = ?
+       GROUP BY a.id`,
+      [appointmentId]
+    );
+  }
+
   async getAppointmentsByEmployee(employeeId: number, date?: string): Promise<any[]> {
     return executeQuery(
       `SELECT a.*, 

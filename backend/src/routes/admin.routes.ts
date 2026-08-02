@@ -139,6 +139,45 @@ router.get('/reports/revenue',
   }
 );
 
+// GET /api/admin/users  — all users with roles
+router.get('/users',
+  authenticate,
+  requireRole('owner', 'admin'),
+  async (req, res, next) => {
+    try {
+      const page = parseInt(req.query['page'] as string) || 1;
+      const limit = parseInt(req.query['limit'] as string) || 20;
+      const search = req.query['search'] as string;
+      const offset = (page - 1) * limit;
+
+      let sql = `
+        SELECT u.id, u.email, u.first_name, u.last_name, u.phone, u.is_active, u.created_at,
+               GROUP_CONCAT(ur.role ORDER BY ur.role SEPARATOR ',') as roles
+        FROM users u
+        LEFT JOIN user_roles ur ON ur.user_id = u.id
+      `;
+      const params: any[] = [];
+
+      if (search) {
+        sql += ` WHERE (u.email LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ? OR u.phone LIKE ?)`;
+        const s = `%${search}%`;
+        params.push(s, s, s, s);
+      }
+
+      sql += ' GROUP BY u.id ORDER BY u.created_at DESC LIMIT ? OFFSET ?';
+      params.push(limit, offset);
+
+      const [countRow] = await executeQuery<{ count: number }>(
+        `SELECT COUNT(*) as count FROM users u ${search ? 'WHERE u.email LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ?' : ''}`,
+        search ? [`%${search}%`, `%${search}%`, `%${search}%`] : []
+      );
+
+      const users = await executeQuery(sql, params);
+      res.json(paginatedResponse(users, page, limit, countRow?.count || 0));
+    } catch (e) { next(e); }
+  }
+);
+
 // PATCH /api/admin/users/:id/status  — activate/deactivate user
 router.patch('/users/:id/status',
   authenticate,

@@ -22,8 +22,8 @@ export const routes: Routes = [
       },
       {
         path: 'services/:slug',
-        loadComponent: () => import('./shared/components/not-found/not-found.component')
-          .then(m => m.NotFoundComponent),
+        loadComponent: () => import('./features/public/service-detail/service-detail.component')
+          .then(m => m.ServiceDetailComponent),
       },
       {
         path: 'gallery',
@@ -232,19 +232,19 @@ export const routes: Routes = [
       },
       {
         path: 'clients',
-        loadComponent: () => import('./shared/components/not-found/not-found.component')
-          .then(m => m.NotFoundComponent),
+        loadComponent: () => import('./features/employee/clients/employee-clients.component')
+          .then(m => m.EmployeeClientsComponent),
         title: 'My Clients — HHC LASER',
       },
       {
         path: 'clients/:id',
-        loadComponent: () => import('./shared/components/not-found/not-found.component')
-          .then(m => m.NotFoundComponent),
+        loadComponent: () => import('./features/employee/clients/employee-client-detail.component')
+          .then(m => m.EmployeeClientDetailComponent),
       },
       {
         path: 'photo-vault',
-        loadComponent: () => import('./shared/components/not-found/not-found.component')
-          .then(m => m.NotFoundComponent),
+        loadComponent: () => import('./features/employee/photo-vault/employee-photo-vault.component')
+          .then(m => m.EmployeePhotoVaultComponent),
         title: 'Photo Vault — HHC LASER',
       },
       {
@@ -331,20 +331,25 @@ export const routes: Routes = [
       },
       {
         path: 'patients',
-        loadComponent: () => import('./shared/components/not-found/not-found.component')
-          .then(m => m.NotFoundComponent),
+        loadComponent: () => import('./features/admin/patients/admin-patients.component')
+          .then(m => m.AdminPatientsComponent),
         title: 'Patients — HHC LASER Admin',
       },
       {
         path: 'users',
-        loadComponent: () => import('./shared/components/not-found/not-found.component')
-          .then(m => m.NotFoundComponent),
+        loadComponent: () => import('./features/admin/users/admin-users.component')
+          .then(m => m.AdminUsersComponent),
         title: 'Users — HHC LASER Admin',
       },
       {
+        path: 'staff',
+        redirectTo: 'users',
+        pathMatch: 'full',
+      },
+      {
         path: 'roles',
-        loadComponent: () => import('./shared/components/not-found/not-found.component')
-          .then(m => m.NotFoundComponent),
+        loadComponent: () => import('./features/admin/roles/admin-roles.component')
+          .then(m => m.AdminRolesComponent),
         title: 'Roles & Permissions — HHC LASER Admin',
       },
       {
@@ -367,8 +372,8 @@ export const routes: Routes = [
       },
       {
         path: 'reports',
-        loadComponent: () => import('./shared/components/not-found/not-found.component')
-          .then(m => m.NotFoundComponent),
+        loadComponent: () => import('./features/admin/reports/admin-reports.component')
+          .then(m => m.AdminReportsComponent),
         title: 'Reports & Analytics — HHC LASER',
         canActivate: [roleGuard(['owner', 'admin'])],
       },
