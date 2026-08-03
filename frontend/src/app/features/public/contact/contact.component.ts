@@ -88,6 +88,18 @@ import { saveContactMessage } from '../../../core/services/contact-messages';
                 <div>
                   <div class="font-bold text-sm mb-0.5" style="color: var(--gold);">Business Hours</div>
                   <div class="text-sm leading-relaxed" style="color: #cccccc;">Mon–Fri: 9AM–5PM<br>Sat: By Appointment<br>Sun: Closed</div>
+                <div class="flex gap-4 mt-4">
+                  <a href="https://wa.me/8763196241" target="_blank"
+                     class="flex items-center gap-2 px-4 py-2 rounded-full bg-gold-500 text-white text-sm font-medium hover:bg-gold-600 transition">
+                    <mat-icon class="!text-sm">whatsapp</mat-icon>
+                    WhatsApp
+                  </a>
+                  <a href="tel:+18763196241"
+                     class="flex items-center gap-2 px-4 py-2 rounded-full bg-white text-black text-sm font-medium border border-black/10 hover:bg-neutral-100 transition">
+                    <mat-icon class="!text-sm">phone</mat-icon>
+                    Call Us
+                  </a>
+                </div>
                 </div>
               </div>
             </div>
