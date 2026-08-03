@@ -18,36 +18,34 @@ interface FaqItem {
   standalone: true,
   imports: [CommonModule, MatExpansionModule, MatIconModule, MatButtonModule, RouterModule, FormsModule],
   template: `
-    <!-- Header Section (Beige background) -->
-    <div class="pt-4 pb-16" style="background: #FDF1D6;">
-      <div class="max-w-4xl mx-auto px-4 text-center">
-        <h1 class="font-heading text-4xl md:text-5xl text-black font-bold mb-4">
-          Frequently Asked Questions
-        </h1>
-        <p class="max-w-lg mx-auto text-neutral-800 text-sm leading-relaxed mb-8 font-semibold">
-          Find answers to the most common questions about our treatments, booking process, and policies.
-        </p>
+    <div class="pt-6 pb-16 min-h-screen" style="background: #FFFFFF;">
+      <div class="max-w-4xl mx-auto px-4">
+        
+        <!-- Header -->
+        <div class="text-center mb-12">
+          <span class="section-label" style="color: var(--gold);">HELP & SUPPORT</span>
+          <div class="divider-gold mx-auto"></div>
+          <h1 class="mt-4 font-heading text-4xl md:text-5xl text-black">
+            Frequently Asked <span style="color: var(--gold);">Questions</span>
+          </h1>
+          <p class="mt-4 max-w-lg mx-auto leading-relaxed text-neutral-600">
+            Find answers to the most common questions about our treatments, booking process, and policies.
+          </p>
+        </div>
 
         <!-- Search Bar -->
-        <div class="max-w-md mx-auto relative shadow-sm">
+        <div class="max-w-md mx-auto relative shadow-sm mb-12">
           <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 !text-neutral-500 !text-xl flex items-center">search</mat-icon>
           <input type="text"
                  placeholder="Search FAQs..."
                  [ngModel]="searchQuery()"
                  (ngModelChange)="searchQuery.set($event)"
-                 class="w-full pl-12 pr-4 py-3.5 border border-black/20 bg-white text-sm focus:outline-none focus:border-black transition-colors" />
+                 class="w-full pl-12 pr-4 py-3.5 border border-black/20 bg-white text-sm rounded-none focus:outline-none focus:border-black transition-colors" />
         </div>
-      </div>
-    </div>
-
-    <!-- Content Section (White background) -->
-    <div class="py-16 bg-white min-h-[60vh]">
-      <div class="max-w-4xl mx-auto px-4">
         
         <!-- Category Filter -->
-        <div class="mb-10">
-          <h3 class="text-black font-bold text-lg mb-4">Browse by Category</h3>
-          <div class="flex flex-wrap gap-3">
+        <div class="mb-10 text-center">
+          <div class="flex flex-wrap justify-center gap-3">
             @for (cat of categories; track cat) {
               <button (click)="selectedCategory.set(cat)"
                       class="px-4 py-1.5 border border-black/80 text-xs font-bold uppercase tracking-wider transition-colors"
@@ -62,14 +60,14 @@ interface FaqItem {
         @if (filteredFaqs().length > 0) {
           <mat-accordion class="faq-accordion" multi>
             @for (faq of filteredFaqs(); track faq.question) {
-              <mat-expansion-panel class="!mb-4 !rounded-none !shadow-none border border-black/40" expandedHeight="64px" collapsedHeight="64px">
+              <mat-expansion-panel class="!mb-4 !rounded-none !shadow-none border border-black/20" expandedHeight="64px" collapsedHeight="64px">
                 <mat-expansion-panel-header class="hover:!bg-neutral-50 px-6 border-none">
                   <mat-panel-title class="!text-black font-bold !text-sm flex items-center">
                     <mat-icon class="mr-3 !text-lg text-black">help_outline</mat-icon>
                     {{ faq.question }}
                   </mat-panel-title>
                 </mat-expansion-panel-header>
-                <div class="p-6 pt-2 text-neutral-800 font-medium text-sm leading-relaxed whitespace-pre-wrap bg-white">
+                <div class="p-6 pt-2 text-neutral-600 font-medium text-sm leading-relaxed whitespace-pre-wrap bg-white">
                   {{ faq.answer }}
                 </div>
               </mat-expansion-panel>

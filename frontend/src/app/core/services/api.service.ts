@@ -22,6 +22,10 @@ export class ApiService {
     return this.http.get<ApiResponse<Service[]>>(`${this.base}/services`, { params });
   }
 
+  getServiceBySlug(slug: string): Observable<ApiResponse<Service>> {
+    return this.http.get<ApiResponse<Service>>(`${this.base}/services/${slug}`);
+  }
+
   createService(service: Partial<Service>): Observable<ApiResponse<{id: number, message: string}>> {
     return this.http.post<ApiResponse<{id: number, message: string}>>(`${this.base}/services`, service);
   }
@@ -38,9 +42,6 @@ export class ApiService {
     return this.http.get<ApiResponse<ServiceCategory[]>>(`${this.base}/services/categories`);
   }
 
-  getServiceBySlug(slug: string): Observable<ApiResponse<Service>> {
-    return this.http.get<ApiResponse<Service>>(`${this.base}/services/${slug}`);
-  }
 
   // ─── Employees ──────────────────────────────────────────────────────────────
   getEmployees(locationId?: number, serviceId?: number): Observable<ApiResponse<Employee[]>> {

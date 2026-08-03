@@ -83,6 +83,7 @@ export interface Service {
   price_jmd: number;
   duration_minutes: number;
   thumbnail_url?: string;
+  gallery_images?: string | string[];
   is_active?: boolean;
   is_featured?: boolean;
   sort_order?: number;

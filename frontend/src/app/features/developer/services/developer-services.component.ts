@@ -152,12 +152,13 @@ export class DeveloperServicesComponent {
   showForm = signal(false);
   isEditing = signal(false);
   imagePreview: string | null = null;
-  services$ = this.servicesService.services$;
   currentServiceId = signal<number | null>(null);
 
   serviceForm: FormGroup;
+  services$: any;
 
   constructor(private fb: FormBuilder, private servicesService: ServicesManagementService) {
+    this.services$ = this.servicesService.services$;
     this.serviceForm = this.fb.group({
       name: ['', Validators.required],
       category: ['Laser Hair Removal', Validators.required],
@@ -221,12 +222,12 @@ export class DeveloperServicesComponent {
       const formValue = { ...this.serviceForm.value } as any;
       const imageFile = this.serviceForm.get('thumbnail_file')?.value as File | null;
       if (this.isEditing() && this.currentServiceId() !== null) {
-        this.servicesService.updateService(this.currentServiceId()!, formValue, imageFile).subscribe({
+        this.servicesService.updateService(this.currentServiceId()!, formValue, imageFile || undefined).subscribe({
           next: () => this.servicesService.refresh(),
           error: err => console.error('Update failed', err)
         });
       } else {
-        this.servicesService.addService(formValue, imageFile).subscribe({
+        this.servicesService.addService(formValue, imageFile || undefined).subscribe({
           next: () => this.servicesService.refresh(),
           error: err => console.error('Add failed', err)
         });
