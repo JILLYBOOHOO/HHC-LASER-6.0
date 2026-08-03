@@ -27,39 +27,37 @@ import { FormsModule } from '@angular/forms';
             Discover our comprehensive range of premium treatments tailored to enhance your natural beauty and well-being.
           </p>
 
-          <!-- Search & Filter Controls -->
-          <div class="max-w-md mx-auto flex flex-col gap-3 mb-6">
-            <!-- Search Bar -->
-            <div class="relative shadow-sm">
-              <mat-icon class="absolute left-3.5 top-1/2 -translate-y-1/2 !text-neutral-400 !text-lg flex items-center">search</mat-icon>
-              <input type="text"
-                     placeholder="Search treatments (e.g. Laser, Botox)..."
-                     [ngModel]="searchQuery()"
-                     (ngModelChange)="searchQuery.set($event)"
-                     class="w-full pl-10 pr-9 py-2.5 border border-black/20 rounded-xl bg-white text-sm text-black focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all" />
-              @if (searchQuery()) {
-                <button (click)="searchQuery.set('')" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-black">
-                  <mat-icon class="!text-base">close</mat-icon>
-                </button>
-              }
-            </div>
-
-            <!-- Filter Dropdown -->
-            <div class="relative shadow-sm">
-              <select 
-                [ngModel]="selectedCategoryId() === null ? 'null' : selectedCategoryId()"
-                (ngModelChange)="selectCategory($event === 'null' ? null : +$event)"
-                class="w-full appearance-none pl-4 pr-10 py-2.5 border border-black/20 rounded-xl bg-white text-sm text-charcoal-900 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all font-medium cursor-pointer">
-                <option value="null">All Treatments</option>
-                @for (cat of categories(); track cat.id) {
-                  <option [value]="cat.id">{{ cat.name }}</option>
-                }
-              </select>
-              <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-charcoal-400">
-                <mat-icon class="!text-[20px] !w-[20px] !h-[20px]">expand_more</mat-icon>
-              </div>
-            </div>
+          <!-- Search Bar -->
+          <div class="max-w-md mx-auto relative shadow-xs mb-2">
+            <mat-icon class="absolute left-3.5 top-1/2 -translate-y-1/2 !text-neutral-400 !text-lg flex items-center">search</mat-icon>
+            <input type="text"
+                   placeholder="Search treatments (e.g. Laser, Botox, Chemical Peel)..."
+                   [ngModel]="searchQuery()"
+                   (ngModelChange)="searchQuery.set($event)"
+                   class="w-full pl-10 pr-9 py-2 border border-black/25 rounded-full bg-white text-xs text-black focus:outline-none focus:border-black transition-colors" />
+            @if (searchQuery()) {
+              <button (click)="searchQuery.set('')" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-black">
+                <mat-icon class="!text-base">close</mat-icon>
+              </button>
+            }
           </div>
+        </div>
+
+        <!-- Filter Categories (Sits closer to search bar) -->
+        <div class="flex flex-wrap justify-center gap-1.5 mb-2">
+          <button (click)="selectCategory(null)"
+                  class="px-3.5 py-1 rounded-full text-xs transition-all duration-200"
+                  [ngClass]="!selectedCategoryId() ? 'bg-gold-500 text-black shadow-xs font-bold' : 'bg-black/5 text-neutral-700 hover:bg-black/10 font-semibold'">
+            All Treatments
+          </button>
+          
+          @for (cat of categories(); track cat.id) {
+            <button (click)="selectCategory(cat.id)"
+                    class="px-3.5 py-1 rounded-full text-xs transition-all duration-200"
+                    [ngClass]="selectedCategoryId() === cat.id ? 'bg-gold-500 text-black shadow-xs font-bold' : 'bg-black/5 text-neutral-700 hover:bg-black/10 font-semibold'">
+              {{ cat.name }}
+            </button>
+          }
         </div>
 
         <!-- Counter (Minimal Spacing directly above treatment grid) -->
