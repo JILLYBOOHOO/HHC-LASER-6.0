@@ -227,9 +227,16 @@ export class ContactComponent implements OnInit {
   toast = signal<{ type: 'success' | 'error'; title: string; message: string } | null>(null);
 
   faqs = [
-    { q: 'What is the preparation for Laser Hair Removal?', a: 'Please shave the area 24 hours before your appointment. Do not wax or pluck for 4 weeks prior.' },
-    { q: 'Is there any downtime after a chemical peel?', a: 'Depending on the depth of the peel, you may experience mild peeling for 3-5 days. Sun protection is mandatory.' },
-    { q: 'How do I cancel or reschedule?', a: 'You can manage your bookings in the customer portal. We require 24 hours notice for cancellations.' }
+    { q: 'Do you offer free consultations?', a: 'Yes, we offer complimentary consultations to discuss your goals and recommend the best treatment plan for you. During this consultation, our certified professionals will assess your needs and explain the available options.' },
+    { q: 'Are your treatments safe?', a: 'Absolutely. We use only FDA-approved equipment and follow strict safety protocols. All our practitioners are certified professionals with extensive training in aesthetic treatments. Your safety is our top priority.' },
+    { q: 'How long do results last?', a: "Results vary depending on the treatment and individual factors. During your consultation, we'll discuss expected results and duration for your specific treatment. Many treatments provide long-lasting results with proper maintenance." },
+    { q: 'Do you accept insurance?', a: 'Most aesthetic treatments are considered elective and not covered by insurance. However, we offer flexible payment plans and financing options to make treatments more accessible. Please ask about our current payment options during your consultation.' },
+    { q: 'How long does each treatment session take?', a: "Treatment duration varies depending on the specific procedure and the area being treated. Most sessions range from 30 minutes to 2 hours. We'll provide you with an accurate time estimate during your consultation." },
+    { q: 'What should I expect during my first visit?', a: "Your first visit will include a comprehensive consultation where we discuss your goals, medical history, and expectations. We'll examine the treatment area and explain the recommended procedures, timeline, and costs. There's no pressure to decide immediately." },
+    { q: 'Is there any downtime after treatments?', a: "Downtime varies by treatment. Many of our procedures are minimally invasive with little to no downtime, allowing you to resume normal activities immediately. For more intensive treatments, we'll provide detailed aftercare instructions." },
+    { q: 'How many sessions will I need?', a: "The number of sessions depends on your individual goals, the treatment type, and your skin's response. During your consultation, we'll create a personalized treatment plan that outlines the recommended number of sessions for optimal results." },
+    { q: 'What makes HHC Laser different from other clinics?', a: 'HHC Laser combines advanced technology with personalized care. Our certified professionals stay current with the latest techniques, we use FDA-approved equipment, and we focus on creating natural-looking results that enhance your confidence.' },
+    { q: 'Can I combine multiple treatments?', a: 'Yes, many treatments can be safely combined to maximize results. We often create comprehensive treatment plans that address multiple concerns. Our professionals will advise you on the best combination approach during your consultation.' }
   ];
 
   ngOnInit(): void {
