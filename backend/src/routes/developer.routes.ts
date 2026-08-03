@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import pool from '../config/database';
+import { executeQuery, executeQueryOne, executeUpdate } from '../config/database';
 import { authenticate } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/rbac.middleware';
 
@@ -11,30 +11,39 @@ router.use(authenticate, requireRole('developer', 'owner'));
 // GET /api/developer/system-status
 router.get('/system-status', async (req: Request, res: Response): Promise<void> => {
   try {
-    const [[{ userCount }]] = await pool.query<any[]>('SELECT COUNT(*) as userCount FROM users');
-    const [[{ apptCount }]] = await pool.query<any[]>('SELECT COUNT(*) as apptCount FROM appointments');
-    const [[{ serviceCount }]] = await pool.query<any[]>('SELECT COUNT(*) as serviceCount FROM services');
-    const [[{ productCount }]] = await pool.query<any[]>('SELECT COUNT(*) as productCount FROM products');
-    const [[{ errorCount }]] = await pool.query<any[]>('SELECT COUNT(*) as errorCount FROM error_logs WHERE status = "open"');
-    
+    const userRow = await executeQueryOne<{ usercount: string }>('SELECT COUNT(*) as userCount FROM users');
+    const apptRow = await executeQueryOne<{ apptcount: string }>('SELECT COUNT(*) as apptCount FROM appointments');
+    const serviceRow = await executeQueryOne<{ servicecount: string }>('SELECT COUNT(*) as serviceCount FROM services');
+    const productRow = await executeQueryOne<{ productcount: string }>('SELECT COUNT(*) as productCount FROM products');
+    const errorRow = await executeQueryOne<{ errorcount: string }>(
+      `SELECT COUNT(*) as errorCount FROM error_logs WHERE status = 'open'`
+    );
+
     // DB Health check
     let dbStatus = 'Healthy';
     try {
-      await pool.query('SELECT 1');
+      await executeQuery('SELECT 1');
     } catch {
       dbStatus = 'Unhealthy';
     }
+
+    // pg lowercases unquoted aliases unless quoted; support both casings
+    const countOf = (row: Record<string, any> | null, key: string) => {
+      if (!row) return 0;
+      const found = row[key] ?? row[key.toLowerCase()];
+      return Number(found ?? 0);
+    };
 
     res.json({
       success: true,
       data: {
         dbStatus,
         apiStatus: 'Healthy',
-        users: userCount,
-        appointments: apptCount,
-        services: serviceCount,
-        products: productCount,
-        openErrors: errorCount,
+        users: countOf(userRow, 'userCount'),
+        appointments: countOf(apptRow, 'apptCount'),
+        services: countOf(serviceRow, 'serviceCount'),
+        products: countOf(productRow, 'productCount'),
+        openErrors: countOf(errorRow, 'errorCount'),
         memoryUsage: process.memoryUsage().heapUsed,
         uptime: process.uptime()
       }
@@ -48,7 +57,7 @@ router.get('/system-status', async (req: Request, res: Response): Promise<void> 
 // GET /api/developer/error-logs
 router.get('/error-logs', async (req: Request, res: Response): Promise<void> => {
   try {
-    const [rows] = await pool.query<any[]>(
+    const rows = await executeQuery(
       'SELECT id, error_type, message, stack_trace, user_id, endpoint, method, status, created_at, resolved_at FROM error_logs ORDER BY created_at DESC LIMIT 100'
     );
     res.json({ success: true, data: rows });
@@ -62,9 +71,9 @@ router.get('/error-logs', async (req: Request, res: Response): Promise<void> => 
 router.put('/error-logs/:id', async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   const { status } = req.body;
-  
+
   try {
-    await pool.query(
+    await executeUpdate(
       'UPDATE error_logs SET status = ?, resolved_at = CURRENT_TIMESTAMP WHERE id = ?',
       [status, id]
     );

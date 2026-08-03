@@ -1,0 +1,533 @@
+[
+  {
+    "id": 55,
+    "name": "WOOD THERAPY",
+    "category": "BODY CONTOUR",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 9,000.00"
+  },
+  {
+    "id": 41,
+    "name": "BOTOX Consultation",
+    "category": "BOTOX / DERMAL FILLERS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 10,000.00"
+  },
+  {
+    "id": 42,
+    "name": "DERMAL FILLERS (Consultation)",
+    "category": "BOTOX / DERMAL FILLERS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 10,000.00"
+  },
+  {
+    "id": 67,
+    "name": "DARK CIRCLES",
+    "category": "DARK SPOTS / LASER RESURFACING",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 5,000.00"
+  },
+  {
+    "id": 58,
+    "name": "SKIN RESURFACING",
+    "category": "DARK SPOTS / LASER RESURFACING",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 14,000.00"
+  },
+  {
+    "id": 68,
+    "name": "HEAT SHOCK- BODY/ SKIN DETOX",
+    "category": "DETOX / HEAT SHOCK",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 9,000.00"
+  },
+  {
+    "id": 35,
+    "name": "ACNE / DARK SPOTS",
+    "category": "FACIALS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 12,000.00"
+  },
+  {
+    "id": 63,
+    "name": "CHEMICAL PEEL",
+    "category": "FACIALS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 28,000.00"
+  },
+  {
+    "id": 61,
+    "name": "ENLARGED PORES",
+    "category": "FACIALS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 14,000.00"
+  },
+  {
+    "id": 62,
+    "name": "MICRODERMABRASION",
+    "category": "FACIALS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 12,000.00"
+  },
+  {
+    "id": 54,
+    "name": "PHOTOREJUVENATION",
+    "category": "FACIALS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 12,000.00"
+  },
+  {
+    "id": 40,
+    "name": "FAT REDUCTION",
+    "category": "FAT REDUCTION",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 40,000.00"
+  },
+  {
+    "id": 46,
+    "name": "FUNGUS",
+    "category": "FUNGAL  TREATMENT",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 5,000.00"
+  },
+  {
+    "id": 38,
+    "name": "HAIR RESTORATION",
+    "category": "HAIR RESTORATION",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 29,000.00"
+  },
+  {
+    "id": 43,
+    "name": "IV THERAPY",
+    "category": "IV THERAPY / VITAL SHOTS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 23,000.00"
+  },
+  {
+    "id": 44,
+    "name": "VITAL SHOTS",
+    "category": "IV THERAPY / VITAL SHOTS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 9,000.00"
+  },
+  {
+    "id": 45,
+    "name": "KELOID (Consultation)",
+    "category": "KELOID TREATMENT",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 5,000.00"
+  },
+  {
+    "id": 19,
+    "name": "Abdomen",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 14,000.00"
+  },
+  {
+    "id": 16,
+    "name": "Aerola",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 12,000.00"
+  },
+  {
+    "id": 15,
+    "name": "Armpits",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 12,000.00"
+  },
+  {
+    "id": 25,
+    "name": "Arms and Shoulders",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 20,000.00"
+  },
+  {
+    "id": 11,
+    "name": "Bikini Line",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 12,000.00"
+  },
+  {
+    "id": 13,
+    "name": "Brazilian Only",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 12,000.00"
+  },
+  {
+    "id": 8,
+    "name": "Chin Only",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 10,000.00"
+  },
+  {
+    "id": 9,
+    "name": "Chin and Neck",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 12,000.00"
+  },
+  {
+    "id": 50,
+    "name": "FOLLICULITIS",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 12,000.00"
+  },
+  {
+    "id": 33,
+    "name": "Fingers and Toes",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 12,000.00"
+  },
+  {
+    "id": 20,
+    "name": "Full Abdomen",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 18,000.00"
+  },
+  {
+    "id": 21,
+    "name": "Full Abdomen and Chest",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 22,000.00"
+  },
+  {
+    "id": 24,
+    "name": "Full Back",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 24,000.00"
+  },
+  {
+    "id": 32,
+    "name": "Full Bottom",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 16,000.00"
+  },
+  {
+    "id": 18,
+    "name": "Full Chest",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 16,000.00"
+  },
+  {
+    "id": 26,
+    "name": "Full Legs",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559599101-f09722fb4948?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 26,000.00"
+  },
+  {
+    "id": 12,
+    "name": "Full Pubic + Armpits",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 14,000.00"
+  },
+  {
+    "id": 28,
+    "name": "Full Thighs",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 22,000.00"
+  },
+  {
+    "id": 34,
+    "name": "Full chest",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 16,000.00"
+  },
+  {
+    "id": 29,
+    "name": "Inner Thigh",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 14,000.00"
+  },
+  {
+    "id": 10,
+    "name": "Jawline and Neck",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 12,000.00"
+  },
+  {
+    "id": 23,
+    "name": "Lower Back",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 14,000.00"
+  },
+  {
+    "id": 27,
+    "name": "Lower Legs",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559599101-f09722fb4948?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 18,000.00"
+  },
+  {
+    "id": 17,
+    "name": "Mid-Chest",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 12,000.00"
+  },
+  {
+    "id": 30,
+    "name": "Posterior Thighs",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 18,000.00"
+  },
+  {
+    "id": 31,
+    "name": "Posterior Thighs and Bottom",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 20,000.00"
+  },
+  {
+    "id": 14,
+    "name": "Pubic, Armpit and Brazilian (Special)",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 16,000.00"
+  },
+  {
+    "id": 22,
+    "name": "Upper Back",
+    "category": "LASER HAIR REMOVAL & FOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 18,000.00"
+  },
+  {
+    "id": 59,
+    "name": "HEAD & BODY MASSAGE / HEAD SPA",
+    "category": "MASSAGES",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 19,000.00"
+  },
+  {
+    "id": 57,
+    "name": "LYMPATHIC DRAINAGE",
+    "category": "MASSAGES",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 9,000.00"
+  },
+  {
+    "id": 49,
+    "name": "MICRONEEDLING PRP",
+    "category": "MICRONEEDLING - PRF - PRP",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 29,000.00"
+  },
+  {
+    "id": 48,
+    "name": "PRF PLASMA TREATMENT",
+    "category": "MICRONEEDLING - PRF - PRP",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 29,000.00"
+  },
+  {
+    "id": 39,
+    "name": "NON-SURGICAL BBL",
+    "category": "NON-SURGICAL BBL CONSULTATION",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 5,000.00"
+  },
+  {
+    "id": 53,
+    "name": "PSEUDOFOLLICULITIS",
+    "category": "PSEUDOFOLLICULITIS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 12,000.00"
+  },
+  {
+    "id": 64,
+    "name": "SCARS",
+    "category": "SCAR REDUCTION",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 15,000.00"
+  },
+  {
+    "id": 56,
+    "name": "CELLULITES",
+    "category": "SKIN TIGHTENING/CELLULITES",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 5,000.00"
+  },
+  {
+    "id": 37,
+    "name": "SKIN TIGHTENING",
+    "category": "SKIN TIGHTENING/CELLULITES",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 5,000.00"
+  },
+  {
+    "id": 60,
+    "name": "STRETCH MARKS",
+    "category": "STRETCH MARKS/ COLLAGEN STIMULATION",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 16,000.00"
+  },
+  {
+    "id": 52,
+    "name": "SKIN TAG",
+    "category": "TATTOO REMOVAL/ SKIN TAGS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 5,000.00"
+  },
+  {
+    "id": 51,
+    "name": "TATTOO REMOVAL",
+    "category": "TATTOO REMOVAL/ SKIN TAGS",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 5,000.00"
+  },
+  {
+    "id": 65,
+    "name": "SEMEGLUTHIDE",
+    "category": "WEIGHTLOSS MANAGEMENT",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 5,000.00"
+  },
+  {
+    "id": 47,
+    "name": "WEIGHTLOSS (Consultation)",
+    "category": "WEIGHTLOSS MANAGEMENT",
+    "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    "thumbnail_url": null,
+    "photo": null,
+    "price": "JMD 5,000.00"
+  }
+]

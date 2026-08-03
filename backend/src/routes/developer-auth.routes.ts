@@ -74,10 +74,10 @@ router.put(
 
       for (const { key, value } of updates) {
         await executeUpdate(
-          `INSERT INTO business_settings (setting_key, setting_value) 
-           VALUES (?, ?) 
-           ON DUPLICATE KEY UPDATE setting_value = ?`,
-          [key, JSON.stringify(value), JSON.stringify(value)]
+          `INSERT INTO business_settings (setting_key, setting_value, description)
+           VALUES (?, ?, ?)
+           ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value`,
+          [key, JSON.stringify(value), 'Updated via developer auth callback']
         );
       }
 

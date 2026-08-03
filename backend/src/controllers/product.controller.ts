@@ -1,15 +1,15 @@
 import { Request, Response } from 'express';
-import pool from '../config/database';
+import { executeQuery, executeUpdate } from '../config/database';
 
 export const productController = {
   // Public - Get all products
   async getAllProducts(req: Request, res: Response) {
     try {
-      const [rows] = await pool.query(
-        `SELECT p.*, c.name as category_name, c.slug as category_slug 
+      const rows = await executeQuery(
+        `SELECT p.*, c.name as category_name, c.slug as category_slug
          FROM products p
          JOIN product_categories c ON p.category_id = c.id
-         WHERE p.is_active = 1
+         WHERE p.is_active = TRUE
          ORDER BY p.created_at DESC`
       );
       res.json(rows);
@@ -23,18 +23,18 @@ export const productController = {
   async getProductBySlug(req: Request, res: Response) {
     try {
       const { slug } = req.params;
-      const [rows]: any = await pool.query(
-        `SELECT p.*, c.name as category_name 
+      const rows = await executeQuery(
+        `SELECT p.*, c.name as category_name
          FROM products p
          JOIN product_categories c ON p.category_id = c.id
-         WHERE p.slug = ? AND p.is_active = 1`,
+         WHERE p.slug = ? AND p.is_active = TRUE`,
         [slug]
       );
-      
+
       if (rows.length === 0) {
         return res.status(404).json({ message: 'Product not found' });
       }
-      
+
       res.json(rows[0]);
     } catch (error: any) {
       console.error('Error fetching product:', error);
@@ -45,8 +45,8 @@ export const productController = {
   // Public - Get categories
   async getCategories(req: Request, res: Response) {
     try {
-      const [rows] = await pool.query(
-        `SELECT * FROM product_categories WHERE is_active = 1 ORDER BY sort_order ASC`
+      const rows = await executeQuery(
+        `SELECT * FROM product_categories WHERE is_active = TRUE ORDER BY sort_order ASC`
       );
       res.json(rows);
     } catch (error: any) {
@@ -59,13 +59,13 @@ export const productController = {
   async createProduct(req: Request, res: Response) {
     try {
       const { category_id, name, slug, description, price_jmd, stock_quantity, image_url, is_featured } = req.body;
-      
-      const [result]: any = await pool.query(
+
+      const result = await executeUpdate(
         `INSERT INTO products (category_id, name, slug, description, price_jmd, stock_quantity, image_url, is_featured)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [category_id, name, slug, description, price_jmd, stock_quantity, image_url, is_featured]
       );
-      
+
       res.status(201).json({ id: result.insertId, message: 'Product created successfully' });
     } catch (error: any) {
       console.error('Error creating product:', error);
@@ -78,15 +78,15 @@ export const productController = {
     try {
       const { id } = req.params;
       const { category_id, name, slug, description, price_jmd, stock_quantity, image_url, is_featured, is_active } = req.body;
-      
-      await pool.query(
-        `UPDATE products SET 
-         category_id = ?, name = ?, slug = ?, description = ?, 
+
+      await executeUpdate(
+        `UPDATE products SET
+         category_id = ?, name = ?, slug = ?, description = ?,
          price_jmd = ?, stock_quantity = ?, image_url = ?, is_featured = ?, is_active = ?
          WHERE id = ?`,
         [category_id, name, slug, description, price_jmd, stock_quantity, image_url, is_featured, is_active, id]
       );
-      
+
       res.json({ message: 'Product updated successfully' });
     } catch (error: any) {
       console.error('Error updating product:', error);
@@ -98,7 +98,7 @@ export const productController = {
   async deleteProduct(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      await pool.query(`UPDATE products SET is_active = 0 WHERE id = ?`, [id]);
+      await executeUpdate(`UPDATE products SET is_active = FALSE WHERE id = ?`, [id]);
       res.json({ message: 'Product deleted successfully' });
     } catch (error: any) {
       console.error('Error deleting product:', error);

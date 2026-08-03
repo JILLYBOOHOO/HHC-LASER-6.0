@@ -79,7 +79,9 @@ export class AdminLayoutComponent {
     { path: '/admin/bookings',              icon: 'calendar_month',         label: 'Appointments' },
     { path: '/admin/check-in',              icon: 'how_to_reg',             label: 'Check-in Queue' },
     { path: '/admin/patients',              icon: 'people',                 label: 'Patients' },
-    { path: '/admin/staff',              icon: 'badge',                  label: 'Staff' },
+    { path: '/admin/staff',                 icon: 'badge',                  label: 'Staff' },
+    { path: '/admin/media',                 icon: 'photo_library',          label: 'Media Library' },
+    { path: '/admin/gallery',               icon: 'collections',            label: 'Gallery' },
     { path: '/admin/reports',               icon: 'bar_chart',              label: 'Reports' },
     { path: '/admin/settings',              icon: 'settings',               label: 'Settings' }
   ];

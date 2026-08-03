@@ -103,7 +103,7 @@ async function seedServices() {
     // 1. Insert Categories
     for (const cat of CATEGORIES) {
       await connection.query(
-        `INSERT IGNORE INTO service_categories (name, slug, description) VALUES (?, ?, ?)`,
+        `INSERT INTO service_categories (name, slug, description) VALUES (?, ?, ?) ON CONFLICT DO NOTHING`,
         [cat.name, cat.slug, cat.description]
       );
     }
@@ -121,9 +121,9 @@ async function seedServices() {
         const img = `https://source.unsplash.com/800x600/?spa,${s.cat.replace('-', ',')}`;
 
         await connection.query(
-          `INSERT IGNORE INTO services 
+          `INSERT INTO services 
            (category_id, name, slug, description, short_description, duration_minutes, price_jmd, thumbnail_url, is_featured, is_active) 
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1) ON CONFLICT DO NOTHING`,
           [catId, s.name, slug, s.desc, s.desc.substring(0, 150), s.duration, s.price, img, s.feat]
         );
         count++;

@@ -307,7 +307,7 @@ export class BookingService {
       `SELECT a.*, 
               l.name as location_name,
               CONCAT(eu.first_name, ' ', eu.last_name) as employee_name,
-              GROUP_CONCAT(s.name SEPARATOR ', ') as services
+              STRING_AGG(s.name, ', ') as services
        FROM appointments a
        JOIN locations l ON l.id = a.location_id
        JOIN employees e ON e.id = a.employee_id
@@ -332,7 +332,7 @@ export class BookingService {
               CONCAT(cu.first_name, ' ', cu.last_name) as customer_name,
               cu.email as customer_email,
               cu.phone as customer_phone,
-              GROUP_CONCAT(s.name SEPARATOR ', ') as services
+              STRING_AGG(s.name, ', ') as services
        FROM appointments a
        JOIN users cu ON cu.id = a.customer_user_id
        JOIN locations l ON l.id = a.location_id
@@ -353,7 +353,7 @@ export class BookingService {
               cu.email as customer_email,
               cu.phone as customer_phone,
               l.name as location_name,
-              GROUP_CONCAT(s.name SEPARATOR ', ') as services
+              STRING_AGG(s.name, ', ') as services
        FROM appointments a
        JOIN users cu ON cu.id = a.customer_user_id
        JOIN locations l ON l.id = a.location_id
@@ -513,8 +513,8 @@ export class BookingService {
 
   async addBlockedDate(blockedDate: string, reason: string): Promise<void> {
     await executeUpdate(
-      'INSERT INTO blocked_dates (blocked_date, reason) VALUES (?, ?) ON DUPLICATE KEY UPDATE reason = ?',
-      [blockedDate, reason, reason]
+      'INSERT INTO blocked_dates (blocked_date, reason) VALUES (?, ?) ON CONFLICT (blocked_date) DO UPDATE SET reason = EXCLUDED.reason',
+      [blockedDate, reason]
     );
   }
 
@@ -530,8 +530,8 @@ export class BookingService {
     await executeUpdate(
       `INSERT INTO business_hours (location_id, day_of_week, open_time, close_time, is_closed) 
        VALUES (?, ?, ?, ?, ?) 
-       ON DUPLICATE KEY UPDATE open_time = ?, close_time = ?, is_closed = ?`,
-      [locationId, dayOfWeek, openTime, closeTime, isClosed ? 1 : 0, openTime, closeTime, isClosed ? 1 : 0]
+       ON CONFLICT (location_id, day_of_week) DO UPDATE SET open_time = EXCLUDED.open_time, close_time = EXCLUDED.close_time, is_closed = EXCLUDED.is_closed`,
+      [locationId, dayOfWeek, openTime, closeTime, isClosed ? 1 : 0]
     );
   }
 }

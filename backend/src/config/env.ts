@@ -13,13 +13,23 @@ const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string().min(32),
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
 
-  DB_HOST: z.string().default('localhost'),
-  DB_PORT: z.string().default('3306').transform(Number),
-  DB_NAME: z.string().default('hhc_laser'),
-  DB_USER: z.string().default('root'),
-  DB_PASSWORD: z.string().default(''),
+  // Supabase / Postgres connection string (Transaction pooler URI recommended for the API)
+  DATABASE_URL: z.string().min(1),
   DB_CONNECTION_LIMIT: z.string().default('20').transform(Number),
-  DB_SSL: z.string().default('false').transform(v => v === 'true'),
+  DB_SSL: z.string().default('true').transform(v => v === 'true'),
+
+  // Supabase Auth (Project Settings → API)
+  SUPABASE_URL: z.string().url().optional(),
+  SUPABASE_ANON_KEY: z.string().optional(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
+  SUPABASE_JWT_SECRET: z.string().optional(),
+
+  // Legacy MySQL-style vars (optional; seed scripts may still reference these)
+  DB_HOST: z.string().optional(),
+  DB_PORT: z.string().optional().transform(v => (v ? Number(v) : undefined)),
+  DB_NAME: z.string().optional(),
+  DB_USER: z.string().optional(),
+  DB_PASSWORD: z.string().optional(),
 
   AWS_REGION: z.string().default('us-east-1'),
   AWS_ACCESS_KEY_ID: z.string().optional(),

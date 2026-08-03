@@ -21,7 +21,7 @@ import { AuthService } from '../../../core/services/auth.service';
          [class.navbar-scrolled]="isScrolled() && isHome()"
          [class.navbar-top]="!isScrolled() && isHome()"
          [class.navbar-light]="!isHome()">
-      <div class="container-luxury flex items-center justify-between transition-all duration-300 px-6 pt-4"
+      <div class="container-luxury flex items-center justify-between transition-all duration-300 px-6"
            [class.h-[66px]]="!isScrolled() && isHome()"
            [class.h-[54px]]="isScrolled() || !isHome()">
 
@@ -44,19 +44,20 @@ import { AuthService } from '../../../core/services/auth.service';
         </div>
 
         <!-- Actions -->
-        <div class="flex items-center gap-6 pt-4">
+        <div class="flex items-center gap-4">
           @if (!authState.isAuthenticated()) {
             <a routerLink="/auth/login"
-               class="hidden sm:inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white text-black text-[11px] font-bold uppercase tracking-[0.1em] border border-black/10 hover:bg-neutral-200 transition-all">
-              <mat-icon class="!text-xs">person</mat-icon>
+               class="hidden sm:inline-flex items-center justify-center gap-1.5 h-9 px-5 rounded-full bg-white text-black text-[10px] font-bold uppercase tracking-[0.15em] border border-black/10 hover:bg-neutral-100 transition-all shadow-sm">
+              <mat-icon class="!text-[14px] !w-[14px] !h-[14px]">person</mat-icon>
               Login
             </a>
-            <a routerLink="/customer/book" class="btn-primary text-[10px] tracking-[0.12em] py-1.5 px-5">
+            <a routerLink="/customer/book" 
+               class="inline-flex items-center justify-center h-9 px-5 rounded-full bg-gold-500 text-white text-[10px] font-bold uppercase tracking-[0.15em] hover:bg-gold-600 transition-all shadow-sm">
               Book Now
             </a>
           } @else {
             <!-- Authenticated user menu -->
-            <a routerLink="/customer/dashboard" class="hidden sm:inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white text-black text-[11px] font-bold uppercase tracking-[0.1em] border border-black/10 hover:bg-neutral-200 transition-all">
+            <a routerLink="/customer/dashboard" class="hidden sm:inline-flex items-center justify-center h-9 px-5 rounded-full bg-white text-black text-[10px] font-bold uppercase tracking-[0.15em] border border-black/10 hover:bg-neutral-100 transition-all shadow-sm">
               Dashboard
             </a>
             <button mat-icon-button [matMenuTriggerFor]="userMenu"
@@ -187,6 +188,7 @@ export class NavbarComponent {
   navLinks = [
     { path: '/',           label: 'Home',       exact: true },
     { path: '/services',   label: 'Services' },
+    { path: '/products',   label: 'Products' },
     { path: '/gallery',    label: 'Gallery' },
     { path: '/about',      label: 'About' },
     { path: '/contact',    label: 'Contact' },

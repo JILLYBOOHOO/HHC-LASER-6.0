@@ -23,36 +23,36 @@ async function seed() {
     // 1. Create Default Admin (Owner)
     const ownerPassword = await bcrypt.hash('Godluvme.5', 10);
     const [ownerResult]: any = await connection.query(
-      `INSERT IGNORE INTO users (email, password_hash, first_name, last_name, phone, is_active, email_verified)
-       VALUES (?, ?, ?, ?, ?, 1, 1)`,
+      `INSERT INTO users (email, password_hash, first_name, last_name, phone, is_active, email_verified)
+       VALUES (?, ?, ?, ?, ?, 1, 1) ON CONFLICT DO NOTHING`,
       ['infohhcLaser@gmail.com', ownerPassword, 'HHC', 'Owner', '876-555-0001']
     );
     
     // Check if inserted
     const [owner]: any = await connection.query('SELECT id FROM users WHERE email = ?', ['infohhcLaser@gmail.com']);
     if (owner.length > 0) {
-      await connection.query('INSERT IGNORE INTO user_roles (user_id, role) VALUES (?, ?)', [owner[0].id, 'admin']);
+      await connection.query('INSERT INTO user_roles (user_id, role) VALUES (?, ?) ON CONFLICT DO NOTHING', [owner[0].id, 'admin']);
     }
 
     // 1b. Create Developer Admin
     const devPassword = await bcrypt.hash('Godluvme.7', 10);
     const [devResult]: any = await connection.query(
-      `INSERT IGNORE INTO users (email, password_hash, first_name, last_name, phone, is_active, email_verified)
-       VALUES (?, ?, ?, ?, ?, 1, 1)`,
+      `INSERT INTO users (email, password_hash, first_name, last_name, phone, is_active, email_verified)
+       VALUES (?, ?, ?, ?, ?, 1, 1) ON CONFLICT DO NOTHING`,
       ['kake.101buchanan@gmail.com', devPassword, 'Developer', 'Buchanan', '876-555-0002']
     );
     
     // Check if inserted
     const [dev]: any = await connection.query('SELECT id FROM users WHERE email = ?', ['kake.101buchanan@gmail.com']);
     if (dev.length > 0) {
-      await connection.query('INSERT IGNORE INTO user_roles (user_id, role) VALUES (?, ?)', [dev[0].id, 'admin']);
+      await connection.query('INSERT INTO user_roles (user_id, role) VALUES (?, ?) ON CONFLICT DO NOTHING', [dev[0].id, 'admin']);
     }
 
     // 2. Create Default Specialist
     const empPassword = await bcrypt.hash('Staff@123!', 10);
     const [empResult]: any = await connection.query(
-      `INSERT IGNORE INTO users (email, password_hash, first_name, last_name, phone, is_active, email_verified)
-       VALUES (?, ?, ?, ?, ?, 1, 1)`,
+      `INSERT INTO users (email, password_hash, first_name, last_name, phone, is_active, email_verified)
+       VALUES (?, ?, ?, ?, ?, 1, 1) ON CONFLICT DO NOTHING`,
       ['staff@hhclaser.com', empPassword, 'Sarah', 'Jenkins', '876-555-1111']
     );
 
@@ -60,12 +60,12 @@ async function seed() {
     let empId = 1;
     if (emp.length > 0) {
       empId = emp[0].id;
-      await connection.query('INSERT IGNORE INTO user_roles (user_id, role) VALUES (?, ?)', [empId, 'specialist']);
+      await connection.query('INSERT INTO user_roles (user_id, role) VALUES (?, ?) ON CONFLICT DO NOTHING', [empId, 'specialist']);
       
       // Also insert into employees table
       await connection.query(
-        `INSERT IGNORE INTO employees (user_id, title, bio)
-         VALUES (?, ?, ?)`,
+        `INSERT INTO employees (user_id, title, bio)
+         VALUES (?, ?, ?) ON CONFLICT DO NOTHING`,
         [empId, 'Lead Esthetician', 'Dr. Sarah Jenkins is our lead specialist with 10 years experience.']
       );
     }
@@ -73,8 +73,8 @@ async function seed() {
     // 3. Create Default Customer
     const custPassword = await bcrypt.hash('Customer@123!', 10);
     const [custResult]: any = await connection.query(
-      `INSERT IGNORE INTO users (email, password_hash, first_name, last_name, phone, is_active, email_verified)
-       VALUES (?, ?, ?, ?, ?, 1, 1)`,
+      `INSERT INTO users (email, password_hash, first_name, last_name, phone, is_active, email_verified)
+       VALUES (?, ?, ?, ?, ?, 1, 1) ON CONFLICT DO NOTHING`,
       ['customer@hhclaser.com', custPassword, 'Olivia', 'Rhoden', '876-555-2222']
     );
 
@@ -82,7 +82,7 @@ async function seed() {
     let custId = 1;
     if (cust.length > 0) {
       custId = cust[0].id;
-      await connection.query('INSERT IGNORE INTO user_roles (user_id, role) VALUES (?, ?)', [custId, 'customer']);
+      await connection.query('INSERT INTO user_roles (user_id, role) VALUES (?, ?) ON CONFLICT DO NOTHING', [custId, 'customer']);
     }
 
     // 4. Create Appointments
@@ -94,8 +94,8 @@ async function seed() {
       futureDate.setDate(futureDate.getDate() + 2);
       
       await connection.query(
-        `INSERT IGNORE INTO appointments (customer_id, employee_id, location_id, scheduled_date, start_time, end_time, status, subtotal_jmd)
-         VALUES (?, ?, 1, ?, '10:00:00', '11:00:00', 'confirmed', ?)`,
+        `INSERT INTO appointments (customer_id, employee_id, location_id, scheduled_date, start_time, end_time, status, subtotal_jmd)
+         VALUES (?, ?, 1, ?, '10:00:00', '11:00:00', 'confirmed', ?) ON CONFLICT DO NOTHING`,
         [custId, empId, futureDate.toISOString().split('T')[0], services[0].price_jmd]
       );
 
@@ -104,15 +104,15 @@ async function seed() {
       pastDate.setDate(pastDate.getDate() - 5);
       
       await connection.query(
-        `INSERT IGNORE INTO appointments (customer_id, employee_id, location_id, scheduled_date, start_time, end_time, status, subtotal_jmd)
-         VALUES (?, ?, 1, ?, '14:00:00', '15:00:00', 'completed', ?)`,
+        `INSERT INTO appointments (customer_id, employee_id, location_id, scheduled_date, start_time, end_time, status, subtotal_jmd)
+         VALUES (?, ?, 1, ?, '14:00:00', '15:00:00', 'completed', ?) ON CONFLICT DO NOTHING`,
         [custId, empId, pastDate.toISOString().split('T')[0], services[1].price_jmd]
       );
     }
 
     // 5. Create Products
     const [catResult]: any = await connection.query(
-      `INSERT IGNORE INTO product_categories (name, slug, description) VALUES (?, ?, ?)`,
+      `INSERT INTO product_categories (name, slug, description) VALUES (?, ?, ?) ON CONFLICT DO NOTHING`,
       ['Skin Supplement', 'skin-supplement', 'Nourishing skincare supplements for glowing skin.']
     );
     const [cat]: any = await connection.query('SELECT id FROM product_categories WHERE slug = ?', ['skin-supplement']);
@@ -121,8 +121,8 @@ async function seed() {
       const catId = cat[0].id;
       
       await connection.query(
-        `INSERT IGNORE INTO products (category_id, name, slug, description, price_jmd, stock_quantity, image_url, is_featured) VALUES 
-         (?, ?, ?, ?, ?, ?, ?, ?),
+        `INSERT INTO products (category_id, name, slug, description, price_jmd, stock_quantity, image_url, is_featured) VALUES 
+         (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING,
          (?, ?, ?, ?, ?, ?, ?, ?),
          (?, ?, ?, ?, ?, ?, ?, ?)`,
         [
