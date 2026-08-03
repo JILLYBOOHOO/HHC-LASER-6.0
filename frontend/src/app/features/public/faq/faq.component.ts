@@ -118,7 +118,7 @@ export class FaqComponent implements OnInit {
     { category: 'recovery', question: 'Is there any downtime after treatments?', answer: "Downtime varies by treatment. Many of our procedures are minimally invasive with little to no downtime, allowing you to resume normal activities immediately. For more intensive treatments, we'll provide detailed aftercare instructions." },
     { category: 'treatment', question: 'How many sessions will I need?', answer: "The number of sessions depends on your individual goals, the treatment type, and your skin's response. During your consultation, we'll create a personalized treatment plan that outlines the recommended number of sessions for optimal results." },
     { category: 'general', question: 'What makes HHC Laser different from other clinics?', answer: 'HHC Laser combines advanced technology with personalized care. Our certified professionals stay current with the latest techniques, we use FDA-approved equipment, and we focus on creating natural-looking results that enhance your confidence.' },
-    { category: 'treatment', question: 'Can I combine multiple treatments?', answer: 'Yes, many treatments can be safely combined to maximize results. During your consultation, we can discuss creating a comprehensive treatment plan that addresses multiple concerns safely and effectively.' }
+    { category: 'treatment', question: 'Can I combine multiple treatments?', answer: 'Yes, many treatments can be safely combined to maximize results. We often create comprehensive treatment plans that address multiple concerns. Our professionals will advise you on the best combination approach during your consultation.' }
   ];
 
   filteredFaqs = computed(() => {
