@@ -39,11 +39,10 @@ import { inject } from '@angular/core';
         <!-- Product Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           @for (product of productService.products(); track product.id) {
-            <div class="bg-white rounded-2xl shadow-sm border border-cream-200 overflow-hidden group flex flex-col h-full hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
+            <div class="bg-white border-2 border-black shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full cursor-pointer"
                  [routerLink]="['/products', product.slug]">
               <!-- Image Container -->
-              <div class="relative aspect-square overflow-hidden bg-charcoal-50">
-                <div class="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500 z-10"></div>
+              <div class="aspect-[16/9] w-full overflow-hidden bg-gray-100 border-b-2 border-black relative group">
                 <img loading="lazy" [src]="product.image_url || 'https://images.unsplash.com/photo-1629198688000-71f23e745b6e?q=80&w=800'" 
                      [alt]="product.name" 
                      class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
@@ -51,19 +50,25 @@ import { inject } from '@angular/core';
 
               <!-- Product Details -->
               <div class="p-6 flex flex-col flex-grow">
-                <div class="text-gold-600 text-xs font-semibold tracking-wider uppercase mb-2">{{ product.category_name }}</div>
-                <h3 class="text-2xl font-heading text-charcoal-900 mb-2 group-hover:text-gold-600 transition-colors">
+                <div class="mb-2">
+                  <span class="inline-block bg-white text-black text-xs font-bold px-3 py-1 border-2 border-black uppercase">{{ product.category_name || 'Skincare' }}</span>
+                </div>
+                <h3 class="text-xl font-black text-black mb-3 hover:text-gray-700 transition-colors line-clamp-2">
                   {{ product.name }}
                 </h3>
-                <p class="text-charcoal-500 text-sm leading-relaxed line-clamp-3 mb-8 flex-grow">
+                <p class="text-black text-sm mb-4 leading-relaxed font-bold flex-grow line-clamp-3">
                   {{ product.description }}
                 </p>
 
-                <!-- Action Buttons -->
-                <div class="flex flex-col gap-3 mt-auto">
-                  <button mat-flat-button class="w-full !bg-white !text-black !h-12 !rounded-xl text-sm font-bold uppercase tracking-wider hover:!bg-gold-500 hover:!text-white transition-all shadow-md relative z-20" 
+                <!-- Pricing & Action Buttons -->
+                <div class="flex flex-col gap-4 mt-auto pt-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-2xl font-black text-black">J$ {{ product.price_jmd | number:'1.2-2' }}</span>
+                    <p class="text-xs text-green-600 font-bold">Available</p>
+                  </div>
+                  <button class="bg-black text-white w-full py-3 hover:bg-gray-800 transition-colors font-bold border-2 border-black tracking-wider shadow-md"
                           (click)="$event.stopPropagation(); $event.preventDefault(); openPurchaseDialog(product)">
-                    Contact To Purchase
+                    Contact for Purchase
                   </button>
                 </div>
               </div>
