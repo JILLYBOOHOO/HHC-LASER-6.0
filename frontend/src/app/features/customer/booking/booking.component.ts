@@ -876,31 +876,31 @@ const DEFAULT_SERVICES: Service[] = [
           </p>
         </div>
 
-        <!-- 6-Step Progress Tracker (Exact Replica of User Screenshot) -->
-        <div class="flex items-center justify-center gap-0 mb-2 overflow-x-auto py-1">
+        <!-- 6-Step Progress Tracker (Compact Mobile Layout) -->
+        <div class="flex items-center justify-start sm:justify-center gap-0 mb-2 overflow-x-auto py-1 px-1">
           @for (step of steps; track step.key; let i = $index) {
-            <div class="flex items-center">
-              <div class="flex flex-col items-center gap-0.5 cursor-pointer px-1 sm:px-2"
+            <div class="flex items-center flex-shrink-0">
+              <div class="flex flex-col items-center gap-0.5 cursor-pointer px-0.5 sm:px-1.5"
                    (click)="i === 0 ? router.navigate(['/services']) : (currentStep() !== step.key && i < currentStepIndex() && goToStep(step.key))">
-                <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all shadow-xs"
+                <div class="w-5 h-5 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold transition-all shadow-xs"
                      [class.bg-[#D4A359]]="currentStepIndex() >= i"
                      [class.bg-neutral-200]="currentStepIndex() < i"
                      [class.text-white]="currentStepIndex() >= i"
                      [class.text-neutral-700]="currentStepIndex() < i">
                   @if (currentStepIndex() > i || (i === 0 && selectedServiceId())) {
-                    <mat-icon class="!text-xs text-white">check</mat-icon>
+                    <mat-icon class="!text-[10px] sm:!text-xs text-white">check</mat-icon>
                   } @else {
                     {{ i + 1 }}
                   }
                 </div>
-                <span class="text-[10px] whitespace-nowrap font-bold"
+                <span class="text-[9px] sm:text-[10px] whitespace-nowrap font-bold"
                       [class.text-black]="currentStep() === step.key"
                       [class.text-neutral-500]="currentStep() !== step.key">
                   {{ step.label }}
                 </span>
               </div>
               @if (!$last) {
-                <div class="w-4 sm:w-8 h-[2px] mx-0.5 transition-colors"
+                <div class="w-2 sm:w-6 h-[2px] mx-0.5 transition-colors flex-shrink-0"
                      [class.bg-[#D4A359]]="currentStepIndex() > i"
                      [class.bg-neutral-300]="currentStepIndex() <= i">
                 </div>
@@ -944,21 +944,89 @@ const DEFAULT_SERVICES: Service[] = [
           </div>
         }
 
-        <!-- Need Help? Luxury Consultation Banner (Ultra Compact 1-line) -->
-        <div class="bg-white rounded-lg px-3 py-1.5 mb-2 border border-gold/30 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div class="flex items-center gap-1.5">
-            <mat-icon class="text-gold !text-sm flex-shrink-0">help_outline</mat-icon>
-            <span class="text-[11px] font-bold text-black">Need Help Choosing Treatment or Have Questions?</span>
-          </div>
+        <!-- Need Help? Luxury Consultation Banner -->
+        <div class="bg-white rounded-xl p-2.5 sm:px-3 sm:py-2 mb-2 border border-gold/30 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div class="flex items-center gap-2">
-            <a href="tel:18763196241" class="text-[11px] font-extrabold text-black hover:text-gold flex items-center gap-1 border border-black/10 rounded px-2 py-0.5 bg-neutral-50">
-              <mat-icon class="text-gold !text-[11px]">phone</mat-icon> (876) 319-6241
+            <div class="w-6 h-6 rounded-full bg-gold/15 text-gold flex items-center justify-center flex-shrink-0">
+              <mat-icon class="!text-xs">help_outline</mat-icon>
+            </div>
+            <span class="text-xs font-bold text-black leading-tight">Need help? call us.</span>
+          </div>
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <a href="tel:18763196241" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1 px-2.5 py-1 text-[11px] font-extrabold text-black hover:text-gold border border-black/15 rounded-lg bg-neutral-50 transition-colors">
+              <mat-icon class="text-gold !text-xs">phone</mat-icon>
+              <span>(876) 319-6241</span>
             </a>
-            <a href="tel:18766318134" class="text-[11px] font-extrabold text-black hover:text-gold flex items-center gap-1 border border-black/10 rounded px-2 py-0.5 bg-neutral-50">
-              <mat-icon class="text-gold !text-[11px]">phone</mat-icon> (876) 631-8134
+            <a href="tel:18766318134" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1 px-2.5 py-1 text-[11px] font-extrabold text-black hover:text-gold border border-black/15 rounded-lg bg-neutral-50 transition-colors">
+              <mat-icon class="text-gold !text-xs">phone</mat-icon>
+              <span>(876) 631-8134</span>
             </a>
           </div>
         </div>
+
+        <!-- Mobile Collapsible Booking Summary Drawer (Shown only on mobile screens < md) -->
+        @if (selectedService() && currentStep() !== 'confirmation') {
+          <div class="block md:hidden mb-3 bg-white rounded-xl border border-gold/40 shadow-xs overflow-hidden transition-all">
+            <!-- Collapsible Header / Quick Bar -->
+            <div (click)="mobileSummaryExpanded.set(!mobileSummaryExpanded())" 
+                 class="p-2.5 bg-gradient-to-r from-neutral-50 to-white flex items-center justify-between cursor-pointer border-b border-black/5 select-none">
+              <div class="flex items-center gap-2 min-w-0 flex-1">
+                <div class="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 border border-black/10 bg-neutral-100">
+                  <img loading="lazy" [src]="getServiceImage(selectedService()?.thumbnail_url, selectedService()?.name)" 
+                       [alt]="selectedService()?.name"
+                       class="w-full h-full object-cover">
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-[9px] font-extrabold text-gold uppercase tracking-wider">Summary</span>
+                    <span class="text-[9px] font-bold text-neutral-400">• Step {{ currentStepIndex() + 1 }} of {{ steps.length }}</span>
+                  </div>
+                  <div class="text-xs font-extrabold text-black truncate">{{ selectedService()?.name }}</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 flex-shrink-0 pl-2">
+                <div class="text-right">
+                  <div class="text-[9px] font-bold text-neutral-400 uppercase">Total</div>
+                  <div class="text-xs font-black text-black">J$ {{ selectedService()?.price_jmd | number }}</div>
+                </div>
+                <mat-icon class="text-neutral-500 !text-sm transition-transform duration-200"
+                          [class.rotate-180]="mobileSummaryExpanded()">
+                  expand_more
+                </mat-icon>
+              </div>
+            </div>
+
+            <!-- Expandable Details Panel -->
+            @if (mobileSummaryExpanded()) {
+              <div class="p-3 bg-white space-y-2 text-xs animate-fade-in border-t border-black/5">
+                @if (selectedLocationId()) {
+                  <div class="flex items-center justify-between text-neutral-700 pt-1 border-t border-dashed border-black/10">
+                    <span class="text-[11px] font-medium text-neutral-500 flex items-center gap-1">
+                      <mat-icon class="!text-xs text-gold">location_on</mat-icon> Location
+                    </span>
+                    <span class="font-bold text-black text-[11px]">{{ selectedLocationId() === 1 ? 'Constant Spring' : 'Mannings Hill Rd' }}</span>
+                  </div>
+                }
+                @if (selectedDate && selectedTime) {
+                  <div class="flex items-center justify-between text-neutral-700 pt-1 border-t border-dashed border-black/10">
+                    <span class="text-[11px] font-medium text-neutral-500 flex items-center gap-1">
+                      <mat-icon class="!text-xs text-gold">calendar_today</mat-icon> Date & Time
+                    </span>
+                    <span class="font-bold text-black text-[11px]">{{ selectedDate | date:'MMM d' }} at {{ formatTime(selectedTime) }}</span>
+                  </div>
+                }
+                @if (detailsForm.get('first_name')?.value) {
+                  <div class="flex items-center justify-between text-neutral-700 pt-1 border-t border-dashed border-black/10">
+                    <span class="text-[11px] font-medium text-neutral-500 flex items-center gap-1">
+                      <mat-icon class="!text-xs text-gold">person</mat-icon> Guest
+                    </span>
+                    <span class="font-bold text-black text-[11px] truncate max-w-[160px]">{{ detailsForm.get('first_name')?.value }} {{ detailsForm.get('last_name')?.value }}</span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
 
         <!-- 2-Column Side-by-Side Grid (Step Content on Left, Booking Summary on Right) -->
         <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
@@ -976,7 +1044,7 @@ const DEFAULT_SERVICES: Service[] = [
               <!-- Location 1: Constant Spring -->
               <div class="border-2 rounded-xl p-3 cursor-pointer transition-all flex flex-col justify-between"
                    [ngClass]="selectedLocationId() === 1 ? 'border-gold-500 bg-[#D2B48C]/20 shadow-xs' : 'border-black/15 hover:border-black/30 bg-white'"
-                   (click)="selectedLocationId.set(1)">
+                   (click)="selectLocation(1)">
                 <div>
                   <div class="flex items-center gap-1.5 mb-1">
                     <mat-icon class="!text-xl" [ngClass]="selectedLocationId() === 1 ? 'text-gold' : 'text-neutral-400'">location_on</mat-icon>
@@ -993,7 +1061,7 @@ const DEFAULT_SERVICES: Service[] = [
               <!-- Location 2: Mannings Hill Road -->
               <div class="border-2 rounded-xl p-3 cursor-pointer transition-all flex flex-col justify-between"
                    [ngClass]="selectedLocationId() === 2 ? 'border-gold-500 bg-[#D2B48C]/20 shadow-xs' : 'border-black/15 hover:border-black/30 bg-white'"
-                   (click)="selectedLocationId.set(2)">
+                   (click)="selectLocation(2)">
                 <div>
                   <div class="flex items-center gap-1.5 mb-1">
                     <mat-icon class="!text-xl" [ngClass]="selectedLocationId() === 2 ? 'text-gold' : 'text-neutral-400'">location_on</mat-icon>
@@ -1010,7 +1078,7 @@ const DEFAULT_SERVICES: Service[] = [
 
             <!-- Booking Target Selection (Ultra Compact) -->
             @if (selectedLocationId()) {
-              <div class="mt-3 border-t border-black/10 pt-2.5">
+              <div id="location-continue-section" class="mt-3 border-t border-black/10 pt-2.5">
                 <h3 class="mb-2 text-center font-bold text-xs">Who are you booking for?</h3>
                 <div class="flex flex-row justify-center items-center gap-2">
                   <button (click)="bookingFor.set('myself'); populateGuestDetails()" 
@@ -1414,7 +1482,7 @@ const DEFAULT_SERVICES: Service[] = [
                 <div class="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center">
                   <mat-icon class="text-gold !text-sm">phone</mat-icon>
                 </div>
-                <span>Need help? Call us at <span class="text-black font-extrabold">(876) 319-6241</span> or <span class="text-black font-extrabold">(876) 631-8134</span></span>
+                <span>Need help? call us.</span>
               </div>
             </div> <!-- Close text-center py-6 -->
           } <!-- Close confirmation step -->
@@ -2042,6 +2110,12 @@ export class BookingComponent implements OnInit {
       }
       this.saveBookingProgress();
     }
+  }
+
+  selectLocation(id: number): void {
+    this.selectedLocationId.set(id);
+    // Proceed to the next step (datetime) and load dates
+    this.nextStep();
   }
 
   redirectToLogin(): void {

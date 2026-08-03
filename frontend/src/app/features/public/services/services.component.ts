@@ -14,16 +14,16 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, RouterModule, MatIconModule, FormsModule],
   template: `
-    <div class="bg-white min-h-screen pt-[54px] pb-16">
+    <div class="bg-white min-h-screen pt-20 pb-16">
       <div class="container-luxury px-4">
         
         <!-- Ultra-Compact Hero Header -->
         <div class="text-center pt-0">
-          <span class="text-black tracking-[0.2em] text-base uppercase block font-bold">Our Treatments</span>
-          <h1 class="text-black font-heading text-lg md:text-xl lg:text-2xl font-bold mt-0 mb-0">
+          <span class="text-black tracking-[0.2em] text-xs md:text-sm uppercase block font-extrabold mb-0.5">Our Treatments</span>
+          <h1 class="text-neutral-700 font-heading text-xs md:text-sm font-medium tracking-wide mt-0 mb-1">
             Luxury Medical Aesthetics
           </h1>
-          <p class="text-black mx-auto text-xs md:text-sm leading-snug lg:whitespace-nowrap">
+          <p class="text-neutral-500 mx-auto text-[11px] md:text-xs leading-snug max-w-xl mb-3">
             Discover our comprehensive range of premium treatments tailored to enhance your natural beauty and well-being.
           </p>
 

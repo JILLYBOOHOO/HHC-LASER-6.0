@@ -6,6 +6,7 @@ import { body, param, query } from 'express-validator';
 import { bookingService } from '../services/booking.service';
 import { paymentFlowService } from '../payments/fiserv/payment-flow.service';
 import { notificationService } from '../services/notification.service';
+import { socketService } from '../services/socket.service';
 import { successResponse, paginatedResponse, CreateAppointmentDto, AppointmentStatus } from '../models/types';
 import { AppError } from '../middleware/error.middleware';
 
@@ -178,6 +179,8 @@ router.post('/admin',
 
       const appointment = await bookingService.createAdminAppointment(req.user!.userId, dto.customer_user_id, dto);
 
+      socketService.emitBookingEvent('booking_created', { appointment });
+
       if (dto.payment_option === 'send_payment_link') {
         const paymentSession = await paymentFlowService.initiatePayment({
           appointmentId: appointment.id,
@@ -213,6 +216,8 @@ router.post('/',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const appointment = await bookingService.createAppointment(req.user!.userId, req.body as CreateAppointmentDto);
+
+      socketService.emitBookingEvent('booking_created', { appointment });
 
       // Initiate payment session
       const paymentSession = await paymentFlowService.initiatePayment({
@@ -273,6 +278,32 @@ router.get('/:id',
   }
 );
 
+// PATCH /api/bookings/:id/reschedule
+router.patch('/:id/reschedule',
+  authenticate,
+  requireRole('specialist', 'manager', 'admin', 'owner'),
+  [
+    param('id').isInt().withMessage('Appointment ID must be a number'),
+    body('date').isISO8601().withMessage('date must be YYYY-MM-DD'),
+    body('time').matches(/^\d{2}:\d{2}(:\d{2})?$/).withMessage('time must be HH:MM or HH:MM:SS'),
+  ],
+  validateRequest,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await bookingService.rescheduleAppointment(
+        parseInt(req.params['id']),
+        req.body.date,
+        req.body.time,
+        req.user!.userId
+      );
+
+      socketService.emitBookingEvent('booking_rescheduled', { appointmentId: parseInt(req.params['id']), newDate: req.body.date, newTime: req.body.time });
+
+      res.json(successResponse(undefined, 'Appointment rescheduled.'));
+    } catch (e) { next(e); }
+  }
+);
+
 // PATCH /api/bookings/:id/status
 router.patch('/:id/status',
   authenticate,
@@ -292,6 +323,8 @@ router.patch('/:id/status',
         req.user!.userId,
         req.body.notes
       );
+
+      socketService.emitBookingEvent('booking_updated', { appointmentId: parseInt(req.params['id']), status: req.body.status });
 
       res.json(successResponse(undefined, 'Appointment status updated.'));
     } catch (e) { next(e); }

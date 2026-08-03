@@ -3,11 +3,12 @@ import { RouterOutlet, RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
+import { InternalBookingModalComponent } from '../../../shared/components/internal-booking-modal/internal-booking-modal.component';
 
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterModule, CommonModule, MatIconModule],
+  imports: [RouterOutlet, RouterModule, CommonModule, MatIconModule, InternalBookingModalComponent],
   template: `
     <div class="flex h-screen overflow-hidden bg-[#111312] font-sans text-slate-200 selection:bg-cyan-500 selection:text-black">
       
@@ -22,15 +23,24 @@ import { AuthService } from '../../../core/services/auth.service';
 
         <!-- Navigation Links -->
         <nav class="flex-1 py-4 px-4 space-y-2 overflow-y-auto custom-scrollbar">
-          @for (link of navLinks; track link.path) {
-            <a [routerLink]="link.path"
-               routerLinkActive="active-nav-link"
-               [routerLinkActiveOptions]="{exact: link.exact || false}"
-               class="flex items-center gap-4 px-4 py-3 rounded-lg text-slate-400 hover:text-black hover:bg-[#1e2522] transition-all text-xs font-semibold group">
-               
-              <mat-icon class="!text-lg transition-colors">{{ link.icon }}</mat-icon>
-              <span class="tracking-wide">{{ link.label }}</span>
-            </a>
+          @for (link of navLinks; track link.label) {
+            <ng-container *ngIf="link.action === 'modal'; else routerLinkTpl">
+              <button (click)="openBookingModal()"
+                 class="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-slate-400 hover:text-black hover:bg-[#1e2522] transition-all text-xs font-semibold group text-left">
+                <mat-icon class="!text-lg transition-colors">{{ link.icon }}</mat-icon>
+                <span class="tracking-wide">{{ link.label }}</span>
+              </button>
+            </ng-container>
+            <ng-template #routerLinkTpl>
+              <a [routerLink]="link.path"
+                 routerLinkActive="active-nav-link"
+                 [routerLinkActiveOptions]="{exact: link.exact || false}"
+                 class="flex items-center gap-4 px-4 py-3 rounded-lg text-slate-400 hover:text-black hover:bg-[#1e2522] transition-all text-xs font-semibold group">
+                 
+                <mat-icon class="!text-lg transition-colors">{{ link.icon }}</mat-icon>
+                <span class="tracking-wide">{{ link.label }}</span>
+              </a>
+            </ng-template>
           }
         </nav>
 
@@ -55,6 +65,8 @@ import { AuthService } from '../../../core/services/auth.service';
         </main>
       </div>
     </div>
+    
+    <app-internal-booking-modal *ngIf="showBookingModal" (close)="closeBookingModal()"></app-internal-booking-modal>
   `,
   styles: [`
     .custom-scrollbar::-webkit-scrollbar { width: 4px; }
@@ -73,9 +85,11 @@ import { AuthService } from '../../../core/services/auth.service';
   `]
 })
 export class AdminLayoutComponent {
+  showBookingModal = false;
+
   navLinks = [
     { path: '/admin',                       icon: 'dashboard',              label: 'Dashboard', exact: true },
-    { path: '/booking',                     icon: 'add_circle',             label: 'Make Appointment' },
+    { action: 'modal', path: 'none',        icon: 'add_circle',             label: 'Make Appointment' },
     { path: '/admin/bookings',              icon: 'calendar_month',         label: 'Appointments' },
     { path: '/admin/check-in',              icon: 'how_to_reg',             label: 'Check-in Queue' },
     { path: '/admin/patients',              icon: 'people',                 label: 'Patients' },
@@ -87,6 +101,14 @@ export class AdminLayoutComponent {
   ];
 
   constructor(public authService: AuthService) {}
+
+  openBookingModal() {
+    this.showBookingModal = true;
+  }
+
+  closeBookingModal() {
+    this.showBookingModal = false;
+  }
 
   logout() {
     this.authService.logout().subscribe();

@@ -17,19 +17,19 @@ import { SeoService } from '../../../core/services/seo.service';
   styles: [`
     :host {
       display: block;
-      background-color: #FFFFFF;
-      --background: #FFFFFF;
-      --surface: #F8F9FA;
-      --surface-light: #F1F3F5;
-      --border: rgba(0, 0, 0, 0.08);
-      --text: #1a1a1a;
-      --text-muted: #6B7280;
+      background-color: #000000;
+      --background: #000000;
+      --surface: #111111;
+      --surface-light: #1a1a1a;
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f0f0f0;
+      --text-muted: #9CA3AF;
       --gold: #B8924F;
       --gold-light: #D6B36A;
       --gold-dark: #8A6D3B;
-      --shadow-dark: 0 8px 40px rgba(0, 0, 0, 0.08);
-      --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.06);
-      --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      --shadow-dark: 0 8px 40px rgba(0, 0, 0, 0.4);
+      --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3);
+      --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     }
     .bg-background {
       background-color: var(--background) !important;
@@ -123,38 +123,38 @@ import { SeoService } from '../../../core/services/seo.service';
     </section>
 
     <!-- Editorial Philosophy Section (Aman-inspired Magazine Layout) -->
-    <section class="section bg-white">
+    <section class="section bg-black">
       <div class="container-luxury px-6">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
           
           <!-- Text Content -->
           <div class="lg:col-span-5 space-y-6 @fadeUp">
             <span class="section-label">Our Philosophy</span>
-            <h2 class="font-heading text-neutral-900 leading-tight">The Science of Subtle Transformation.</h2>
+            <h2 class="font-heading text-white leading-tight">The Science of Subtle Transformation.</h2>
             <div class="divider-gold-left"></div>
-            <p class="text-neutral-600 text-base font-light leading-relaxed">
+            <p class="text-neutral-400 text-base font-light leading-relaxed">
               At HHC Laser, we believe that true beauty lies in the preservation of authenticity. Our bespoke treatments use industry-leading laser technology and medical-grade injectables to enhance your natural architecture.
             </p>
             <div class="space-y-4 pt-4">
               <div class="flex items-start gap-4">
                 <mat-icon class="text-gold !text-lg !w-5 !h-5 mt-1">flare</mat-icon>
                 <div>
-                  <h6 class="text-neutral-900 font-medium text-sm">Advanced Laser Resurfacing</h6>
-                  <p class="text-neutral-500 text-xs font-light">Targeted precision for flawless, luminous skin.</p>
+                  <h6 class="text-white font-medium text-sm">Advanced Laser Resurfacing</h6>
+                  <p class="text-neutral-400 text-xs font-light">Targeted precision for flawless, luminous skin.</p>
                 </div>
               </div>
               <div class="flex items-start gap-4">
                 <mat-icon class="text-gold !text-lg !w-5 !h-5 mt-1">blur_on</mat-icon>
                 <div>
-                  <h6 class="text-neutral-900 font-medium text-sm">Precision Facial Contouring</h6>
-                  <p class="text-neutral-500 text-xs font-light">Bespoke injectables that respect your structure.</p>
+                  <h6 class="text-white font-medium text-sm">Precision Facial Contouring</h6>
+                  <p class="text-neutral-400 text-xs font-light">Bespoke injectables that respect your structure.</p>
                 </div>
               </div>
               <div class="flex items-start gap-4">
                 <mat-icon class="text-gold !text-lg !w-5 !h-5 mt-1">waves</mat-icon>
                 <div>
-                  <h6 class="text-neutral-900 font-medium text-sm">Skin Vitality Optimization</h6>
-                  <p class="text-neutral-500 text-xs font-light">Cellular level nourishment for lasting wellness.</p>
+                  <h6 class="text-white font-medium text-sm">Skin Vitality Optimization</h6>
+                  <p class="text-neutral-400 text-xs font-light">Cellular level nourishment for lasting wellness.</p>
                 </div>
               </div>
             </div>
@@ -173,8 +173,8 @@ import { SeoService } from '../../../core/services/seo.service';
             </div>
             
             <!-- Frosted Glass Overlapping Panel -->
-            <div class="absolute bottom-[-30px] left-[-30px] hidden md:block p-6 rounded-2xl max-w-xs z-20 bg-white shadow-xl border border-black/5">
-              <p class="text-neutral-700 text-sm italic font-light leading-relaxed">
+            <div class="absolute bottom-[-30px] left-[-30px] hidden md:block p-6 rounded-2xl max-w-xs z-20 bg-neutral-900 shadow-xl border border-white/10">
+              <p class="text-neutral-300 text-sm italic font-light leading-relaxed">
                 "We reject the mass-market approach to beauty. Each client journey begins with a private residency — a comprehensive analysis that considers cellular health, lifestyle architecture, and long-term vitality."
               </p>
               <div class="text-[9px] tracking-widest font-semibold text-gold uppercase mt-4">— Clinical Board</div>
@@ -186,13 +186,13 @@ import { SeoService } from '../../../core/services/seo.service';
     </section>
 
     <!-- Before & After Comparison Slider Section -->
-    <section class="section bg-neutral-50 border-y border-black/5">
+    <section class="section bg-black border-y border-white/5">
       <div class="container-luxury px-6">
         <div class="text-center max-w-2xl mx-auto mb-16" @fadeUp>
           <span class="section-label">Clinical Outcomes</span>
-          <h2 class="mt-4 font-heading text-neutral-900">Proven Transformation</h2>
+          <h2 class="mt-4 font-heading text-white">Proven Transformation</h2>
           <div class="divider-gold"></div>
-          <p class="text-neutral-600 text-base font-light">
+          <p class="text-neutral-400 text-base font-light">
             Explore actual treatment results. Select a category below and drag the handle to compare outcomes.
           </p>
         </div>
@@ -203,7 +203,7 @@ import { SeoService } from '../../../core/services/seo.service';
             <button (click)="activeCategory.set(cat.id)"
                     [ngClass]="activeCategory() === cat.id
                       ? 'bg-gold text-white border-gold'
-                      : 'bg-transparent text-neutral-600 border-black/10 hover:border-gold hover:text-neutral-900'"
+                      : 'bg-transparent text-neutral-400 border-white/10 hover:border-gold hover:text-white'"
                     class="px-6 py-2.5 rounded-full text-xs font-semibold tracking-wider uppercase transition-all duration-300 border cursor-pointer">
               {{ cat.name }}
             </button>
@@ -230,13 +230,13 @@ import { SeoService } from '../../../core/services/seo.service';
     </section>
 
     <!-- Popular Treatments Section (Frosted Glass Card Showcase) -->
-    <section class="section bg-white">
+    <section class="section bg-black">
       <div class="container-luxury px-6">
         <div class="text-center max-w-2xl mx-auto mb-20" @fadeUp>
           <span class="section-label">Signature Offerings</span>
-          <h2 class="mt-4 font-heading text-neutral-900">The Collection</h2>
+          <h2 class="mt-4 font-heading text-white">The Collection</h2>
           <div class="divider-gold"></div>
-          <p class="text-neutral-600 text-base font-light">
+          <p class="text-neutral-400 text-base font-light">
             A curated selection of our most sought-after medical aesthetic procedures.
           </p>
         </div>
@@ -250,12 +250,12 @@ import { SeoService } from '../../../core/services/seo.service';
             @for (service of featuredServices(); track service.id) {
               <div class="stagger-item card group flex flex-col h-full">
                 <!-- Image Wrapper with Desktop Zoom Effect -->
-                <div class="aspect-[4/3] w-full overflow-hidden relative bg-neutral-100">
+                <div class="aspect-[4/3] w-full overflow-hidden relative bg-neutral-900">
                   <img loading="lazy" [src]="service.thumbnail_url || 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&q=80'" 
                        [alt]="service.name"
                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-[10000ms]"
                        (error)="handleImageError($event)">
-                  <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-sm text-gold text-[10px] tracking-widest font-semibold px-3 py-1.5 rounded-full uppercase shadow-sm">
+                  <div class="absolute top-4 right-4 bg-black/70 backdrop-blur-sm text-gold text-[10px] tracking-widest font-semibold px-3 py-1.5 rounded-full uppercase shadow-sm">
                     Featured
                   </div>
                 </div>
@@ -263,11 +263,11 @@ import { SeoService } from '../../../core/services/seo.service';
                 <div class="p-6 flex flex-col flex-1 space-y-4">
                   <div>
                     <span class="text-[10px] text-gold font-semibold uppercase tracking-widest">{{ service.category_name }}</span>
-                    <h3 class="font-heading text-2xl text-neutral-900 mt-1 group-hover:text-gold transition-colors duration-300">{{ service.name }}</h3>
+                    <h3 class="font-heading text-2xl text-white mt-1 group-hover:text-gold transition-colors duration-300">{{ service.name }}</h3>
                   </div>
                   
-                  <div class="flex items-center justify-between mt-auto pt-6 border-t border-black/10">
-                    <span class="text-neutral-900 font-medium text-sm font-body">J$ {{ service.price_jmd | number:'1.2-2' }}</span>
+                  <div class="flex items-center justify-between mt-auto pt-6 border-t border-white/10">
+                    <span class="text-white font-medium text-sm font-body">J$ {{ service.price_jmd | number:'1.2-2' }}</span>
                     <a [routerLink]="['/customer/book']" [queryParams]="{service: service.id}" 
                        class="text-xs font-semibold text-gold hover:text-gold-light uppercase tracking-widest flex items-center gap-1.5 group/btn">
                       Book Now 
@@ -287,14 +287,14 @@ import { SeoService } from '../../../core/services/seo.service';
     </section>
 
     <!-- Call to Action Section (Cinematic Banner) -->
-    <section class="section relative overflow-hidden bg-neutral-50 border-t border-black/5">
+    <section class="section relative overflow-hidden bg-black border-t border-white/5">
       <!-- Light gold ambient glow background -->
       <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gold/5 rounded-full filter blur-[150px]"></div>
       
       <div class="relative z-10 text-center px-6 max-w-3xl mx-auto space-y-8" @fadeUp>
         <span class="section-label">Begin Your Transformation</span>
-        <h2 class="font-heading text-neutral-900 leading-tight">Ready for your transformation?</h2>
-        <p class="text-neutral-600 text-base font-light leading-relaxed">
+        <h2 class="font-heading text-white leading-tight">Ready for your transformation?</h2>
+        <p class="text-neutral-400 text-base font-light leading-relaxed">
           Book your complimentary private consultation today and let our certified clinical specialists design a personalized treatment plan for your unique goals.
         </p>
         <div class="pt-4">
@@ -304,14 +304,14 @@ import { SeoService } from '../../../core/services/seo.service';
     </section>
 
     <!-- Instagram Section -->
-    <section class="bg-white py-24 border-t border-black/5">
+    <section class="bg-black py-24 border-t border-white/5">
       <div class="container-luxury px-6 max-w-7xl mx-auto" @fadeUp>
         
         <div class="text-center max-w-3xl mx-auto mb-16">
           <span class="text-xs font-semibold tracking-[0.2em] uppercase text-gold">Follow Our Journey</span>
-          <h2 class="mt-4 font-heading text-4xl text-neutral-900 mb-6">Stay connected with HHC Laser</h2>
+          <h2 class="mt-4 font-heading text-4xl text-white mb-6">Stay connected with HHC Laser</h2>
           <div class="h-px w-16 bg-gold mx-auto mb-6"></div>
-          <p class="text-neutral-600 font-light leading-relaxed">
+          <p class="text-neutral-400 font-light leading-relaxed">
             Stay connected with HHC Laser & Co and explore our latest treatments, client transformations, wellness tips, skincare education, and behind-the-scenes moments from our clinic in Kingston, Jamaica.
           </p>
         </div>
@@ -320,7 +320,7 @@ import { SeoService } from '../../../core/services/seo.service';
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-16">
           @for (post of instagramPosts; track post.url; let i = $index) {
             <a [href]="post.link" target="_blank" rel="noopener noreferrer" 
-               class="group relative aspect-square rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 bg-neutral-200"
+               class="group relative aspect-square rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 bg-neutral-900"
                [ngClass]="{'hidden md:block': i === 2 || i === 3, 'hidden lg:block': i === 4 || i === 5, 'block': i === 0 || i === 1}">
               <img [src]="post.url" alt="Instagram Post from HHC Laser" loading="lazy" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
               <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300 flex items-center justify-center">

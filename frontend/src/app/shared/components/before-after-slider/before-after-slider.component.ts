@@ -97,7 +97,7 @@ import { MatIconModule } from '@angular/material/icon';
         <div class="flex justify-between items-start">
           <div>
             <div class="text-[10px] tracking-[0.25em] font-semibold text-gold uppercase mb-1">{{ duration }}</div>
-            <h4 class="font-heading text-2xl text-black">{{ treatmentName }}</h4>
+            <h4 class="font-heading text-2xl text-white">{{ treatmentName }}</h4>
           </div>
           @if (rating) {
             <div class="flex items-center gap-0.5 text-gold" [attr.aria-label]="rating + ' out of 5 stars'">
@@ -120,7 +120,7 @@ import { MatIconModule } from '@angular/material/icon';
             <p class="italic text-text-muted text-xs font-light leading-relaxed">
               "{{ testimonial.quote }}"
             </p>
-            <div class="text-[9px] tracking-widest font-semibold text-black/60 uppercase mt-2">
+            <div class="text-[9px] tracking-widest font-semibold text-gold uppercase mt-2">
               — {{ testimonial.author }}
             </div>
           </div>
@@ -132,17 +132,17 @@ import { MatIconModule } from '@angular/material/icon';
 
     <!-- Full-screen Lightbox Overlay Component -->
     @if (lightboxOpen()) {
-      <div class="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-4 bg-white/95 backdrop-blur-2xl"
+      <div class="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-4 bg-black/95 backdrop-blur-2xl"
            (click)="closeLightbox()">
         
-        <button class="absolute top-6 right-6 w-12 h-12 rounded-full border border-black/10 flex items-center justify-center hover:border-gold hover:text-gold text-black transition-all duration-300 cursor-pointer"
+        <button class="absolute top-6 right-6 w-12 h-12 rounded-full border border-white/20 flex items-center justify-center hover:border-gold hover:text-gold text-white transition-all duration-300 cursor-pointer"
                 (click)="closeLightbox()"
                 aria-label="Close Lightbox">
           <mat-icon>close</mat-icon>
         </button>
 
         <div class="w-full max-w-5xl space-y-6" (click)="$event.stopPropagation()">
-          <h3 class="font-heading text-3xl text-center text-black">{{ treatmentName }}</h3>
+          <h3 class="font-heading text-3xl text-center text-white">{{ treatmentName }}</h3>
           
           <app-before-after-slider
             [beforeImage]="beforeImage"

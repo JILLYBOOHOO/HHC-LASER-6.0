@@ -36,7 +36,7 @@ import { AuthService } from '../../../core/services/auth.service';
             <a [routerLink]="link.path"
                routerLinkActive="active"
                [routerLinkActiveOptions]="{exact: link.exact ?? false}"
-               class="nav-link text-xs font-semibold uppercase relative py-1 tracking-[0.15em] transition-all duration-300"
+               class="nav-link text-xs font-semibold uppercase relative py-1 tracking-[0.15em] transition-all duration-300 flex items-center"
                [ngClass]="isHome() ? 'text-white/80 hover:text-gold' : 'text-neutral-600 hover:text-black'">
               {{ link.label }}
             </a>

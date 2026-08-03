@@ -32,6 +32,7 @@ import developerRoutes from './routes/developer.routes';
 import developerAuthRoutes from './routes/developer-auth.routes';
 import draftRoutes from './routes/drafts.routes';
 import { startDraftCleanupJob } from './jobs/cleanup-drafts.job';
+import { socketService } from './services/socket.service';
 const app = express();
 
 // ─── Trust Proxy (for AWS ALB / EB) ──────────────────────────────────────────
@@ -147,6 +148,8 @@ async function bootstrap(): Promise<void> {
     const server = app.listen(env.PORT, () => {
       logger.info(`🚀 HHC LASER API running on port ${env.PORT} [${env.NODE_ENV}]`);
     });
+
+    socketService.initialize(server);
 
     // Graceful shutdown
     const shutdown = async (signal: string) => {
