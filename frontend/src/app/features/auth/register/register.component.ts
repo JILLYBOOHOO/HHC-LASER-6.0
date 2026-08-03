@@ -38,8 +38,7 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
     MatIconModule, MatProgressSpinnerModule, MatSnackBarModule,
   ],
   template: `
-    <div class="min-h-screen flex items-center justify-center px-4 py-12"
-         style="background: linear-gradient(135deg, #111111 0%, #1a1a1a 60%, #0d0d0d 100%)">
+    <div class="min-h-screen flex items-center justify-center px-4 py-12 bg-white">
       
       <!-- Back to site -->
       <a routerLink="/" class="absolute top-6 left-6 flex items-center gap-2 text-neutral-600 hover:text-gold-400 transition-colors">
