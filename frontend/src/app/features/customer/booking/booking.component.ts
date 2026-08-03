@@ -1077,23 +1077,21 @@ const DEFAULT_SERVICES: Service[] = [
             </div>
 
             <!-- Booking Target Selection (Ultra Compact) -->
-            @if (selectedLocationId()) {
-              <div id="location-continue-section" class="mt-3 border-t border-black/10 pt-2.5">
-                <h3 class="mb-2 text-center font-bold text-xs">Who are you booking for?</h3>
-                <div class="flex flex-row justify-center items-center gap-2">
-                  <button (click)="bookingFor.set('myself'); populateGuestDetails()" 
-                          [ngClass]="bookingFor() === 'myself' ? 'bg-black text-white border-black' : 'bg-white text-black border-black/20 hover:border-black'" 
-                          class="px-4 py-1.5 rounded-lg border font-bold text-[11px] uppercase tracking-wider transition-all">
-                    Booking for Myself
-                  </button>
-                  <button (click)="bookingFor.set('someone_else'); populateGuestDetails()" 
-                          [ngClass]="bookingFor() === 'someone_else' ? 'bg-black text-white border-black' : 'bg-white text-black border-black/20 hover:border-black'" 
-                          class="px-4 py-1.5 rounded-lg border font-bold text-[11px] uppercase tracking-wider transition-all">
-                    Booking for Someone Else
-                  </button>
-                </div>
+            <div id="location-continue-section" class="mt-3 border-t border-black/10 pt-2.5">
+              <h3 class="mb-2 text-center font-bold text-xs">Who are you booking for?</h3>
+              <div class="flex flex-row justify-center items-center gap-2">
+                <button (click)="bookingFor.set('myself'); populateGuestDetails()" 
+                        [ngClass]="bookingFor() === 'myself' ? 'bg-black text-white border-black' : 'bg-white text-black border-black/20 hover:border-black'" 
+                        class="px-4 py-1.5 rounded-lg border font-bold text-[11px] uppercase tracking-wider transition-all">
+                  Booking for Myself
+                </button>
+                <button (click)="bookingFor.set('someone_else'); populateGuestDetails()" 
+                        [ngClass]="bookingFor() === 'someone_else' ? 'bg-black text-white border-black' : 'bg-white text-black border-black/20 hover:border-black'" 
+                        class="px-4 py-1.5 rounded-lg border font-bold text-[11px] uppercase tracking-wider transition-all">
+                  Booking for Someone Else
+                </button>
               </div>
-            }
+            </div>
 
             <div class="flex justify-between mt-3">
               <button class="btn-secondary" (click)="prevStep()">Back</button>

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -22,7 +22,7 @@ import { Service } from '../../../core/models/models';
             <mat-icon class="!text-sm !w-4 !h-4 mr-1">arrow_back</mat-icon> Back to Services
           </a>
 
-          <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-cream-200">
+          <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-cream-200 mb-8">
             <div class="grid grid-cols-1 md:grid-cols-2">
               <div class="relative bg-charcoal-50 aspect-square md:aspect-auto min-h-[320px]">
                 <img loading="lazy"
@@ -44,7 +44,7 @@ import { Service } from '../../../core/models/models';
                 </div>
 
                 <div class="prose prose-charcoal mb-10 text-charcoal-600 leading-relaxed">
-                  <p>{{ service()?.description || service()?.short_description }}</p>
+                  <p class="whitespace-pre-wrap">{{ service()?.description || service()?.short_description }}</p>
                 </div>
 
                 <a routerLink="/customer/book" [queryParams]="{ serviceId: service()?.id }"
@@ -54,6 +54,57 @@ import { Service } from '../../../core/models/models';
               </div>
             </div>
           </div>
+
+          <!-- What to Expect Section -->
+          <div class="mb-16">
+            <div class="bg-white rounded-3xl p-8 md:p-10 shadow-lg border border-cream-200">
+              <h3 class="font-heading font-bold text-black mb-6 text-2xl text-center md:text-left">What to Expect</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-5 text-left">
+                <div class="flex items-start space-x-4">
+                  <div class="w-2 h-2 bg-black mt-2 flex-shrink-0"></div>
+                  <span class="text-charcoal-600">Professional consultation before treatment</span>
+                </div>
+                <div class="flex items-start space-x-4">
+                  <div class="w-2 h-2 bg-black mt-2 flex-shrink-0"></div>
+                  <span class="text-charcoal-600">Treatment duration: approximately {{ service()?.duration_minutes }} mins</span>
+                </div>
+                <div class="flex items-start space-x-4">
+                  <div class="w-2 h-2 bg-black mt-2 flex-shrink-0"></div>
+                  <span class="text-charcoal-600">Follow-up care and aftercare instructions provided</span>
+                </div>
+                <div class="flex items-start space-x-4">
+                  <div class="w-2 h-2 bg-black mt-2 flex-shrink-0"></div>
+                  <span class="text-charcoal-600">Safe, FDA-approved equipment and procedures</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Treatment Gallery Section -->
+          @if (galleryImages().length > 0) {
+            <div class="mt-8">
+              <div class="text-center mb-10">
+                <span class="section-label" style="color: var(--gold);">RESULTS & PROOF</span>
+                <div class="divider-gold mx-auto"></div>
+                <h2 class="mt-4 font-heading text-3xl md:text-4xl text-black">Treatment Gallery</h2>
+                <p class="mt-3 text-neutral-500 text-sm">Real results from our actual clients.</p>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                @for (item of galleryImages(); track $index) {
+                  <div class="aspect-square rounded-2xl overflow-hidden border border-black/10 shadow-sm hover:shadow-md transition-shadow">
+                    @if (item.media_type === 'video') {
+                      <video [src]="item.video_url || item.url" controls playsinline class="w-full h-full object-cover bg-black"></video>
+                    } @else if (item.media_type === 'image' || item.image_url) {
+                      <img loading="lazy" [src]="item.image_url || item.url" alt="Treatment Result" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                    } @else {
+                      <img loading="lazy" [src]="item" alt="Treatment Result" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+          
         </div>
       } @else {
         <div class="text-center py-32">
@@ -72,6 +123,18 @@ export class ServiceDetailComponent implements OnInit {
 
   service = signal<Service | null>(null);
   loading = signal(true);
+
+  galleryImages = computed(() => {
+    const s = this.service();
+    if (!s || !s.gallery_images) return [];
+    if (Array.isArray(s.gallery_images)) return s.gallery_images;
+    try {
+      const parsed = JSON.parse(s.gallery_images);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  });
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {

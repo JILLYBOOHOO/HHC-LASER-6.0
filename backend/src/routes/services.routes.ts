@@ -631,16 +631,69 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/services/:slug - fetch a single service by slug
+router.get('/:slug', async (req, res, next) => {
+  try {
+    const slug = req.params['slug'];
+    // Let's also support fetching by ID just in case
+    const isId = !isNaN(Number(slug));
+    
+    const sql = `
+      SELECT s.*, sc.name as category_name, sc.slug as category_slug
+      FROM services s
+      JOIN service_categories sc ON sc.id = s.category_id
+      WHERE (s.slug = $1 OR s.id = $2) AND s.is_active = true
+      LIMIT 1
+    `;
+    
+    let service = await executeQueryOne(sql, [slug, isId ? Number(slug) : 0]);
+    
+    if (!service) {
+      // Fallback to memory array if DB doesn't have it
+      const fallbackMatch = FALLBACK_SERVICES.find(s => (s as any).slug === slug || (isId && s.id === Number(slug)));
+      if (fallbackMatch) {
+        let galleryStr = null;
+        try {
+          const fs = require('fs');
+          const path = require('path');
+          const galleriesPath = path.join(__dirname, '../../../live_galleries.json');
+          if (fs.existsSync(galleriesPath)) {
+            const allGalleries = JSON.parse(fs.readFileSync(galleriesPath, 'utf8'));
+            if (allGalleries[fallbackMatch.id]) {
+              galleryStr = JSON.stringify(allGalleries[fallbackMatch.id]);
+            }
+          }
+        } catch (e) {
+          console.error('Error reading live_galleries.json', e);
+        }
+
+        service = {
+          ...fallbackMatch,
+          gallery_images: galleryStr
+        };
+      }
+    }
+    
+    if (service) {
+      res.json(successResponse(service));
+    } else {
+      res.status(404).json({ error: 'Service not found' });
+    }
+  } catch (e) {
+    next(e);
+  }
+});
+
 // Admin Routes for CRUD
 
 router.post('/', async (req, res, next) => {
   try {
     // In a real app we'd verify admin role here
-    const { category_id, name, slug, description, price_jmd, duration_minutes, thumbnail_url, is_featured, is_active } = req.body;
+    const { category_id, name, slug, description, price_jmd, duration_minutes, thumbnail_url, is_featured, is_active, gallery_images } = req.body;
     const insertId = await executeUpdate(
-      `INSERT INTO services (category_id, name, slug, description, price_jmd, duration_minutes, thumbnail_url, is_featured, is_active)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [category_id, name, slug, description, price_jmd, duration_minutes, thumbnail_url, is_featured ? 1 : 0, is_active ? 1 : 0]
+      `INSERT INTO services (category_id, name, slug, description, price_jmd, duration_minutes, thumbnail_url, is_featured, is_active, gallery_images)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [category_id, name, slug, description, price_jmd, duration_minutes, thumbnail_url, is_featured ? 1 : 0, is_active ? 1 : 0, gallery_images ? JSON.stringify(gallery_images) : null]
     );
     res.json(successResponse({ id: insertId, message: 'Service created successfully' }));
   } catch(e) { next(e); }
@@ -648,11 +701,11 @@ router.post('/', async (req, res, next) => {
 
 router.put('/:id', async (req, res, next) => {
   try {
-    const { category_id, name, slug, description, price_jmd, duration_minutes, thumbnail_url, is_featured, is_active } = req.body;
+    const { category_id, name, slug, description, price_jmd, duration_minutes, thumbnail_url, is_featured, is_active, gallery_images } = req.body;
     await executeUpdate(
-      `UPDATE services SET category_id=?, name=?, slug=?, description=?, price_jmd=?, duration_minutes=?, thumbnail_url=?, is_featured=?, is_active=?
+      `UPDATE services SET category_id=?, name=?, slug=?, description=?, price_jmd=?, duration_minutes=?, thumbnail_url=?, is_featured=?, is_active=?, gallery_images=?
        WHERE id=?`,
-      [category_id, name, slug, description, price_jmd, duration_minutes, thumbnail_url, is_featured ? 1 : 0, is_active ? 1 : 0, req.params['id']]
+      [category_id, name, slug, description, price_jmd, duration_minutes, thumbnail_url, is_featured ? 1 : 0, is_active ? 1 : 0, gallery_images ? JSON.stringify(gallery_images) : null, req.params['id']]
     );
     res.json(successResponse({ message: 'Service updated successfully' }));
   } catch(e) { next(e); }

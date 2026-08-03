@@ -75,7 +75,8 @@ import { FormsModule } from '@angular/forms';
             @for (service of filteredServices(); track service.id) {
               
               <!-- Minimalist Luxury Card -->
-              <div class="group relative bg-white border border-black/80 rounded-lg flex flex-col h-full hover:shadow-lg transition-all duration-300 overflow-hidden">
+              <div class="group relative bg-white border border-black/80 rounded-lg flex flex-col h-full hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer"
+                   [routerLink]="['/services', service.slug || service.id]">
                 
                 <!-- Image -->
                 <div class="aspect-[16/11] w-full overflow-hidden relative bg-gray-50">
@@ -87,10 +88,15 @@ import { FormsModule } from '@angular/forms';
 
                 <!-- Content -->
                 <div class="p-3 md:p-3.5 flex flex-col flex-1">
-                  <!-- Title -->
-                  <h3 class="text-black font-extrabold text-xs md:text-sm uppercase tracking-wide mb-1 line-clamp-1">
-                    {{ service.name }}
-                  </h3>
+                  <!-- Title & CTA -->
+                  <div class="flex justify-between items-start gap-2 mb-1">
+                    <h3 class="text-black font-extrabold text-xs md:text-sm uppercase tracking-wide line-clamp-1 group-hover:text-gold-500 transition-colors flex-1">
+                      {{ service.name }}
+                    </h3>
+                    <div class="bg-neutral-100 text-neutral-600 border border-neutral-200 text-[9px] uppercase font-bold px-2 py-0.5 rounded-sm whitespace-nowrap group-hover:bg-black group-hover:text-white group-hover:border-black transition-colors">
+                      Details &rarr;
+                    </div>
+                  </div>
                   
                   <!-- Price -->
                   <div class="text-black font-extrabold text-sm md:text-base mb-1.5">
@@ -109,7 +115,7 @@ import { FormsModule } from '@angular/forms';
                   </div>
 
                   <!-- Book Button -->
-                  <button (click)="bookNow(service)" 
+                  <button (click)="$event.stopPropagation(); bookNow(service)" 
                           class="w-full py-1.5 border border-black bg-white text-black font-bold text-xs hover:bg-black hover:text-white transition-colors flex items-center justify-center gap-1.5 rounded-md">
                     <mat-icon class="!text-[14px] !w-[14px] !h-[14px]">calendar_today</mat-icon> Book Now
                   </button>
