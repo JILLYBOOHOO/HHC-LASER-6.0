@@ -22,7 +22,7 @@ import { inject } from '@angular/core';
         <div class="text-center mb-16">
           <span class="section-label">Luxury Skincare</span>
           <div class="divider-gold"></div>
-          <h1 class="mt-4 font-heading text-4xl md:text-5xl text-gray-50">
+          <h1 class="mt-4 font-heading text-4xl md:text-5xl text-charcoal-900">
             Professional <span class="text-gold-500">Products</span>
           </h1>
           <p class="mt-4 max-w-2xl mx-auto text-charcoal-500 leading-relaxed">
@@ -39,56 +39,30 @@ import { inject } from '@angular/core';
         <!-- Product Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           @for (product of productService.products(); track product.id) {
-            <div class="bg-white rounded-2xl shadow-sm border border-cream-200 overflow-hidden group flex flex-col h-full hover:shadow-xl transition-shadow duration-300">
-              
+            <div class="bg-white rounded-2xl shadow-sm border border-cream-200 overflow-hidden group flex flex-col h-full hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
+                 [routerLink]="['/products', product.slug]">
               <!-- Image Container -->
-              <div class="relative aspect-square overflow-hidden bg-charcoal-50" [routerLink]="['/products', product.slug]">
+              <div class="relative aspect-square overflow-hidden bg-charcoal-50">
                 <div class="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500 z-10"></div>
                 <img loading="lazy" [src]="product.image_url || 'https://images.unsplash.com/photo-1629198688000-71f23e745b6e?q=80&w=800'" 
                      [alt]="product.name" 
-                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 cursor-pointer" />
-                @if (product.stock_quantity <= 0) {
-                  <div class="absolute top-4 right-4 z-20 bg-white text-black text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">
-                    Out of Stock
-                  </div>
-                }
+                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
               </div>
 
               <!-- Product Details -->
               <div class="p-6 flex flex-col flex-grow">
                 <div class="text-gold-600 text-xs font-semibold tracking-wider uppercase mb-2">{{ product.category_name }}</div>
-                <h3 class="text-2xl font-heading text-gray-50 mb-2 hover:text-gold-600 transition-colors cursor-pointer" [routerLink]="['/products', product.slug]">
+                <h3 class="text-2xl font-heading text-charcoal-900 mb-2 group-hover:text-gold-600 transition-colors">
                   {{ product.name }}
                 </h3>
-                <p class="text-charcoal-500 text-sm leading-relaxed line-clamp-3 mb-6 flex-grow">
+                <p class="text-charcoal-500 text-sm leading-relaxed line-clamp-3 mb-8 flex-grow">
                   {{ product.description }}
                 </p>
 
-                <div class="flex items-end justify-between mb-6">
-                  <div>
-                    <div class="text-xs text-charcoal-400 uppercase tracking-wider mb-1">Price</div>
-                    <div class="text-xl font-medium text-white">J$ {{ product.price_jmd | number:'1.2-2' }}</div>
-                  </div>
-                  <div class="text-right">
-                    <div class="text-xs text-charcoal-400 uppercase tracking-wider mb-1">Availability</div>
-                    <div class="text-sm font-medium" [ngClass]="product.stock_quantity > 0 ? 'text-green-600' : 'text-red-500'">
-                      @if (product.stock_quantity > 0) {
-                        <mat-icon class="!text-sm !w-4 !h-4 inline-block align-middle">check_circle</mat-icon> In Stock ({{product.stock_quantity}})
-                      } @else {
-                        <mat-icon class="!text-sm !w-4 !h-4 inline-block align-middle">cancel</mat-icon> Sold Out
-                      }
-                    </div>
-                  </div>
-                </div>
-
                 <!-- Action Buttons -->
-                <div class="flex flex-col sm:flex-row gap-3">
-                  <button mat-stroked-button color="primary" class="flex-1 !border-charcoal-200 !text-gray-50" [routerLink]="['/products', product.slug]">
-                    View Details
-                  </button>
-                  <button mat-flat-button class="flex-1 !bg-white !text-black" 
-                          [disabled]="product.stock_quantity <= 0"
-                          (click)="openPurchaseDialog(product)">
+                <div class="flex flex-col gap-3 mt-auto">
+                  <button mat-flat-button class="w-full !bg-white !text-black !h-12 !rounded-xl text-sm font-bold uppercase tracking-wider hover:!bg-gold-500 hover:!text-white transition-all shadow-md relative z-20" 
+                          (click)="$event.stopPropagation(); $event.preventDefault(); openPurchaseDialog(product)">
                     Contact To Purchase
                   </button>
                 </div>
