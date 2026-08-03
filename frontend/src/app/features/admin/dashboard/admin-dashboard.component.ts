@@ -6,11 +6,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { getContactMessages, ContactMessage, CONTACT_MESSAGES_KEY } from '../../../core/services/contact-messages';
 
 import { RouterModule } from '@angular/router';
+import { InternalBookingModalComponent } from '../../../shared/components/internal-booking-modal/internal-booking-modal.component';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, MatIconModule, MatButtonModule],
+  imports: [CommonModule, FormsModule, RouterModule, MatIconModule, MatButtonModule, InternalBookingModalComponent],
   template: `
     <div class="p-6 max-w-7xl mx-auto space-y-6 font-sans">
 
@@ -27,10 +28,10 @@ import { RouterModule } from '@angular/router';
             <mat-icon class="!text-base text-cyan-400">search</mat-icon>
             <span class="tracking-wider uppercase">Search</span>
           </button>
-          <a routerLink="/booking" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-black font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 whitespace-nowrap">
+          <button (click)="openBookingModal()" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-black font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 whitespace-nowrap">
             <mat-icon class="!text-base">add_circle</mat-icon>
             <span class="tracking-wider uppercase">+ Make Appointment for Customer</span>
-          </a>
+          </button>
         </div>
       </div>
 
@@ -342,12 +343,22 @@ import { RouterModule } from '@angular/router';
     </div>
   }
 </div>
+<app-internal-booking-modal *ngIf="showBookingModal" (close)="closeBookingModal()"></app-internal-booking-modal>
   `
 })
 export class AdminDashboardComponent implements OnInit {
   searchQuery = '';
   messages = signal<ContactMessage[]>([]);
   unreadCount = signal(0);
+  showBookingModal = false;
+
+  openBookingModal() {
+    this.showBookingModal = true;
+  }
+
+  closeBookingModal() {
+    this.showBookingModal = false;
+  }
 
   ngOnInit() {
     this.loadMessages();
