@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { RouterOutlet, Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
 import { FooterComponent } from '../../../shared/components/footer/footer.component';
 import { MatIconModule } from '@angular/material/icon';
@@ -7,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 @Component({
   selector: 'app-public-layout',
   standalone: true,
-  imports: [RouterOutlet, NavbarComponent, FooterComponent, MatIconModule],
+  imports: [CommonModule, RouterOutlet, NavbarComponent, FooterComponent, MatIconModule],
   template: `
     <app-navbar></app-navbar>
     <main class="pt-0">
@@ -16,7 +17,7 @@ import { MatIconModule } from '@angular/material/icon';
     <app-footer></app-footer>
 
     <!-- Floating Action Buttons -->
-    <div class="fixed bottom-6 right-6 z-50 flex flex-col gap-4">
+      <div *ngIf="isContactPage" class="fixed bottom-6 right-6 z-50 flex flex-col gap-4">
       
       <!-- Click-to-call Button -->
       <a href="tel:+18763196241"
@@ -40,4 +41,9 @@ import { MatIconModule } from '@angular/material/icon';
     </div>
   `,
 })
-export class PublicLayoutComponent {}
+export class PublicLayoutComponent {
+  router = inject(Router);
+  get isContactPage(): boolean {
+    return this.router.url.startsWith('/contact');
+  }
+}
