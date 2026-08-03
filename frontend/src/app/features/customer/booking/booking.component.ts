@@ -1695,7 +1695,13 @@ export class BookingComponent implements OnInit {
   groupSize         = 1;
   selectedServiceId = signal<number | null>(1);
   selectedEmployeeId = signal<number | null>(null);
-  bookingFor = signal<'myself' | 'someone_else' | 'group'>('myself');  
+  bookingFor = signal<'myself' | 'someone_else' | 'group'>('myself');
+  // Mobile summary expanded state for collapsible drawer on mobile
+  mobileSummaryExpanded = signal<boolean>(false);
+  // Toggle helper method
+  toggleMobileSummary() {
+    this.mobileSummaryExpanded.update(v => !v);
+  }
   availableSlots    = signal<string[]>([]);
   employees         = signal<Employee[]>([]);
   allServices       = signal<Service[]>(DEFAULT_SERVICES);
