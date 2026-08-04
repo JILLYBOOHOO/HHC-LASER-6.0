@@ -13,10 +13,10 @@ import { Product } from '../../../core/models/models';
     <div class="p-6 max-w-md w-full" style="background: var(--color-cream)">
       <div class="flex justify-between items-start mb-6">
         <div>
-          <h2 class="font-heading text-2xl text-gray-50 mb-1">Contact To Purchase</h2>
+          <h2 class="font-heading text-2xl text-charcoal-800 mb-1">Contact To Purchase</h2>
           <p class="text-charcoal-500 text-sm">You are interested in: <strong>{{ data.product.name }}</strong></p>
         </div>
-        <button mat-icon-button mat-dialog-close class="!text-charcoal-400 hover:!text-gray-50">
+        <button mat-icon-button mat-dialog-close class="!text-charcoal-400 hover:!text-charcoal-800">
           <mat-icon>close</mat-icon>
         </button>
       </div>
@@ -30,11 +30,11 @@ import { Product } from '../../../core/models/models';
         <!-- Call -->
         <a href="tel:+18763196241" 
            class="flex items-center gap-4 p-4 rounded-xl border border-gold-200 bg-white hover:border-gold-500 hover:shadow-md transition-all group">
-          <div class="w-10 h-10 rounded-full bg-gold-50 flex items-center justify-center text-gold-600 group-hover:bg-gold-500 group-hover:text-black transition-colors">
+          <div class="w-10 h-10 rounded-full bg-gold-50 flex items-center justify-center text-gold-600 group-hover:bg-gold-500 group-hover:text-white transition-colors">
             <mat-icon>phone</mat-icon>
           </div>
           <div>
-            <div class="font-medium text-gray-50">Call Us</div>
+            <div class="font-medium text-charcoal-800">Call Us</div>
             <div class="text-charcoal-500 text-sm">(876) 319-6241</div>
           </div>
         </a>
@@ -42,11 +42,11 @@ import { Product } from '../../../core/models/models';
         <!-- WhatsApp -->
         <a [href]="whatsappLink" target="_blank" rel="noopener noreferrer"
            class="flex items-center gap-4 p-4 rounded-xl border border-green-200 bg-white hover:border-green-500 hover:shadow-md transition-all group">
-          <div class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600 group-hover:bg-green-500 group-hover:text-black transition-colors">
+          <div class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600 group-hover:bg-green-500 group-hover:text-white transition-colors">
             <mat-icon>chat</mat-icon>
           </div>
           <div>
-            <div class="font-medium text-gray-50">WhatsApp Us</div>
+            <div class="font-medium text-charcoal-800">WhatsApp Us</div>
             <div class="text-charcoal-500 text-sm">Message our care team</div>
           </div>
         </a>
@@ -54,11 +54,11 @@ import { Product } from '../../../core/models/models';
         <!-- Email -->
         <a [href]="emailLink"
            class="flex items-center gap-4 p-4 rounded-xl border border-blue-200 bg-white hover:border-blue-500 hover:shadow-md transition-all group">
-          <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-500 group-hover:text-black transition-colors">
+          <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-500 group-hover:text-white transition-colors">
             <mat-icon>email</mat-icon>
           </div>
           <div>
-            <div class="font-medium text-gray-50">Email Us</div>
+            <div class="font-medium text-charcoal-800">Email Us</div>
             <div class="text-charcoal-500 text-sm">infohhcLaser&#64;gmail.com</div>
           </div>
         </a>
@@ -66,7 +66,7 @@ import { Product } from '../../../core/models/models';
       </div>
 
       <div class="bg-white rounded-xl p-4 border border-cream-200 text-sm">
-        <div class="font-medium text-gray-50 mb-2 flex items-center gap-2">
+        <div class="font-medium text-charcoal-800 mb-2 flex items-center gap-2">
           <mat-icon class="!text-sm !w-4 !h-4 text-gold-500">storefront</mat-icon> Clinic Hours
         </div>
         <div class="text-charcoal-500 grid grid-cols-2 gap-1">

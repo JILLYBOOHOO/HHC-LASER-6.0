@@ -51,10 +51,11 @@ const envSchema = z.object({
   // ── Scotiabank / Fiserv HPP ──────────────────────────────────────────────
   FISERV_MERCHANT_ID: z.string().optional(),
   FISERV_API_KEY: z.string().optional(),
-  FISERV_SHARED_SECRET: z.string(),
-  FISERV_STORE_ID: z.string().optional(),
+  FISERV_SHARED_SECRET: z.string().min(1),
+  FISERV_STORE_ID: z.string().min(1),
   FISERV_STORE_NAME: z.string().optional(),
   FISERV_CURRENCY: z.string().default('840'),
+  FISERV_GATEWAY_URL: z.string().url().default('https://test.ipg-online.com/connect/gateway/processing'),
   FISERV_ENDPOINT: z.string().url().optional(),
   FISERV_BASE_URL: z.string().url().default('https://test.ipg-online.com'),
   FISERV_CALLBACK_URL: z.string().url().default('http://localhost:3000/api/payments/callback'),

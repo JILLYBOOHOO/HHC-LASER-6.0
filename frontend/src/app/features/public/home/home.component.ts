@@ -3,38 +3,18 @@ import { CommonModule, NgClass } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDialog } from '@angular/material/dialog';
 import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
 import { ApiService } from '../../../core/services/api.service';
 import { Service } from '../../../core/models/models';
 import { BeforeAfterSliderComponent } from '../../../shared/components/before-after-slider/before-after-slider.component';
-import { SeoService } from '../../../core/services/seo.service';
-
+import { ContactPurchaseDialogComponent } from '../../../shared/components/contact-purchase-dialog/contact-purchase-dialog.component';
+import { CheckoutComponent } from '../../../shared/components/checkout/checkout.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, NgClass, RouterModule, MatButtonModule, MatIconModule, BeforeAfterSliderComponent],
-  styles: [`
-    :host {
-      display: block;
-      background-color: #000000;
-      --background: #000000;
-      --surface: #111111;
-      --surface-light: #1a1a1a;
-      --border: rgba(255, 255, 255, 0.08);
-      --text: #f0f0f0;
-      --text-muted: #9CA3AF;
-      --gold: #B8924F;
-      --gold-light: #D6B36A;
-      --gold-dark: #8A6D3B;
-      --shadow-dark: 0 8px 40px rgba(0, 0, 0, 0.4);
-      --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3);
-      --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    }
-    .bg-background {
-      background-color: var(--background) !important;
-    }
-  `],
+  imports: [CommonModule, NgClass, RouterModule, MatButtonModule, MatIconModule, BeforeAfterSliderComponent, CheckoutComponent],
   animations: [
     trigger('fadeUp', [
       transition(':enter', [
@@ -92,8 +72,15 @@ import { SeoService } from '../../../core/services/seo.service';
 
           <!-- CTA -->
           <div class="flex flex-col sm:flex-row gap-4 mb-8 drop-shadow-lg">
-            <a routerLink="/customer/book" class="btn-primary text-center hover:!text-white" style="font-family: 'Merriweather', serif;">Book Your Treatment</a>
-            <a routerLink="/services" class="btn-secondary text-center !text-white" style="background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);">View All Services</a>
+            <a routerLink="/customer/book" class="btn-primary text-center hover:!text-black">Book Your Treatment</a>
+            <a routerLink="/services" class="btn-secondary text-center" style="background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);">View All Services</a>
+          </div>
+
+          <!-- Fiserv / Scotiabank certification test buttons -->
+          <div class="flex flex-col sm:flex-row flex-wrap gap-4 mb-8 drop-shadow-lg">
+            <app-checkout orderTotal="1.00" buttonText="Test $1.00 Approve"></app-checkout>
+            <app-checkout orderTotal="2.00" buttonText="Test $2.00 Approve"></app-checkout>
+            <app-checkout orderTotal="8.99" buttonText="Test $8.99 Decline"></app-checkout>
           </div>
 
           <!-- Trust Badges -->
@@ -123,7 +110,7 @@ import { SeoService } from '../../../core/services/seo.service';
     </section>
 
     <!-- Editorial Philosophy Section (Aman-inspired Magazine Layout) -->
-    <section class="section bg-black">
+    <section class="section bg-background">
       <div class="container-luxury px-6">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
           
@@ -132,7 +119,7 @@ import { SeoService } from '../../../core/services/seo.service';
             <span class="section-label">Our Philosophy</span>
             <h2 class="font-heading text-white leading-tight">The Science of Subtle Transformation.</h2>
             <div class="divider-gold-left"></div>
-            <p class="text-neutral-400 text-base font-light leading-relaxed">
+            <p class="text-text-muted text-base font-light leading-relaxed">
               At HHC Laser, we believe that true beauty lies in the preservation of authenticity. Our bespoke treatments use industry-leading laser technology and medical-grade injectables to enhance your natural architecture.
             </p>
             <div class="space-y-4 pt-4">
@@ -140,21 +127,21 @@ import { SeoService } from '../../../core/services/seo.service';
                 <mat-icon class="text-gold !text-lg !w-5 !h-5 mt-1">flare</mat-icon>
                 <div>
                   <h6 class="text-white font-medium text-sm">Advanced Laser Resurfacing</h6>
-                  <p class="text-neutral-400 text-xs font-light">Targeted precision for flawless, luminous skin.</p>
+                  <p class="text-text-muted text-xs font-light">Targeted precision for flawless, luminous skin.</p>
                 </div>
               </div>
               <div class="flex items-start gap-4">
                 <mat-icon class="text-gold !text-lg !w-5 !h-5 mt-1">blur_on</mat-icon>
                 <div>
                   <h6 class="text-white font-medium text-sm">Precision Facial Contouring</h6>
-                  <p class="text-neutral-400 text-xs font-light">Bespoke injectables that respect your structure.</p>
+                  <p class="text-text-muted text-xs font-light">Bespoke injectables that respect your structure.</p>
                 </div>
               </div>
               <div class="flex items-start gap-4">
                 <mat-icon class="text-gold !text-lg !w-5 !h-5 mt-1">waves</mat-icon>
                 <div>
                   <h6 class="text-white font-medium text-sm">Skin Vitality Optimization</h6>
-                  <p class="text-neutral-400 text-xs font-light">Cellular level nourishment for lasting wellness.</p>
+                  <p class="text-text-muted text-xs font-light">Cellular level nourishment for lasting wellness.</p>
                 </div>
               </div>
             </div>
@@ -165,16 +152,16 @@ import { SeoService } from '../../../core/services/seo.service';
             <!-- Background luxury ambient light glow -->
             <div class="absolute w-72 h-72 bg-gold/5 rounded-full filter blur-[100px] z-0"></div>
             
-            <div class="relative w-full max-w-lg aspect-[4/5] rounded-3xl overflow-hidden border border-black/10 shadow-2xl z-10">
+            <div class="relative w-full max-w-lg aspect-[4/5] rounded-3xl overflow-hidden border border-white/5 shadow-2xl z-10">
               <div class="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent z-10"></div>
-              <img loading="lazy" src="https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?w=800&q=80" 
+              <img src="https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?w=800&q=80" 
                    alt="Modern Aesthetic Equipment" 
                    class="w-full h-full object-cover" />
             </div>
             
             <!-- Frosted Glass Overlapping Panel -->
-            <div class="absolute bottom-[-30px] left-[-30px] hidden md:block p-6 rounded-2xl max-w-xs z-20 bg-neutral-900 shadow-xl border border-white/10">
-              <p class="text-neutral-300 text-sm italic font-light leading-relaxed">
+            <div class="absolute bottom-[-30px] left-[-30px] hidden md:block glass p-6 rounded-2xl max-w-xs z-20">
+              <p class="text-white text-sm italic font-light leading-relaxed">
                 "We reject the mass-market approach to beauty. Each client journey begins with a private residency — a comprehensive analysis that considers cellular health, lifestyle architecture, and long-term vitality."
               </p>
               <div class="text-[9px] tracking-widest font-semibold text-gold uppercase mt-4">— Clinical Board</div>
@@ -186,13 +173,13 @@ import { SeoService } from '../../../core/services/seo.service';
     </section>
 
     <!-- Before & After Comparison Slider Section -->
-    <section class="section bg-black border-y border-white/5">
+    <section class="section bg-surface-light border-y border-white/5">
       <div class="container-luxury px-6">
         <div class="text-center max-w-2xl mx-auto mb-16" @fadeUp>
           <span class="section-label">Clinical Outcomes</span>
           <h2 class="mt-4 font-heading text-white">Proven Transformation</h2>
           <div class="divider-gold"></div>
-          <p class="text-neutral-400 text-base font-light">
+          <p class="text-text-muted text-base font-light">
             Explore actual treatment results. Select a category below and drag the handle to compare outcomes.
           </p>
         </div>
@@ -202,8 +189,8 @@ import { SeoService } from '../../../core/services/seo.service';
           @for (cat of filterCategories; track cat.id) {
             <button (click)="activeCategory.set(cat.id)"
                     [ngClass]="activeCategory() === cat.id
-                      ? 'bg-gold text-white border-gold'
-                      : 'bg-transparent text-neutral-400 border-white/10 hover:border-gold hover:text-white'"
+                      ? 'bg-gold text-black border-gold'
+                      : 'bg-transparent text-text-muted border-white/10 hover:border-gold hover:text-white'"
                     class="px-6 py-2.5 rounded-full text-xs font-semibold tracking-wider uppercase transition-all duration-300 border cursor-pointer">
               {{ cat.name }}
             </button>
@@ -230,13 +217,13 @@ import { SeoService } from '../../../core/services/seo.service';
     </section>
 
     <!-- Popular Treatments Section (Frosted Glass Card Showcase) -->
-    <section class="section bg-black">
+    <section class="section bg-background">
       <div class="container-luxury px-6">
         <div class="text-center max-w-2xl mx-auto mb-20" @fadeUp>
           <span class="section-label">Signature Offerings</span>
           <h2 class="mt-4 font-heading text-white">The Collection</h2>
           <div class="divider-gold"></div>
-          <p class="text-neutral-400 text-base font-light">
+          <p class="text-text-muted text-base font-light">
             A curated selection of our most sought-after medical aesthetic procedures.
           </p>
         </div>
@@ -250,12 +237,12 @@ import { SeoService } from '../../../core/services/seo.service';
             @for (service of featuredServices(); track service.id) {
               <div class="stagger-item card group flex flex-col h-full">
                 <!-- Image Wrapper with Desktop Zoom Effect -->
-                <div class="aspect-[4/3] w-full overflow-hidden relative bg-neutral-900">
-                  <img loading="lazy" [src]="service.thumbnail_url || 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&q=80'" 
+                <div class="aspect-[4/3] w-full overflow-hidden relative bg-surface-light">
+                  <img [src]="service.thumbnail_url || 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&q=80'" 
                        [alt]="service.name"
                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-[10000ms]"
                        (error)="handleImageError($event)">
-                  <div class="absolute top-4 right-4 bg-black/70 backdrop-blur-sm text-gold text-[10px] tracking-widest font-semibold px-3 py-1.5 rounded-full uppercase shadow-sm">
+                  <div class="absolute top-4 right-4 glass text-gold text-[10px] tracking-widest font-semibold px-3 py-1.5 rounded-full uppercase shadow-sm">
                     Featured
                   </div>
                 </div>
@@ -263,10 +250,10 @@ import { SeoService } from '../../../core/services/seo.service';
                 <div class="p-6 flex flex-col flex-1 space-y-4">
                   <div>
                     <span class="text-[10px] text-gold font-semibold uppercase tracking-widest">{{ service.category_name }}</span>
-                    <h3 class="font-heading text-2xl text-white mt-1 group-hover:text-gold transition-colors duration-300">{{ service.name }}</h3>
+                    <h3 class="font-heading text-2xl text-white mt-1 group-hover:text-gold-light transition-colors duration-300">{{ service.name }}</h3>
                   </div>
                   
-                  <div class="flex items-center justify-between mt-auto pt-6 border-t border-white/10">
+                  <div class="flex items-center justify-between mt-auto pt-6 border-t border-white/5">
                     <span class="text-white font-medium text-sm font-body">J$ {{ service.price_jmd | number:'1.2-2' }}</span>
                     <a [routerLink]="['/customer/book']" [queryParams]="{service: service.id}" 
                        class="text-xs font-semibold text-gold hover:text-gold-light uppercase tracking-widest flex items-center gap-1.5 group/btn">
@@ -286,15 +273,59 @@ import { SeoService } from '../../../core/services/seo.service';
       </div>
     </section>
 
+    <!-- Featured Products Section -->
+    <section class="section bg-surface-light border-t border-white/5">
+      <div class="container-luxury px-6">
+        <div class="text-center max-w-2xl mx-auto mb-20" @fadeUp>
+          <span class="section-label">Professional Skincare</span>
+          <h2 class="mt-4 font-heading text-white">Featured Products</h2>
+          <div class="divider-gold"></div>
+          <p class="text-text-muted text-base font-light">
+            Maintain your results at home with our clinical-grade skincare collection.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8" @staggerList>
+          @for (product of featuredProducts; track product.name) {
+            <div class="stagger-item card group flex flex-col h-full bg-surface border-white/5 hover:border-gold/30 transition-colors duration-500">
+              <div class="aspect-[4/5] w-full overflow-hidden relative bg-[#F5F5F5]">
+                <img [src]="product.image" 
+                     [alt]="product.name"
+                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                <div class="absolute top-4 left-4 glass text-charcoal-900 bg-white/90 text-[9px] tracking-widest font-bold px-3 py-1.5 rounded-full uppercase shadow-sm">
+                  {{ product.category }}
+                </div>
+              </div>
+              
+              <div class="p-6 flex flex-col flex-1">
+                <h3 class="font-heading text-lg text-white mb-2 leading-snug group-hover:text-gold transition-colors duration-300">{{ product.name }}</h3>
+                <p class="text-text-muted text-xs font-light mb-6 flex-1">{{ product.description }}</p>
+                
+                <div class="flex items-center justify-between mb-6">
+                  <span class="text-white font-medium text-lg font-body">{{ product.price }}</span>
+                  <span class="text-[#25D366] text-[11px] font-medium">{{ product.stock }}</span>
+                </div>
+                
+                <div class="flex flex-col gap-3 mt-auto">
+                  <a [routerLink]="['/products']" class="btn-outline w-full text-center text-xs py-2.5 !border-white/20">View Product</a>
+                  <button (click)="openPurchaseDialog(product.name)" class="btn-primary w-full text-center text-xs py-2.5">Contact for Purchase</button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+
     <!-- Call to Action Section (Cinematic Banner) -->
-    <section class="section relative overflow-hidden bg-black border-t border-white/5">
+    <section class="section relative overflow-hidden bg-surface border-t border-white/5">
       <!-- Light gold ambient glow background -->
       <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gold/5 rounded-full filter blur-[150px]"></div>
       
       <div class="relative z-10 text-center px-6 max-w-3xl mx-auto space-y-8" @fadeUp>
         <span class="section-label">Begin Your Transformation</span>
         <h2 class="font-heading text-white leading-tight">Ready for your transformation?</h2>
-        <p class="text-neutral-400 text-base font-light leading-relaxed">
+        <p class="text-text-muted text-base font-light leading-relaxed">
           Book your complimentary private consultation today and let our certified clinical specialists design a personalized treatment plan for your unique goals.
         </p>
         <div class="pt-4">
@@ -304,15 +335,15 @@ import { SeoService } from '../../../core/services/seo.service';
     </section>
 
     <!-- Instagram Section -->
-    <section class="bg-black py-24 border-t border-white/5">
+    <section class="bg-white py-24 border-t border-gray-100">
       <div class="container-luxury px-6 max-w-7xl mx-auto" @fadeUp>
         
         <div class="text-center max-w-3xl mx-auto mb-16">
           <span class="text-xs font-semibold tracking-[0.2em] uppercase text-gold">Follow Our Journey</span>
-          <h2 class="mt-4 font-heading text-4xl text-white mb-6">Stay connected with HHC Laser</h2>
+          <h2 class="mt-4 font-heading text-4xl text-charcoal-900 mb-6">Stay connected with HHC Laser</h2>
           <div class="h-px w-16 bg-gold mx-auto mb-6"></div>
-          <p class="text-neutral-400 font-light leading-relaxed">
-            Stay connected with HHC Laser & Co and explore our latest treatments, client transformations, wellness tips, skincare education, and behind-the-scenes moments from our clinic in Kingston, Jamaica.
+          <p class="text-charcoal-500 font-light leading-relaxed">
+            Stay connected with Havendale Healthcare (HHC Laser) and explore our latest treatments, client transformations, wellness tips, skincare education, and behind-the-scenes moments from our clinic in Kingston, Jamaica.
           </p>
         </div>
 
@@ -320,7 +351,7 @@ import { SeoService } from '../../../core/services/seo.service';
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-16">
           @for (post of instagramPosts; track post.url; let i = $index) {
             <a [href]="post.link" target="_blank" rel="noopener noreferrer" 
-               class="group relative aspect-square rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 bg-neutral-900"
+               class="group relative aspect-square rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 bg-gray-100"
                [ngClass]="{'hidden md:block': i === 2 || i === 3, 'hidden lg:block': i === 4 || i === 5, 'block': i === 0 || i === 1}">
               <img [src]="post.url" alt="Instagram Post from HHC Laser" loading="lazy" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
               <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300 flex items-center justify-center">
@@ -333,7 +364,7 @@ import { SeoService } from '../../../core/services/seo.service';
 
         <!-- Call-to-Action -->
         <div class="text-center mt-12">
-          <a href="https://www.instagram.com/havendale_healthcare" target="_blank" rel="noopener noreferrer" class="btn-primary hover:!text-white inline-flex items-center gap-2">
+          <a href="https://www.instagram.com/havendale_healthcare" target="_blank" rel="noopener noreferrer" class="btn-primary hover:!text-black inline-flex items-center gap-2">
             Follow &#64;havendale_healthcare
             <mat-icon class="!w-4 !h-4 !text-sm flex items-center justify-center">open_in_new</mat-icon>
           </a>
@@ -345,8 +376,8 @@ import { SeoService } from '../../../core/services/seo.service';
 })
 export class HomeComponent implements OnInit, AfterViewInit {
   private api = inject(ApiService);
-  private seo = inject(SeoService);
-
+  private dialog = inject(MatDialog);
+  
   @ViewChild('heroVideo') heroVideo!: ElementRef<HTMLVideoElement>;
 
   featuredServices = signal<Service[]>([]);
@@ -368,7 +399,49 @@ export class HomeComponent implements OnInit, AfterViewInit {
     }
   }
 
+  featuredProducts = [
+    {
+      category: 'Skin Supplement',
+      name: 'Lemon Wash',
+      description: 'Lemon Acne Cleanser',
+      price: 'J$1,500.00',
+      stock: 'In Stock (500 available)',
+      image: '/assets/products/img_1.png'
+    },
+    {
+      category: 'Skin Supplement',
+      name: 'Bikini & Body Cream',
+      description: 'Reduces dead skin, rough and bumpy texture, smooths skin, and helps reduce hyperpigmentation.',
+      price: 'J$4,500.00',
+      stock: 'In Stock (200 available)',
+      image: '/assets/products/img_2.png'
+    },
+    {
+      category: 'Skin Supplement',
+      name: 'COCO Bean & Coconut Cleanser & Moisturizer',
+      description: 'Facial cleanser and moisturizer formulated for healthy, hydrated skin.',
+      price: 'J$4,500.00',
+      stock: 'In Stock (200 available)',
+      image: '/assets/products/img_3.png'
+    },
+    {
+      category: 'Skin Supplement',
+      name: 'Toner & Collagen Moisturizer Set',
+      description: 'Best combination for clear and smooth skin.',
+      price: 'J$5,000.00',
+      stock: 'In Stock (200 available)',
+      image: '/assets/products/img_4.png'
+    }
+  ];
 
+  openPurchaseDialog(productName: string) {
+    this.dialog.open(ContactPurchaseDialogComponent, {
+      width: '90%',
+      maxWidth: '450px',
+      data: { productName },
+      panelClass: 'luxury-dialog'
+    });
+  }
 
   // Active Category Filter Signal
   activeCategory = signal<string>('all');
@@ -380,11 +453,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
     { id: 'body-contouring', name: 'Body Contouring' }
   ];
 
-  // Raw Case Studies Datastore (Accurate Before & After Treatment Images)
+  // Raw Case Studies Datastore
   comparisons = [
     {
-      beforeImage: 'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=800&q=80',
-      afterImage: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&q=80',
+      beforeImage: 'https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=800&q=80',
+      afterImage: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=800&q=80',
       treatmentName: 'Laser Hair Removal',
       duration: '8 Sessions • 10 Months',
       description: 'Achieved permanent reduction of unwanted hair, leaving the skin texture dramatically smooth and even.',
@@ -393,8 +466,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
       testimonial: { quote: 'Absolutely life-changing. Smooth skin and no more shaving irritation.', author: 'Sarah M.' }
     },
     {
-      beforeImage: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&q=80',
-      afterImage: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=800&q=80',
+      beforeImage: 'https://images.unsplash.com/photo-1600334129128-685c5582fd35?w=800&q=80',
+      afterImage: 'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=800&q=80',
       treatmentName: 'Skin Rejuvenation',
       duration: '4 Sessions • 4 Months',
       description: 'Reversed hyperpigmentation, reduced appearance of sun spots, and minimized fine lines on face.',
@@ -403,8 +476,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
       testimonial: { quote: 'My skin tone is so even now, and the fine lines around my eyes are gone.', author: 'Jessica R.' }
     },
     {
-      beforeImage: 'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=800&q=80',
-      afterImage: 'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?w=800&q=80',
+      beforeImage: 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=800&q=80',
+      afterImage: 'https://images.unsplash.com/photo-1508962914676-134849a727f0?w=800&q=80',
       treatmentName: 'Acne Scar Treatment',
       duration: '6 Sessions • 8 Months',
       description: 'Smoothed deep pitted scars using fractional micro-needling RF laser therapy to stimulate collagen rebuild.',
@@ -413,8 +486,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
       testimonial: { quote: 'Finally feel confident without makeup. The deep scars have faded.', author: 'Daniel K.' }
     },
     {
-      beforeImage: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80',
-      afterImage: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&q=80',
+      beforeImage: 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=800&q=80',
+      afterImage: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800&q=80',
       treatmentName: 'Abdomen Sculpting',
       duration: '4 Sessions • 2 Months',
       description: 'High-intensity electromagnetic sculpting to burn fat deposits and build abdominal muscle definition.',
@@ -432,19 +505,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
   });
 
   ngOnInit() {
-    this.seo.updatePage({
-      title: 'HHC Laser & Co. | Premier Medical Spa Kingston Jamaica | Laser Hair Removal, Botox, Fillers',
-      description: 'HHC Laser & Co. is Kingston Jamaica\'s premier medical spa. Expert laser hair removal, Botox, dermal fillers, IV therapy, chemical peels, body contouring & skin rejuvenation at our Mannings Hill and Constant Spring Road clinics.',
-      canonicalPath: '/',
-      keywords: 'Medical Spa Jamaica, Med Spa Kingston Jamaica, Laser Hair Removal Jamaica, Botox Jamaica, Dermal Fillers Jamaica, IV Therapy Jamaica, Body Contouring Jamaica, Skin Rejuvenation Jamaica, HHC Laser Jamaica, HHC Laser & Co Kingston, Aesthetic Clinic Kingston Jamaica',
-    });
-    this.seo.injectSchema('home-faq', {
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      'mainEntity': [
-        { '@type': 'Question', 'name': 'What services do you offer?', 'acceptedAnswer': { '@type': 'Answer', 'text': 'Laser hair removal, Botox, dermal fillers, and body contouring.' } }
-      ]
-    });
     this.api.getServices(undefined, true).subscribe({
       next: (res) => {
         if (res.success && res.data) {

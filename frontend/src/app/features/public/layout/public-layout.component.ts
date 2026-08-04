@@ -1,6 +1,5 @@
-import { Component, inject } from '@angular/core';
-import { RouterOutlet, Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
 import { FooterComponent } from '../../../shared/components/footer/footer.component';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 @Component({
   selector: 'app-public-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, NavbarComponent, FooterComponent, MatIconModule],
+  imports: [RouterOutlet, NavbarComponent, FooterComponent, MatIconModule],
   template: `
     <app-navbar></app-navbar>
     <main class="pt-0">
@@ -17,12 +16,12 @@ import { MatIconModule } from '@angular/material/icon';
     <app-footer></app-footer>
 
     <!-- Floating Action Buttons -->
-      <div *ngIf="isContactPage" class="fixed bottom-6 right-6 z-50 flex flex-col gap-4">
+    <div class="fixed bottom-6 right-6 z-50 flex flex-col gap-4">
       
       <!-- Click-to-call Button -->
       <a href="tel:+18763196241"
          class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg
-                transition-transform hover:scale-110 active:scale-95 bg-gray-50 text-gold-500"
+                transition-transform hover:scale-110 active:scale-95 bg-charcoal-800 text-gold-500"
          aria-label="Call Us">
         <mat-icon class="!text-3xl">phone</mat-icon>
       </a>
@@ -41,9 +40,4 @@ import { MatIconModule } from '@angular/material/icon';
     </div>
   `,
 })
-export class PublicLayoutComponent {
-  router = inject(Router);
-  get isContactPage(): boolean {
-    return this.router.url.startsWith('/contact');
-  }
-}
+export class PublicLayoutComponent {}

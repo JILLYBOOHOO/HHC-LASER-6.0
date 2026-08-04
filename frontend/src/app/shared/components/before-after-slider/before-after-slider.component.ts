@@ -36,7 +36,7 @@ import { MatIconModule } from '@angular/material/icon';
           <div class="absolute inset-0 z-30 flex items-center justify-center pointer-events-none md:hidden bg-black/20 animate-pulse">
             <div class="glass px-4 py-2.5 rounded-full flex items-center gap-2">
               <mat-icon class="text-gold !text-lg !w-5 !h-5 animate-bounce">swap_horiz</mat-icon>
-              <span class="text-[10px] tracking-[0.15em] font-semibold text-black uppercase">Swipe to Compare</span>
+              <span class="text-[10px] tracking-[0.15em] font-semibold text-white uppercase">Swipe to Compare</span>
             </div>
           </div>
         }
@@ -120,7 +120,7 @@ import { MatIconModule } from '@angular/material/icon';
             <p class="italic text-text-muted text-xs font-light leading-relaxed">
               "{{ testimonial.quote }}"
             </p>
-            <div class="text-[9px] tracking-widest font-semibold text-gold uppercase mt-2">
+            <div class="text-[9px] tracking-widest font-semibold text-white/60 uppercase mt-2">
               — {{ testimonial.author }}
             </div>
           </div>
@@ -135,7 +135,7 @@ import { MatIconModule } from '@angular/material/icon';
       <div class="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-4 bg-black/95 backdrop-blur-2xl"
            (click)="closeLightbox()">
         
-        <button class="absolute top-6 right-6 w-12 h-12 rounded-full border border-white/20 flex items-center justify-center hover:border-gold hover:text-gold text-white transition-all duration-300 cursor-pointer"
+        <button class="absolute top-6 right-6 w-12 h-12 rounded-full border border-white/10 flex items-center justify-center hover:border-gold hover:text-gold text-white transition-all duration-300 cursor-pointer"
                 (click)="closeLightbox()"
                 aria-label="Close Lightbox">
           <mat-icon>close</mat-icon>
