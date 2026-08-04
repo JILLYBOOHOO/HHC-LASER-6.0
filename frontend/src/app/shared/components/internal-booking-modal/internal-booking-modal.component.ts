@@ -86,7 +86,7 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
         <!-- MAIN BODY CONTENT -->
         <div class="flex-1 flex overflow-hidden p-5 gap-5 items-stretch bg-dot-pattern min-h-0">
           
-          <form *ngIf="!showResumePrompt" [formGroup]="form" class="flex-1 flex flex-col overflow-hidden min-h-0">
+          <form [formGroup]="form" class="flex-1 flex flex-col overflow-hidden min-h-0">
             
             <div class="flex flex-1 gap-5 items-stretch min-h-0 h-full">
               
@@ -790,13 +790,14 @@ export class InternalBookingModalComponent implements OnInit {
           const hasData = !!(parsed.phone || parsed.firstName || parsed.lastName || parsed.notes);
           if (hasData) {
             this.tempDraftData = parsed;
-            this.showResumePrompt = true;
+            this.form.patchValue(parsed);
           }
         }
       } catch (e) {
         this.clearDraft();
       }
     }
+    this.showResumePrompt = false;
   }
 
   resumeDraft() {
