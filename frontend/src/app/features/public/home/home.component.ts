@@ -574,13 +574,15 @@ import { CheckoutComponent } from '../../../shared/components/checkout/checkout.
         </div>
 
         <!-- Instagram Gallery Grid -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
+        <div
+          class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-12 max-w-6xl mx-auto place-items-stretch"
+        >
           @for (post of instagramPosts; track post.url) {
             <a
               [href]="post.link"
               target="_blank"
               rel="noopener noreferrer"
-              class="group relative aspect-square rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 bg-gray-100 block"
+              class="group relative aspect-square w-full rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 bg-neutral-100 block"
             >
               @if (post.type === 'video') {
                 <video
@@ -589,8 +591,8 @@ import { CheckoutComponent } from '../../../shared/components/checkout/checkout.
                   [muted]="true"
                   loop
                   playsinline
-                  preload="auto"
-                  class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 pointer-events-none"
+                  preload="metadata"
+                  class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 pointer-events-none"
                   (loadeddata)="playFeedVideo($event)"
                   (canplay)="playFeedVideo($event)"
                 ></video>
@@ -599,14 +601,14 @@ import { CheckoutComponent } from '../../../shared/components/checkout/checkout.
                   [src]="post.url"
                   alt="Instagram Post from HHC Laser"
                   loading="lazy"
-                  class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               }
               <div
-                class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300 flex items-center justify-center"
+                class="absolute inset-0 bg-black/0 group-hover:bg-black/35 transition-colors duration-300 flex items-center justify-center"
               >
                 <mat-icon
-                  class="text-white opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 !text-4xl !w-10 !h-10"
+                  class="text-white opacity-0 group-hover:opacity-100 transform translate-y-3 group-hover:translate-y-0 transition-all duration-300 !text-3xl !w-9 !h-9"
                   >{{ post.type === 'video' ? 'play_circle' : 'photo_camera' }}</mat-icon
                 >
               </div>
@@ -615,7 +617,7 @@ import { CheckoutComponent } from '../../../shared/components/checkout/checkout.
         </div>
 
         <!-- Call-to-Action -->
-        <div class="text-center mt-12">
+        <div class="text-center">
           <a
             href="https://www.instagram.com/havendale_healthcare"
             target="_blank"
@@ -651,6 +653,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
     {
       type: 'video' as const,
       url: '/instagram/no-filter-photorejuvenation.mp4',
+      link: 'https://www.instagram.com/havendale_healthcare',
+    },
+    {
+      type: 'video' as const,
+      url: '/instagram/beforeandafter.mp4',
       link: 'https://www.instagram.com/havendale_healthcare',
     },
     {
@@ -736,44 +743,40 @@ export class HomeComponent implements OnInit, AfterViewInit {
   filterCategories = [
     { id: 'all', name: 'All Treatments' },
     { id: 'laser-hair-removal', name: 'Laser Hair Removal' },
-    { id: 'skin-rejuvenation', name: 'Skin Rejuvenation' },
+    { id: 'folliculitis', name: 'Folliculitis' },
     { id: 'body-contouring', name: 'Body Contouring' },
   ];
 
   // Raw Case Studies Datastore
   comparisons = [
     {
-      beforeImage:
-        'https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=800&q=80',
-      afterImage:
-        'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=800&q=80',
+      beforeImage: '/images/before-after/laser-hair-removal-before.png',
+      afterImage: '/images/before-after/laser-hair-removal-after.png',
       treatmentName: 'Laser Hair Removal',
       duration: '8 Sessions • 10 Months',
       description:
-        'Achieved permanent reduction of unwanted hair, leaving the skin texture dramatically smooth and even.',
+        'Reduced coarse facial hair and ingrown bumps along the chin and neck, leaving skin smoother and clearer.',
       category: 'laser-hair-removal',
       rating: 5,
       testimonial: {
         quote:
-          'Absolutely life-changing. Smooth skin and no more shaving irritation.',
-        author: 'Sarah M.',
+          'No more ingrown hairs. My chin and neck feel so much smoother after laser.',
+        author: 'Client Result',
       },
     },
     {
-      beforeImage:
-        'https://images.unsplash.com/photo-1600334129128-685c5582fd35?w=800&q=80',
-      afterImage:
-        'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=800&q=80',
-      treatmentName: 'Skin Rejuvenation',
-      duration: '4 Sessions • 4 Months',
+      beforeImage: '/images/before-after/folliculitis-before.png',
+      afterImage: '/images/before-after/folliculitis-after.png',
+      treatmentName: 'Folliculitis',
+      duration: 'Multiple Sessions • Ongoing Care',
       description:
-        'Reversed hyperpigmentation, reduced appearance of sun spots, and minimized fine lines on face.',
-      category: 'skin-rejuvenation',
+        'Treated inflamed hair follicles and dark spots for clearer, smoother skin with reduced bumps and irritation.',
+      category: 'folliculitis',
       rating: 5,
       testimonial: {
         quote:
-          'My skin tone is so even now, and the fine lines around my eyes are gone.',
-        author: 'Jessica R.',
+          'The bumps and dark spots improved so much. I finally feel comfortable again.',
+        author: 'Client Result',
       },
     },
     {
