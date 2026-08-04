@@ -12,18 +12,20 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, FormsModule, MatIconModule, MatButtonModule],
   template: `
-    <div class="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm p-4 flex items-center justify-center font-sans">
+    <div class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm p-4 flex items-center justify-center font-sans">
       
       <!-- SUCCESS TOAST -->
-      <div *ngIf="success" class="absolute top-6 right-6 z-[110] bg-white border border-emerald-100 shadow-2xl rounded-xl p-3 px-5 flex items-center gap-3 animate-fadeIn">
+      <div *ngIf="success" class="absolute top-6 right-6 z-[110] bg-emerald-50 border border-emerald-200 shadow-2xl rounded-xl p-3 px-5 flex items-center gap-3 animate-fadeIn">
         <div class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-sm shrink-0">
           <mat-icon class="!text-[16px] !w-[16px] !h-[16px] font-bold">check</mat-icon>
         </div>
-        <span class="text-sm font-bold text-neutral-900">Appointment booked successfully.</span>
-        <button (click)="success = false" class="ml-4 text-neutral-400 hover:text-black transition-colors"><mat-icon class="!text-[18px] !w-[18px] !h-[18px]">close</mat-icon></button>
+        <span class="text-sm font-bold text-emerald-950">Appointment booked successfully.</span>
+        <button (click)="success = false" class="ml-4 text-emerald-600 hover:text-emerald-950 transition-colors">
+          <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">close</mat-icon>
+        </button>
       </div>
 
-      <div class="rounded-2xl shadow-2xl w-full max-w-[1400px] h-[90vh] flex flex-col text-neutral-800 relative bg-[#fafafa] overflow-hidden border border-neutral-200">
+      <div class="rounded-2xl shadow-2xl w-full max-w-[1400px] h-[92vh] flex flex-col text-neutral-800 relative bg-[#fafafa] overflow-hidden border border-neutral-200">
         
         <!-- HEADER -->
         <div class="px-8 py-5 flex items-center justify-between shrink-0 bg-white border-b border-neutral-200 relative z-20">
@@ -43,81 +45,81 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
         </div>
 
         <!-- PROGRESS BAR -->
-        <div class="px-10 py-5 bg-white border-b border-neutral-200 flex items-center justify-center gap-4 shrink-0 z-10 shadow-sm">
+        <div class="px-10 py-4 bg-white border-b border-neutral-200 flex items-center justify-center gap-4 shrink-0 z-10 shadow-sm">
           <!-- Step 1 -->
           <div class="flex items-center gap-2" [class.opacity-100]="expandedStep >= 1" [class.opacity-50]="expandedStep < 1">
-             <div class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold border-2 transition-colors" [class.bg-black]="expandedStep >= 1" [class.text-white]="expandedStep >= 1" [class.border-black]="expandedStep >= 1" [class.bg-white]="expandedStep < 1" [class.text-black]="expandedStep < 1" [class.border-neutral-300]="expandedStep < 1">1</div>
+             <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors" [class.bg-black]="expandedStep >= 1" [class.text-white]="expandedStep >= 1" [class.bg-white]="expandedStep < 1" [class.text-neutral-500]="expandedStep < 1" [class.border]="expandedStep < 1" [class.border-neutral-300]="expandedStep < 1">1</div>
              <span class="text-sm font-bold text-neutral-900">Client</span>
           </div>
-          <div class="w-12 border-t-[2px] border-dotted" [class.border-black]="expandedStep >= 2" [class.border-neutral-300]="expandedStep < 2"></div>
+          <div class="w-12 border-t-2 border-dotted" [class.border-black]="expandedStep >= 2" [class.border-neutral-300]="expandedStep < 2"></div>
           
           <!-- Step 2 -->
           <div class="flex items-center gap-2" [class.opacity-100]="expandedStep >= 2" [class.opacity-50]="expandedStep < 2">
-             <div class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold border-2 transition-colors" [class.bg-black]="expandedStep >= 2" [class.text-white]="expandedStep >= 2" [class.border-black]="expandedStep >= 2" [class.bg-white]="expandedStep < 2" [class.text-black]="expandedStep < 2" [class.border-neutral-300]="expandedStep < 2">2</div>
+             <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors" [class.bg-black]="expandedStep >= 2" [class.text-white]="expandedStep >= 2" [class.bg-white]="expandedStep < 2" [class.text-neutral-500]="expandedStep < 2" [class.border]="expandedStep < 2" [class.border-neutral-300]="expandedStep < 2">2</div>
              <span class="text-sm font-bold text-neutral-900">Services</span>
           </div>
-          <div class="w-12 border-t-[2px] border-dotted" [class.border-black]="expandedStep >= 3" [class.border-neutral-300]="expandedStep < 3"></div>
+          <div class="w-12 border-t-2 border-dotted" [class.border-black]="expandedStep >= 3" [class.border-neutral-300]="expandedStep < 3"></div>
           
           <!-- Step 3 -->
           <div class="flex items-center gap-2" [class.opacity-100]="expandedStep >= 3" [class.opacity-50]="expandedStep < 3">
-             <div class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold border-2 transition-colors" [class.bg-black]="expandedStep >= 3" [class.text-white]="expandedStep >= 3" [class.border-black]="expandedStep >= 3" [class.bg-white]="expandedStep < 3" [class.text-black]="expandedStep < 3" [class.border-neutral-300]="expandedStep < 3">3</div>
+             <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors" [class.bg-black]="expandedStep >= 3" [class.text-white]="expandedStep >= 3" [class.bg-white]="expandedStep < 3" [class.text-neutral-500]="expandedStep < 3" [class.border]="expandedStep < 3" [class.border-neutral-300]="expandedStep < 3">3</div>
              <span class="text-sm font-bold text-neutral-900">Location</span>
           </div>
-          <div class="w-12 border-t-[2px] border-dotted" [class.border-black]="expandedStep >= 4" [class.border-neutral-300]="expandedStep < 4"></div>
+          <div class="w-12 border-t-2 border-dotted" [class.border-black]="expandedStep >= 4" [class.border-neutral-300]="expandedStep < 4"></div>
           
           <!-- Step 4 -->
           <div class="flex items-center gap-2" [class.opacity-100]="expandedStep >= 4" [class.opacity-50]="expandedStep < 4">
-             <div class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold border-2 transition-colors" [class.bg-black]="expandedStep >= 4" [class.text-white]="expandedStep >= 4" [class.border-black]="expandedStep >= 4" [class.bg-white]="expandedStep < 4" [class.text-black]="expandedStep < 4" [class.border-neutral-300]="expandedStep < 4">4</div>
+             <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors" [class.bg-black]="expandedStep >= 4" [class.text-white]="expandedStep >= 4" [class.bg-white]="expandedStep < 4" [class.text-neutral-500]="expandedStep < 4" [class.border]="expandedStep < 4" [class.border-neutral-300]="expandedStep < 4">4</div>
              <span class="text-sm font-bold text-neutral-900">Date</span>
           </div>
-          <div class="w-12 border-t-[2px] border-dotted" [class.border-black]="expandedStep >= 5" [class.border-neutral-300]="expandedStep < 5"></div>
+          <div class="w-12 border-t-2 border-dotted" [class.border-black]="expandedStep >= 5" [class.border-neutral-300]="expandedStep < 5"></div>
           
           <!-- Step 5 -->
           <div class="flex items-center gap-2" [class.opacity-100]="expandedStep >= 5" [class.opacity-50]="expandedStep < 5">
-             <div class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold border-2 transition-colors" [class.bg-black]="expandedStep >= 5" [class.text-white]="expandedStep >= 5" [class.border-black]="expandedStep >= 5" [class.bg-white]="expandedStep < 5" [class.text-black]="expandedStep < 5" [class.border-neutral-300]="expandedStep < 5">5</div>
+             <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors" [class.bg-black]="expandedStep >= 5" [class.text-white]="expandedStep >= 5" [class.bg-white]="expandedStep < 5" [class.text-neutral-500]="expandedStep < 5" [class.border]="expandedStep < 5" [class.border-neutral-300]="expandedStep < 5">5</div>
              <span class="text-sm font-bold text-neutral-900">Time</span>
           </div>
-          <div class="w-12 border-t-[2px] border-dotted" [class.border-black]="expandedStep >= 6" [class.border-neutral-300]="expandedStep < 6"></div>
+          <div class="w-12 border-t-2 border-dotted" [class.border-black]="expandedStep >= 6" [class.border-neutral-300]="expandedStep < 6"></div>
           
           <!-- Step 6 -->
           <div class="flex items-center gap-2" [class.opacity-100]="expandedStep >= 6" [class.opacity-50]="expandedStep < 6">
-             <div class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold border-2 transition-colors" [class.bg-black]="expandedStep >= 6" [class.text-white]="expandedStep >= 6" [class.border-black]="expandedStep >= 6" [class.bg-white]="expandedStep < 6" [class.text-black]="expandedStep < 6" [class.border-neutral-300]="expandedStep < 6">6</div>
+             <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors" [class.bg-black]="expandedStep >= 6" [class.text-white]="expandedStep >= 6" [class.bg-white]="expandedStep < 6" [class.text-neutral-500]="expandedStep < 6" [class.border]="expandedStep < 6" [class.border-neutral-300]="expandedStep < 6">6</div>
              <span class="text-sm font-bold text-neutral-900">Summary</span>
           </div>
         </div>
 
-        <div class="flex-1 flex overflow-hidden p-6 gap-8 items-stretch bg-dot-pattern">
+        <div class="flex-1 flex overflow-hidden p-6 gap-6 items-stretch bg-dot-pattern">
           
           <form *ngIf="!showResumePrompt" [formGroup]="form" class="flex-1 flex flex-col overflow-hidden">
             
-            <div class="flex flex-1 gap-8 items-stretch min-h-0 h-full">
+            <div class="flex flex-1 gap-6 items-stretch min-h-0 h-full">
               
               <!-- LEFT: ACCORDION -->
-              <div class="flex flex-col gap-2 flex-1 overflow-y-auto custom-scrollbar pr-2 min-h-0 pb-10">
+              <div class="flex flex-col gap-2.5 flex-1 overflow-y-auto custom-scrollbar pr-2 min-h-0 pb-6">
                 
                 <!-- 1. Client -->
-                <div class="bg-white border border-neutral-200 rounded-[14px] shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] overflow-hidden transition-all">
+                <div class="bg-white border border-neutral-200/80 rounded-[14px] shadow-sm overflow-hidden transition-all">
                   <!-- Header -->
-                  <div class="p-4 flex items-center justify-between cursor-pointer hover:bg-neutral-50 transition-colors" (click)="expandedStep = 1">
+                  <div class="p-4 flex items-center justify-between cursor-pointer hover:bg-neutral-50/80 transition-colors" (click)="expandedStep = 1">
                     <div class="flex items-center gap-4">
-                       <div class="w-[50px] h-[50px] bg-black rounded-xl flex items-center justify-center shrink-0 shadow-md border border-neutral-800">
-                         <mat-icon class="text-[#B36A17]">person_outline</mat-icon>
+                       <div class="w-10 h-10 bg-black rounded-xl flex items-center justify-center shrink-0 shadow-sm">
+                         <mat-icon class="text-[#B36A17] !text-[20px] !w-[20px] !h-[20px]">person_outline</mat-icon>
                        </div>
                        <div class="flex items-center gap-6">
-                         <div class="flex items-center gap-3 w-32 shrink-0">
-                           <div class="w-[22px] h-[22px] rounded-full bg-black text-white flex items-center justify-center text-[10px] font-bold">1</div>
-                           <span class="text-[15px] font-black text-neutral-900 tracking-wide">Client</span>
+                         <div class="flex items-center gap-3 shrink-0">
+                           <div class="w-5 h-5 rounded-full bg-black text-white flex items-center justify-center text-[10px] font-bold">1</div>
+                           <span class="text-sm font-extrabold text-neutral-900">Client</span>
                          </div>
                          <!-- Summary Data -->
                          <div *ngIf="expandedStep !== 1 && form.value.firstName" class="text-xs text-neutral-600 flex items-center gap-3 divide-x divide-neutral-300 font-medium">
-                           <span class="pr-3">{{ form.value.firstName }} {{ form.value.lastName }}</span>
-                           <span class="px-3">{{ form.value.phone }}</span>
-                           <span class="pl-3">{{ form.value.email }}</span>
+                           <span class="pr-3 font-bold text-neutral-900">{{ form.value.firstName }} {{ form.value.lastName }}</span>
+                           <span class="px-3 text-neutral-500">{{ form.value.phone }}</span>
+                           <span class="pl-3 text-neutral-500">{{ form.value.email }}</span>
                          </div>
                        </div>
                     </div>
                     <div class="flex items-center gap-4" *ngIf="expandedStep !== 1">
-                      <button type="button" class="px-5 py-1.5 border border-neutral-200 bg-white rounded-lg text-[11px] font-bold text-neutral-800 hover:bg-neutral-50 transition-colors shadow-sm">Edit</button>
+                      <button type="button" class="px-4 py-1 border border-neutral-300 bg-white rounded-lg text-xs font-semibold text-neutral-800 hover:bg-neutral-50 transition-colors shadow-sm">Edit</button>
                       <mat-icon class="text-neutral-400">expand_more</mat-icon>
                     </div>
                     <div class="flex items-center gap-4" *ngIf="expandedStep === 1">
@@ -125,83 +127,83 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
                     </div>
                   </div>
                   <!-- Content -->
-                  <div *ngIf="expandedStep === 1" class="px-20 pb-6 pt-2 border-t border-neutral-100 bg-[#fdfcfb]">
-                      <div class="relative mb-5 flex gap-2">
+                  <div *ngIf="expandedStep === 1" class="px-16 pb-6 pt-3 border-t border-neutral-100 bg-[#FAF9F7]">
+                      <div class="relative mb-4 flex gap-2">
                         <div class="relative flex-1">
                           <mat-icon class="absolute left-3 top-2.5 !text-[20px] text-neutral-400">search</mat-icon>
-                          <input type="text" [(ngModel)]="customerSearchQuery" [ngModelOptions]="{standalone: true}" (input)="searchCustomer()" placeholder="Search or add customer" class="w-full pl-10 pr-3 py-2.5 border border-neutral-200 rounded-lg text-sm outline-none focus:border-[#B36A17] bg-white shadow-sm">
-                          <div *ngIf="searchedCustomers.length > 0" class="absolute z-20 w-full mt-1 bg-white border border-neutral-200 rounded-lg shadow-xl max-h-48 overflow-y-auto divide-y divide-neutral-100">
-                            <div *ngFor="let c of searchedCustomers" (click)="selectCustomer(c)" class="p-3 text-sm hover:bg-neutral-50 cursor-pointer flex flex-col text-left">
+                          <input type="text" [(ngModel)]="customerSearchQuery" [ngModelOptions]="{standalone: true}" (input)="searchCustomer()" placeholder="Search client by name or phone..." class="w-full pl-10 pr-3 py-2 border border-neutral-300 rounded-xl text-sm outline-none focus:border-[#B36A17] bg-white shadow-sm font-medium">
+                          <div *ngIf="searchedCustomers.length > 0" class="absolute z-30 w-full mt-1 bg-white border border-neutral-200 rounded-xl shadow-xl max-h-48 overflow-y-auto divide-y divide-neutral-100">
+                            <div *ngFor="let c of searchedCustomers" (click)="selectCustomer(c)" class="p-3 text-sm hover:bg-amber-50/50 cursor-pointer flex flex-col text-left">
                               <span class="font-bold text-neutral-900">{{ c.first_name }} {{ c.last_name }}</span>
                               <span class="text-xs text-neutral-500">{{ c.phone }} · {{ c.email || 'No email' }}</span>
                             </div>
                           </div>
                         </div>
-                        <button type="button" (click)="startNewCustomer()" class="px-6 py-2.5 bg-black hover:bg-neutral-800 text-[#B36A17] text-sm font-bold rounded-lg transition-colors shadow-sm">New</button>
+                        <button type="button" (click)="startNewCustomer()" class="px-5 py-2 bg-black hover:bg-neutral-800 text-white text-xs font-bold rounded-xl transition-colors shadow-sm uppercase tracking-wider">New</button>
                       </div>
                       
-                      <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+                      <div class="grid grid-cols-2 gap-x-5 gap-y-3">
                         <div>
-                          <label class="block text-[11px] font-bold text-neutral-500 mb-1.5 uppercase tracking-wide">First Name</label>
-                          <input type="text" formControlName="firstName" class="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm font-bold text-neutral-900 outline-none focus:border-[#B36A17] bg-white shadow-sm">
+                          <label class="block text-[10px] font-bold text-neutral-500 mb-1 uppercase tracking-wider">First Name</label>
+                          <input type="text" formControlName="firstName" class="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm font-bold text-neutral-900 outline-none focus:border-[#B36A17] bg-white shadow-sm">
                         </div>
                         <div>
-                          <label class="block text-[11px] font-bold text-neutral-500 mb-1.5 uppercase tracking-wide">Last Name</label>
-                          <input type="text" formControlName="lastName" class="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm font-bold text-neutral-900 outline-none focus:border-[#B36A17] bg-white shadow-sm">
+                          <label class="block text-[10px] font-bold text-neutral-500 mb-1 uppercase tracking-wider">Last Name</label>
+                          <input type="text" formControlName="lastName" class="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm font-bold text-neutral-900 outline-none focus:border-[#B36A17] bg-white shadow-sm">
                         </div>
                         <div>
-                          <label class="block text-[11px] font-bold text-neutral-500 mb-1.5 uppercase tracking-wide">Phone</label>
-                          <input type="text" formControlName="phone" class="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm font-bold text-neutral-900 outline-none focus:border-[#B36A17] bg-white shadow-sm">
+                          <label class="block text-[10px] font-bold text-neutral-500 mb-1 uppercase tracking-wider">Phone</label>
+                          <input type="text" formControlName="phone" class="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm font-bold text-neutral-900 outline-none focus:border-[#B36A17] bg-white shadow-sm">
                         </div>
                         <div>
-                          <label class="block text-[11px] font-bold text-neutral-500 mb-1.5 uppercase tracking-wide">Email</label>
-                          <input type="email" formControlName="email" class="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm font-bold text-neutral-900 outline-none focus:border-[#B36A17] bg-white shadow-sm">
+                          <label class="block text-[10px] font-bold text-neutral-500 mb-1 uppercase tracking-wider">Email</label>
+                          <input type="email" formControlName="email" class="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm font-bold text-neutral-900 outline-none focus:border-[#B36A17] bg-white shadow-sm">
                         </div>
                       </div>
                       
-                      <div class="mt-6 flex justify-end">
-                        <button type="button" (click)="expandedStep = 2; $event.stopPropagation()" [disabled]="!form.get('firstName')?.valid || !form.get('lastName')?.valid || !form.get('phone')?.valid" class="px-8 py-2.5 bg-black hover:bg-neutral-800 text-[#B36A17] text-xs font-bold rounded-lg disabled:opacity-50 transition-colors shadow-md tracking-wider uppercase">Continue</button>
+                      <div class="mt-5 flex justify-end">
+                        <button type="button" (click)="expandedStep = 2; $event.stopPropagation()" [disabled]="!form.get('firstName')?.valid || !form.get('lastName')?.valid || !form.get('phone')?.valid" class="px-6 py-2 bg-black hover:bg-neutral-800 text-[#B36A17] text-xs font-bold rounded-lg disabled:opacity-50 transition-colors shadow-md tracking-wider uppercase">Continue</button>
                       </div>
                   </div>
                 </div>
 
                 <!-- 2. Services -->
-                <div class="bg-white border border-neutral-200 rounded-[14px] shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] overflow-hidden transition-all">
-                  <div class="p-4 flex items-center justify-between cursor-pointer hover:bg-neutral-50 transition-colors" (click)="expandedStep = 2">
+                <div class="bg-white border border-neutral-200/80 rounded-[14px] shadow-sm overflow-hidden transition-all">
+                  <div class="p-4 flex items-center justify-between cursor-pointer hover:bg-neutral-50/80 transition-colors" (click)="expandedStep = 2">
                     <div class="flex items-center gap-4">
-                       <div class="w-[50px] h-[50px] bg-black rounded-xl flex items-center justify-center shrink-0 shadow-md border border-neutral-800">
-                         <mat-icon class="text-[#B36A17]">star_border</mat-icon>
+                       <div class="w-10 h-10 bg-black rounded-xl flex items-center justify-center shrink-0 shadow-sm">
+                         <mat-icon class="text-[#B36A17] !text-[20px] !w-[20px] !h-[20px]">star_border</mat-icon>
                        </div>
                        <div class="flex items-center gap-6">
-                         <div class="flex items-center gap-3 w-32 shrink-0">
-                           <div class="w-[22px] h-[22px] rounded-full bg-black text-white flex items-center justify-center text-[10px] font-bold">2</div>
-                           <span class="text-[15px] font-black text-neutral-900 tracking-wide">Services</span>
+                         <div class="flex items-center gap-3 shrink-0">
+                           <div class="w-5 h-5 rounded-full bg-black text-white flex items-center justify-center text-[10px] font-bold">2</div>
+                           <span class="text-sm font-extrabold text-neutral-900">Services</span>
                          </div>
                          <div *ngIf="expandedStep !== 2 && selectedServiceObj" class="text-xs text-neutral-600 flex items-center gap-4 divide-x divide-neutral-300 font-medium">
                            <span class="pr-4 font-bold text-neutral-900">{{ selectedServiceObj?.name }}</span>
-                           <span class="px-4 flex items-center gap-1.5"><mat-icon class="!text-[16px] !w-[16px] !h-[16px]">schedule</mat-icon>{{ selectedServiceObj?.duration_minutes }} min</span>
-                           <span class="pl-4 flex items-center gap-1.5"><mat-icon class="!text-[16px] !w-[16px] !h-[16px]">sell</mat-icon>JMD $ {{ selectedServiceObj?.price_jmd | number:'1.0-0' }}</span>
+                           <span class="px-4 flex items-center gap-1.5"><mat-icon class="!text-[15px] !w-[15px] !h-[15px] text-neutral-400">schedule</mat-icon>{{ selectedServiceObj?.duration_minutes }} min</span>
+                           <span class="pl-4 flex items-center gap-1.5"><mat-icon class="!text-[15px] !w-[15px] !h-[15px] text-neutral-400">sell</mat-icon>JMD $ {{ selectedServiceObj?.price_jmd | number:'1.0-0' }}</span>
                          </div>
                        </div>
                     </div>
                     <div class="flex items-center gap-4" *ngIf="expandedStep !== 2">
-                      <button type="button" class="px-5 py-1.5 border border-neutral-200 bg-white rounded-lg text-[11px] font-bold text-neutral-800 hover:bg-neutral-50 transition-colors shadow-sm">Edit</button>
+                      <button type="button" class="px-4 py-1 border border-neutral-300 bg-white rounded-lg text-xs font-semibold text-neutral-800 hover:bg-neutral-50 transition-colors shadow-sm">Edit</button>
                       <mat-icon class="text-neutral-400">expand_more</mat-icon>
                     </div>
                     <div class="flex items-center gap-4" *ngIf="expandedStep === 2">
                       <mat-icon class="text-neutral-400">expand_less</mat-icon>
                     </div>
                   </div>
-                  <div *ngIf="expandedStep === 2" class="px-20 pb-6 pt-2 border-t border-neutral-100 bg-[#fdfcfb]">
-                      <div class="relative mb-4">
+                  <div *ngIf="expandedStep === 2" class="px-16 pb-6 pt-3 border-t border-neutral-100 bg-[#FAF9F7]">
+                      <div class="relative mb-3">
                         <mat-icon class="absolute left-3 top-2.5 !text-[20px] text-neutral-400">search</mat-icon>
-                        <input type="text" [(ngModel)]="serviceSearchQuery" [ngModelOptions]="{standalone: true}" (input)="filterServicesList()" placeholder="Search services..." class="w-full pl-10 pr-3 py-2.5 border border-neutral-200 rounded-lg text-sm outline-none focus:border-[#B36A17] bg-white shadow-sm">
+                        <input type="text" [(ngModel)]="serviceSearchQuery" [ngModelOptions]="{standalone: true}" (input)="filterServicesList()" placeholder="Search available services..." class="w-full pl-10 pr-3 py-2 border border-neutral-300 rounded-xl text-sm outline-none focus:border-[#B36A17] bg-white shadow-sm">
                       </div>
-                      <div class="rounded-lg flex flex-col gap-2 max-h-[160px] overflow-y-auto custom-scrollbar pr-2">
+                      <div class="rounded-xl flex flex-col gap-2 max-h-[180px] overflow-y-auto custom-scrollbar pr-2">
                         <div *ngFor="let s of filteredServices" (click)="form.patchValue({serviceId: s.id})" [class.border-[#B36A17]]="form.value.serviceId === s.id" [class.border-neutral-200]="form.value.serviceId !== s.id" class="bg-white px-4 py-3 border rounded-xl flex items-center justify-between cursor-pointer hover:border-[#B36A17] transition-all shadow-sm">
                           <div class="flex items-center gap-3 w-1/2">
-                            <div class="w-6 h-6 rounded-full text-white flex items-center justify-center shrink-0 shadow-sm" [class.bg-black]="form.value.serviceId === s.id" [class.text-[#B36A17]]="form.value.serviceId === s.id" [class.bg-neutral-200]="form.value.serviceId !== s.id">
-                              <mat-icon class="!text-[14px] !w-[14px] !h-[14px]">star</mat-icon>
+                            <div class="w-5 h-5 rounded-full text-white flex items-center justify-center shrink-0 shadow-sm" [class.bg-black]="form.value.serviceId === s.id" [class.text-[#B36A17]]="form.value.serviceId === s.id" [class.bg-neutral-200]="form.value.serviceId !== s.id">
+                              <mat-icon class="!text-[12px] !w-[12px] !h-[12px]">star</mat-icon>
                             </div>
                             <div class="text-[13px] font-bold text-neutral-900 truncate">{{ s.name }}</div>
                           </div>
@@ -209,23 +211,23 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
                           <div class="text-[13px] font-black text-neutral-900 flex-1 text-right mr-4">JMD $ {{ s.price_jmd | number:'1.0-0' }}</div>
                         </div>
                       </div>
-                      <div class="mt-6 flex justify-end">
-                        <button type="button" (click)="expandedStep = 3; $event.stopPropagation()" [disabled]="!form.value.serviceId" class="px-8 py-2.5 bg-black hover:bg-neutral-800 text-[#B36A17] text-xs font-bold rounded-lg disabled:opacity-50 transition-colors shadow-md tracking-wider uppercase">Continue</button>
+                      <div class="mt-5 flex justify-end">
+                        <button type="button" (click)="expandedStep = 3; $event.stopPropagation()" [disabled]="!form.value.serviceId" class="px-6 py-2 bg-black hover:bg-neutral-800 text-[#B36A17] text-xs font-bold rounded-lg disabled:opacity-50 transition-colors shadow-md tracking-wider uppercase">Continue</button>
                       </div>
                   </div>
                 </div>
 
                 <!-- 3. Location -->
-                <div class="bg-white border border-neutral-200 rounded-[14px] shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] overflow-hidden transition-all">
-                  <div class="p-4 flex items-center justify-between cursor-pointer hover:bg-neutral-50 transition-colors" (click)="expandedStep = 3">
+                <div class="bg-white border border-neutral-200/80 rounded-[14px] shadow-sm overflow-hidden transition-all">
+                  <div class="p-4 flex items-center justify-between cursor-pointer hover:bg-neutral-50/80 transition-colors" (click)="expandedStep = 3">
                     <div class="flex items-center gap-4">
-                       <div class="w-[50px] h-[50px] bg-black rounded-xl flex items-center justify-center shrink-0 shadow-md border border-neutral-800">
-                         <mat-icon class="text-[#B36A17]">location_on</mat-icon>
+                       <div class="w-10 h-10 bg-black rounded-xl flex items-center justify-center shrink-0 shadow-sm">
+                         <mat-icon class="text-[#B36A17] !text-[20px] !w-[20px] !h-[20px]">location_on</mat-icon>
                        </div>
                        <div class="flex items-center gap-6">
-                         <div class="flex items-center gap-3 w-32 shrink-0">
-                           <div class="w-[22px] h-[22px] rounded-full bg-black text-white flex items-center justify-center text-[10px] font-bold">3</div>
-                           <span class="text-[15px] font-black text-neutral-900 tracking-wide">Location</span>
+                         <div class="flex items-center gap-3 shrink-0">
+                           <div class="w-5 h-5 rounded-full bg-black text-white flex items-center justify-center text-[10px] font-bold">3</div>
+                           <span class="text-sm font-extrabold text-neutral-900">Location</span>
                          </div>
                          <div *ngIf="expandedStep !== 3 && form.value.locationId" class="text-xs text-neutral-600 font-medium">
                            <span class="font-bold text-neutral-900">{{ form.value.locationId === 2 ? 'Constant Spring' : 'Mannings Hill' }}</span>
@@ -233,15 +235,15 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
                        </div>
                     </div>
                     <div class="flex items-center gap-4" *ngIf="expandedStep !== 3">
-                      <button type="button" class="px-5 py-1.5 border border-neutral-200 bg-white rounded-lg text-[11px] font-bold text-neutral-800 hover:bg-neutral-50 transition-colors shadow-sm">Edit</button>
+                      <button type="button" class="px-4 py-1 border border-neutral-300 bg-white rounded-lg text-xs font-semibold text-neutral-800 hover:bg-neutral-50 transition-colors shadow-sm">Edit</button>
                       <mat-icon class="text-neutral-400">expand_more</mat-icon>
                     </div>
                     <div class="flex items-center gap-4" *ngIf="expandedStep === 3">
                       <mat-icon class="text-neutral-400">expand_less</mat-icon>
                     </div>
                   </div>
-                  <div *ngIf="expandedStep === 3" class="px-20 pb-6 pt-2 border-t border-neutral-100 bg-[#fdfcfb]">
-                      <div class="grid flex flex-col gap-3">
+                  <div *ngIf="expandedStep === 3" class="px-16 pb-6 pt-3 border-t border-neutral-100 bg-[#FAF9F7]">
+                      <div class="flex flex-col gap-3">
                         <div (click)="form.patchValue({locationId: 2})" class="bg-white border hover:border-[#B36A17] rounded-xl p-4 cursor-pointer flex gap-4 items-center transition-all shadow-sm" [class.border-[#B36A17]]="form.value.locationId === 2" [class.border-neutral-200]="form.value.locationId !== 2">
                           <div class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 border" [class.border-[6px]]="form.value.locationId === 2" [class.border-black]="form.value.locationId === 2" [class.border-neutral-300]="form.value.locationId !== 2"></div>
                           <div>
@@ -257,23 +259,23 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
                           </div>
                         </div>
                       </div>
-                      <div class="mt-6 flex justify-end">
-                        <button type="button" (click)="expandedStep = 4; $event.stopPropagation()" [disabled]="!form.value.locationId" class="px-8 py-2.5 bg-black hover:bg-neutral-800 text-[#B36A17] text-xs font-bold rounded-lg disabled:opacity-50 transition-colors shadow-md tracking-wider uppercase">Continue</button>
+                      <div class="mt-5 flex justify-end">
+                        <button type="button" (click)="expandedStep = 4; $event.stopPropagation()" [disabled]="!form.value.locationId" class="px-6 py-2 bg-black hover:bg-neutral-800 text-[#B36A17] text-xs font-bold rounded-lg disabled:opacity-50 transition-colors shadow-md tracking-wider uppercase">Continue</button>
                       </div>
                   </div>
                 </div>
 
                 <!-- 4. Date -->
-                <div class="bg-white border border-neutral-200 rounded-[14px] shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] overflow-hidden transition-all">
-                  <div class="p-4 flex items-center justify-between cursor-pointer hover:bg-neutral-50 transition-colors" (click)="expandedStep = 4">
+                <div class="bg-white border border-neutral-200/80 rounded-[14px] shadow-sm overflow-hidden transition-all">
+                  <div class="p-4 flex items-center justify-between cursor-pointer hover:bg-neutral-50/80 transition-colors" (click)="expandedStep = 4">
                     <div class="flex items-center gap-4">
-                       <div class="w-[50px] h-[50px] bg-black rounded-xl flex items-center justify-center shrink-0 shadow-md border border-neutral-800">
-                         <mat-icon class="text-[#B36A17]">calendar_today</mat-icon>
+                       <div class="w-10 h-10 bg-black rounded-xl flex items-center justify-center shrink-0 shadow-sm">
+                         <mat-icon class="text-[#B36A17] !text-[20px] !w-[20px] !h-[20px]">calendar_today</mat-icon>
                        </div>
                        <div class="flex items-center gap-6">
-                         <div class="flex items-center gap-3 w-32 shrink-0">
-                           <div class="w-[22px] h-[22px] rounded-full bg-black text-white flex items-center justify-center text-[10px] font-bold">4</div>
-                           <span class="text-[15px] font-black text-neutral-900 tracking-wide">Date</span>
+                         <div class="flex items-center gap-3 shrink-0">
+                           <div class="w-5 h-5 rounded-full bg-black text-white flex items-center justify-center text-[10px] font-bold">4</div>
+                           <span class="text-sm font-extrabold text-neutral-900">Date</span>
                          </div>
                          <div *ngIf="expandedStep !== 4 && expandedStep !== 5 && form.value.date" class="text-xs text-neutral-600 font-medium">
                            <span class="font-bold text-neutral-900">{{ form.value.date | date:'longDate' }}</span> <span class="text-neutral-500">({{ form.value.date | date:'EEEE' }})</span>
@@ -281,7 +283,7 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
                        </div>
                     </div>
                     <div class="flex items-center gap-4" *ngIf="expandedStep !== 4 && expandedStep !== 5">
-                      <button type="button" class="px-5 py-1.5 border border-neutral-200 bg-white rounded-lg text-[11px] font-bold text-neutral-800 hover:bg-neutral-50 transition-colors shadow-sm">Edit</button>
+                      <button type="button" class="px-4 py-1 border border-neutral-300 bg-white rounded-lg text-xs font-semibold text-neutral-800 hover:bg-neutral-50 transition-colors shadow-sm">Edit</button>
                       <mat-icon class="text-neutral-400">expand_more</mat-icon>
                     </div>
                     <div class="flex items-center gap-4" *ngIf="expandedStep === 4 || expandedStep === 5">
@@ -291,16 +293,16 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
                 </div>
 
                 <!-- 5. Time (Contains both Date and Time pickers when expanded) -->
-                <div class="bg-white border border-neutral-200 rounded-[14px] shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] overflow-hidden transition-all" [class.-mt-4]="expandedStep === 4 || expandedStep === 5" [class.z-10]="expandedStep === 4 || expandedStep === 5" [class.relative]="expandedStep === 4 || expandedStep === 5">
-                  <div class="p-4 flex items-center justify-between cursor-pointer hover:bg-neutral-50 transition-colors" (click)="expandedStep = 5" *ngIf="expandedStep !== 4 && expandedStep !== 5">
+                <div class="bg-white border border-neutral-200/80 rounded-[14px] shadow-sm overflow-hidden transition-all" [class.-mt-3]="expandedStep === 4 || expandedStep === 5" [class.z-10]="expandedStep === 4 || expandedStep === 5" [class.relative]="expandedStep === 4 || expandedStep === 5">
+                  <div class="p-4 flex items-center justify-between cursor-pointer hover:bg-neutral-50/80 transition-colors" (click)="expandedStep = 5" *ngIf="expandedStep !== 4 && expandedStep !== 5">
                     <div class="flex items-center gap-4">
-                       <div class="w-[50px] h-[50px] bg-black rounded-xl flex items-center justify-center shrink-0 shadow-md border border-neutral-800">
-                         <mat-icon class="text-[#B36A17]">schedule</mat-icon>
+                       <div class="w-10 h-10 bg-black rounded-xl flex items-center justify-center shrink-0 shadow-sm">
+                         <mat-icon class="text-[#B36A17] !text-[20px] !w-[20px] !h-[20px]">schedule</mat-icon>
                        </div>
                        <div class="flex items-center gap-6">
-                         <div class="flex items-center gap-3 w-32 shrink-0">
-                           <div class="w-[22px] h-[22px] rounded-full bg-black text-white flex items-center justify-center text-[10px] font-bold">5</div>
-                           <span class="text-[15px] font-black text-neutral-900 tracking-wide">Time</span>
+                         <div class="flex items-center gap-3 shrink-0">
+                           <div class="w-5 h-5 rounded-full bg-black text-white flex items-center justify-center text-[10px] font-bold">5</div>
+                           <span class="text-sm font-extrabold text-neutral-900">Time</span>
                          </div>
                          <div *ngIf="form.value.time" class="text-xs text-neutral-600 font-medium">
                            <span class="font-bold text-neutral-900">Select an available time</span>
@@ -312,19 +314,19 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
                     </div>
                   </div>
                   
-                  <div *ngIf="expandedStep === 4 || expandedStep === 5" class="px-10 pb-8 pt-4 bg-[#fdfcfb]">
+                  <div *ngIf="expandedStep === 4 || expandedStep === 5" class="px-8 pb-8 pt-4 bg-[#FAF9F7]">
                       
                       <!-- SIDE BY SIDE DATE AND TIME -->
-                      <div class="flex flex-col xl:flex-row gap-10 items-start mt-2">
+                      <div class="flex flex-col xl:flex-row gap-8 items-start mt-2">
                         
                         <!-- CALENDAR -->
-                        <div class="w-full xl:w-[320px] shrink-0 flex flex-col">
-                           <div class="bg-[#111111] text-white rounded-[16px] p-5 shadow-xl flex flex-col border border-black">
+                        <div class="w-full xl:w-[310px] shrink-0 flex flex-col">
+                           <div class="bg-[#18181b] text-white rounded-[16px] p-5 shadow-xl flex flex-col border border-black">
                             <div class="flex items-center justify-between mb-4">
                               <button type="button" (click)="prevMonth()" class="text-[#B36A17] hover:text-white transition-colors">
                                 <mat-icon class="!text-[20px] !w-[20px] !h-[20px]">chevron_left</mat-icon>
                               </button>
-                              <div class="text-[15px] font-bold tracking-wide">{{ currentMonthName }}</div>
+                              <div class="text-[14px] font-bold tracking-wide">{{ currentMonthName }}</div>
                               <button type="button" (click)="nextMonth()" class="text-[#B36A17] hover:text-white transition-colors">
                                 <mat-icon class="!text-[20px] !w-[20px] !h-[20px]">chevron_right</mat-icon>
                               </button>
@@ -351,7 +353,7 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
                         </div>
 
                         <!-- TIME SLOTS -->
-                        <div class="flex-1 w-full flex flex-col" [class.opacity-30]="expandedStep === 4" [class.pointer-events-none]="expandedStep === 4">
+                        <div class="flex-1 w-full flex flex-col" [class.opacity-40]="expandedStep === 4" [class.pointer-events-none]="expandedStep === 4">
                            <div class="flex justify-between items-end mb-4">
                              <div class="text-[13px] font-black text-neutral-900 tracking-wide">Available Times <span class="text-neutral-500 font-medium text-[11px] normal-case tracking-normal ml-1">(15 min intervals)</span></div>
                            </div>
@@ -360,14 +362,15 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
                              <button type="button" *ngFor="let slot of timeSlots" (click)="selectTimeSlot(slot); expandedStep = 6"
                                      [class.bg-black]="form.value.time === convertTo24h(slot)" 
                                      [class.text-[#B36A17]]="form.value.time === convertTo24h(slot)" 
+                                     [class.border-2]="form.value.time === convertTo24h(slot)"
                                      [class.border-[#B36A17]]="form.value.time === convertTo24h(slot)"
                                      [class.shadow-md]="form.value.time === convertTo24h(slot)"
                                      [class.bg-white]="form.value.time !== convertTo24h(slot)" 
                                      [class.border-neutral-200]="form.value.time !== convertTo24h(slot)" 
-                                     [class.text-neutral-600]="form.value.time !== convertTo24h(slot)"
-                                     class="py-3 px-2 border rounded-lg text-[12px] font-bold hover:border-[#B36A17]/50 transition-all text-center flex items-center justify-center gap-1.5 shadow-sm">
+                                     [class.text-neutral-700]="form.value.time !== convertTo24h(slot)"
+                                     class="py-2.5 px-2 border rounded-xl text-[12px] font-bold hover:border-[#B36A17]/60 transition-all text-center flex items-center justify-center gap-1.5 shadow-sm">
                                {{ slot }}
-                               <mat-icon *ngIf="form.value.time === convertTo24h(slot)" class="!text-[14px] !w-[14px] !h-[14px] bg-[#B36A17] text-black rounded-full p-[1px]">check</mat-icon>
+                               <mat-icon *ngIf="form.value.time === convertTo24h(slot)" class="!text-[12px] !w-[12px] !h-[12px] bg-[#B36A17] text-black rounded-full p-[1px]">check</mat-icon>
                              </button>
                            </div>
                         </div>
@@ -377,16 +380,16 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
                 </div>
 
                 <!-- 6. Summary & Book -->
-                <div class="bg-white border border-neutral-200 rounded-[14px] shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] overflow-hidden transition-all mt-4 mb-8">
-                  <div class="p-4 flex items-center justify-between cursor-pointer hover:bg-neutral-50 transition-colors" (click)="expandedStep = 6">
+                <div class="bg-white border border-neutral-200/80 rounded-[14px] shadow-sm overflow-hidden transition-all mt-3 mb-6">
+                  <div class="p-4 flex items-center justify-between cursor-pointer hover:bg-neutral-50/80 transition-colors" (click)="expandedStep = 6">
                     <div class="flex items-center gap-4">
-                       <div class="w-[50px] h-[50px] bg-black rounded-xl flex items-center justify-center shrink-0 shadow-md border border-neutral-800">
-                         <mat-icon class="text-[#B36A17]">assignment</mat-icon>
+                       <div class="w-10 h-10 bg-black rounded-xl flex items-center justify-center shrink-0 shadow-sm">
+                         <mat-icon class="text-[#B36A17] !text-[20px] !w-[20px] !h-[20px]">assignment</mat-icon>
                        </div>
                        <div class="flex items-center gap-6">
                          <div class="flex items-center gap-3 shrink-0">
-                           <div class="w-[22px] h-[22px] rounded-full bg-black text-white flex items-center justify-center text-[10px] font-bold">6</div>
-                           <span class="text-[15px] font-black text-neutral-900 tracking-wide">Summary & Book</span>
+                           <div class="w-5 h-5 rounded-full bg-black text-white flex items-center justify-center text-[10px] font-bold">6</div>
+                           <span class="text-sm font-extrabold text-neutral-900">Summary & Book</span>
                          </div>
                          <div class="text-xs text-neutral-500 font-medium ml-4">
                            Review and confirm appointment
@@ -402,85 +405,85 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
               </div>
 
               <!-- RIGHT SIDE: BOOKING SUMMARY PANEL -->
-              <div class="w-[360px] shrink-0 bg-[#fefdfb] flex flex-col rounded-2xl relative shadow-lg z-10 overflow-hidden border border-[#f0c586]/40 h-full">
+              <div class="w-[380px] shrink-0 bg-[#FAF8F5] flex flex-col rounded-2xl relative shadow-lg z-10 overflow-hidden border border-amber-200/50 h-full">
                 
-                <div class="flex-1 overflow-y-auto custom-scrollbar p-8 pb-4">
-                  <h3 class="text-[#B36A17] font-serif text-[17px] font-black tracking-[0.1em] mb-8 uppercase text-center">Booking Summary</h3>
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-6 pb-4">
+                  <h3 class="text-[#B36A17] font-serif text-base font-bold tracking-[0.15em] mb-6 uppercase text-center">Booking Summary</h3>
                   
-                  <div class="space-y-6">
+                  <div class="space-y-5">
                     
                     <!-- Client -->
-                    <div class="flex items-start gap-4 pb-5 border-b border-neutral-200/60">
-                      <mat-icon class="text-neutral-400 !text-[22px] mt-1 shrink-0">person_outline</mat-icon>
+                    <div class="flex items-start gap-3.5 pb-4 border-b border-neutral-200/70">
+                      <mat-icon class="text-neutral-500 !text-[20px] !w-[20px] !h-[20px] mt-0.5 shrink-0">person_outline</mat-icon>
                       <div class="flex-1">
-                        <div class="text-[10px] text-neutral-500 font-bold tracking-widest uppercase mb-1.5">Client</div>
+                        <div class="text-[10px] text-neutral-500 font-bold tracking-widest uppercase mb-1">Client</div>
                         <div class="text-[13px] font-black text-neutral-900">{{ form.value.firstName || '—' }} {{ form.value.lastName }}</div>
                       </div>
                     </div>
 
                     <!-- Services -->
-                    <div class="flex items-start gap-4 pb-5 border-b border-neutral-200/60">
-                      <mat-icon class="text-neutral-400 !text-[22px] mt-1 shrink-0">star_border</mat-icon>
+                    <div class="flex items-start gap-3.5 pb-4 border-b border-neutral-200/70">
+                      <mat-icon class="text-neutral-500 !text-[20px] !w-[20px] !h-[20px] mt-0.5 shrink-0">star_border</mat-icon>
                       <div class="flex-1 w-full">
-                        <div class="text-[10px] text-neutral-500 font-bold tracking-widest uppercase mb-2">Services (1)</div>
-                        <div class="flex justify-between items-start mb-1.5 w-full">
-                          <div class="text-[13px] font-black text-neutral-900 truncate pr-2 w-3/4">{{ selectedServiceObj?.name || '—' }}</div>
+                        <div class="text-[10px] text-neutral-500 font-bold tracking-widest uppercase mb-1.5">Services (1)</div>
+                        <div class="flex justify-between items-start mb-1 w-full">
+                          <div class="text-[13px] font-bold text-neutral-900 truncate pr-2 w-3/4">{{ selectedServiceObj?.name || '—' }}</div>
                           <div class="text-[12px] font-bold text-neutral-600 shrink-0">{{ selectedServiceObj?.duration_minutes || 0 }} min</div>
                         </div>
-                        <div class="text-[13px] font-bold text-[#B36A17] text-right mt-2">JMD $ {{ (selectedServiceObj?.price_jmd || 0) | number:'1.0-0' }}</div>
+                        <div class="text-[13px] font-bold text-[#B36A17] text-right mt-1">JMD $ {{ (selectedServiceObj?.price_jmd || 0) | number:'1.0-0' }}</div>
                       </div>
                     </div>
 
                     <!-- Location -->
-                    <div class="flex items-start gap-4 pb-5 border-b border-neutral-200/60">
-                      <mat-icon class="text-neutral-400 !text-[22px] mt-1 shrink-0">location_on</mat-icon>
+                    <div class="flex items-start gap-3.5 pb-4 border-b border-neutral-200/70">
+                      <mat-icon class="text-neutral-500 !text-[20px] !w-[20px] !h-[20px] mt-0.5 shrink-0">location_on</mat-icon>
                       <div class="flex-1">
-                        <div class="text-[10px] text-neutral-500 font-bold tracking-widest uppercase mb-1.5">Location</div>
+                        <div class="text-[10px] text-neutral-500 font-bold tracking-widest uppercase mb-1">Location</div>
                         <div class="text-[13px] font-black text-neutral-900">{{ form.value.locationId === 2 ? 'Constant Spring' : (form.value.locationId === 1 ? 'Mannings Hill' : '—') }}</div>
                       </div>
                     </div>
 
                     <!-- Date -->
-                    <div class="flex items-start gap-4 pb-5 border-b border-neutral-200/60">
-                      <mat-icon class="text-neutral-400 !text-[22px] mt-1 shrink-0">calendar_today</mat-icon>
+                    <div class="flex items-start gap-3.5 pb-4 border-b border-neutral-200/70">
+                      <mat-icon class="text-neutral-500 !text-[20px] !w-[20px] !h-[20px] mt-0.5 shrink-0">calendar_today</mat-icon>
                       <div class="flex-1">
-                        <div class="text-[10px] text-neutral-500 font-bold tracking-widest uppercase mb-1.5">Date</div>
+                        <div class="text-[10px] text-neutral-500 font-bold tracking-widest uppercase mb-1">Date</div>
                         <div class="text-[13px] font-black text-neutral-900">{{ form.value.date ? (form.value.date | date:'EEEE, MMMM d, y') : '—' }}</div>
                       </div>
                     </div>
 
                     <!-- Time -->
-                    <div class="flex items-start gap-4 pb-5 border-b border-neutral-200/60">
-                      <mat-icon class="text-neutral-400 !text-[22px] mt-1 shrink-0">schedule</mat-icon>
+                    <div class="flex items-start gap-3.5 pb-4 border-b border-neutral-200/70">
+                      <mat-icon class="text-neutral-500 !text-[20px] !w-[20px] !h-[20px] mt-0.5 shrink-0">schedule</mat-icon>
                       <div class="flex-1">
-                        <div class="text-[10px] text-neutral-500 font-bold tracking-widest uppercase mb-1.5">Time</div>
+                        <div class="text-[10px] text-neutral-500 font-bold tracking-widest uppercase mb-1">Time</div>
                         <div class="text-[14px] font-black text-[#B36A17]">{{ form.value.time ? formattedTime : '—' }}</div>
                       </div>
                     </div>
 
                     <!-- Totals -->
-                    <div class="pt-2">
-                       <div class="flex items-center justify-between mb-4">
+                    <div class="pt-1">
+                       <div class="flex items-center justify-between mb-3">
                          <div class="text-[11px] font-black text-neutral-900 uppercase">Duration</div>
                          <div class="text-[12px] font-bold text-neutral-600">{{ selectedServiceObj?.duration_minutes || 0 }} min</div>
                        </div>
-                       <div class="flex items-center justify-between mb-2">
-                         <div class="text-[15px] font-black text-neutral-900 uppercase tracking-widest">Total</div>
-                         <div class="text-[18px] font-black text-[#B36A17]">JMD $ {{ (selectedServiceObj?.price_jmd || 0) | number:'1.0-0' }}</div>
+                       <div class="flex items-center justify-between">
+                         <div class="text-sm font-black text-neutral-900 uppercase tracking-wider">Total</div>
+                         <div class="text-lg font-black text-[#B36A17]">JMD $ {{ (selectedServiceObj?.price_jmd || 0) | number:'1.0-0' }}</div>
                        </div>
                     </div>
 
                   </div>
                 </div>
 
-                <div class="p-6 pt-2 bg-[#fefdfb] flex flex-col gap-3 shrink-0">
+                <div class="p-5 pt-2 bg-[#FAF8F5] flex flex-col gap-2 shrink-0 border-t border-neutral-200/50">
                   <button type="button" (click)="submit()" [disabled]="form.invalid || loading" 
-                          class="w-full py-4 bg-black hover:bg-neutral-800 text-[#B36A17] font-black text-[13px] rounded-xl transition-all tracking-widest disabled:opacity-50 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+                          class="w-full py-3.5 bg-black hover:bg-neutral-800 text-[#B36A17] font-black text-xs rounded-xl transition-all tracking-widest disabled:opacity-50 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl hover:-translate-y-0.5 uppercase">
                     <mat-icon *ngIf="loading" class="animate-spin !text-[18px] !w-[18px] !h-[18px]">refresh</mat-icon>
                     <mat-icon *ngIf="!loading" class="!text-[18px] !w-[18px] !h-[18px]">event_available</mat-icon>
                     BOOK NOW
                   </button>
-                  <div class="flex items-center justify-center gap-1.5 mt-2">
+                  <div class="flex items-center justify-center gap-1.5 mt-1">
                     <mat-icon class="!text-[12px] !w-[12px] !h-[12px] text-neutral-400">lock</mat-icon>
                     <span class="text-[10px] font-medium text-neutral-500">Your booking is secure and encrypted</span>
                   </div>
@@ -494,7 +497,7 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
     </div>
   `,
 
-  styles: [
+styles: [
     '.scrollbar-none::-webkit-scrollbar { display: none; }',
     '.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }',
     '.custom-scrollbar::-webkit-scrollbar { width: 4px; }',
