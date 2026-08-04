@@ -1,4 +1,206 @@
-<div class="h-screen w-full flex flex-col bg-white overflow-hidden text-slate-800 font-sans selection:bg-[#b8924f] selection:text-white">
+import os
+
+ts_content = """import { Component, OnInit, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
+import { AuthService } from '../../../core/services/auth.service';
+import { WeeklyCalendarComponent, CalendarEvent } from '../../../shared/components/weekly-calendar/weekly-calendar.component';
+import { InternalBookingModalComponent } from '../../../shared/components/internal-booking-modal/internal-booking-modal.component';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatInputModule } from '@angular/material/input';
+import { ReactiveFormsModule, FormControl } from '@angular/forms';
+
+@Component({
+  selector: 'app-admin-bookings',
+  standalone: true,
+  imports: [
+    CommonModule,
+    MatIconModule,
+    WeeklyCalendarComponent,
+    InternalBookingModalComponent,
+    MatAutocompleteModule,
+    MatInputModule,
+    ReactiveFormsModule
+  ],
+  templateUrl: './admin-bookings.component.html'
+})
+export class AdminBookingsComponent implements OnInit {
+  private http = inject(HttpClient);
+  private authState = inject(AuthService);
+
+  showModal = signal(false);
+  allBookings: any[] = [];
+  calendarEvents: CalendarEvent[] = [];
+  
+  waitingCount = 0;
+  checkedInCount = 0;
+  inTreatmentCount = 0;
+  
+  waitingList: CalendarEvent[] = [];
+  checkedInList: CalendarEvent[] = [];
+  inTreatmentList: CalendarEvent[] = [];
+  arrivalsIn30Mins: CalendarEvent[] = [];
+
+  currentDate: Date = new Date();
+  zoomLevel: number = 100;
+  locations = ['All Locations', 'HHC LASER Kingston', 'Constant Spring'];
+  currentLocationIdx = 0;
+  activeView = 'week';
+
+  searchControl = new FormControl('');
+  searchResults: CalendarEvent[] = [];
+  
+  blockCategories = ['Coffee', 'Lunch', 'Meeting', 'Machine Maintenance', 'Training', 'Vacation', 'Cleaning', 'Private'];
+
+  ngOnInit() {
+    this.fetchAppointments();
+    
+    this.searchControl.valueChanges.subscribe(val => {
+      if (!val || val.length < 2) {
+        this.searchResults = [];
+        return;
+      }
+      const q = val.toLowerCase();
+      this.searchResults = this.calendarEvents.filter(ev => 
+        (ev.patient || '').toLowerCase().includes(q) || 
+        (ev.title || '').toLowerCase().includes(q)
+      );
+    });
+  }
+
+  get dateRangeText(): string {
+    const start = new Date(this.currentDate);
+    const day = start.getDay();
+    const diff = start.getDate() - day + (day === 0 ? -6 : 1);
+    start.setDate(diff);
+    
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    if (start.getMonth() === end.getMonth()) {
+      return `${monthNames[start.getMonth()]} ${start.getDate()} - ${end.getDate()}, ${start.getFullYear()}`;
+    } else if (start.getFullYear() === end.getFullYear()) {
+      return `${monthNames[start.getMonth()]} ${start.getDate()} - ${monthNames[end.getMonth()]} ${end.getDate()}, ${start.getFullYear()}`;
+    } else {
+      return `${monthNames[start.getMonth()]} ${start.getDate()}, ${start.getFullYear()} - ${monthNames[end.getMonth()]} ${end.getDate()}, ${end.getFullYear()}`;
+    }
+  }
+
+  get currentMonthYear(): string {
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    return `${monthNames[this.currentDate.getMonth()]} ${this.currentDate.getFullYear()}`;
+  }
+
+  get currentLocation(): string {
+    return this.locations[this.currentLocationIdx];
+  }
+
+  goToToday() { this.currentDate = new Date(); }
+  previousWeek() { const d = new Date(this.currentDate); d.setDate(d.getDate() - 7); this.currentDate = d; }
+  nextWeek() { const d = new Date(this.currentDate); d.setDate(d.getDate() + 7); this.currentDate = d; }
+  toggleLocation() { this.currentLocationIdx = (this.currentLocationIdx + 1) % this.locations.length; }
+  zoomIn() { if (this.zoomLevel < 200) this.zoomLevel += 10; }
+  zoomOut() { if (this.zoomLevel > 50) this.zoomLevel -= 10; }
+  setView(view: string) { this.activeView = view; }
+
+  addBlockTime(category: string) {
+    // Quick mockup block time
+    const block: CalendarEvent = {
+      id: 'block-' + Date.now(),
+      title: category,
+      date: new Date().toISOString().split('T')[0],
+      startTime: '12:00',
+      durationMinutes: 60,
+      status: 'confirmed',
+      isBlockTime: true
+    };
+    this.calendarEvents = [...this.calendarEvents, block];
+  }
+
+  fetchAppointments() {
+    const headers = { Authorization: `Bearer ${this.authState.token()}` };
+    this.http.get<any>(`${environment.apiUrl}/admin/bookings`, { headers }).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.allBookings = res.data;
+          this.mapToCalendarEvents();
+          this.calculateQueueStats();
+        }
+      },
+      error: (err) => console.error('Failed to load appointments', err)
+    });
+  }
+
+  mapToCalendarEvents() {
+    this.calendarEvents = this.allBookings.map((b: any) => {
+      let status: any = 'confirmed';
+      if (b.status === 'checked_in') status = 'checked_in';
+      if (b.status === 'in_treatment') status = 'in_treatment';
+      if (b.status === 'completed') status = 'completed';
+      if (b.status === 'cancelled') status = 'cancelled';
+      if (b.status === 'no_show') status = 'no_show';
+      
+      const duration = b.service_duration_minutes || 60;
+      const startTime24 = b.appointment_time || '09:00';
+      const date = b.appointment_date || new Date().toISOString().split('T')[0];
+      
+      let paymentStatus = 'Balance Due';
+      if (b.payment_status === 'paid') paymentStatus = 'Paid Online';
+      else if (b.payment_status === 'partially_paid') paymentStatus = 'Pay In Person';
+
+      return {
+        id: String(b.id),
+        title: b.service_name || 'Service',
+        subtitle: (b.status || 'Confirmed').replace('_', ' '),
+        patient: (b.customer_first_name || '') + ' ' + (b.customer_last_name || ''),
+        date: date,
+        startTime: startTime24,
+        durationMinutes: duration,
+        status: status,
+        paymentStatus: paymentStatus as any,
+        staffName: 'Amanda', // Mocking staff name since backend might not return it yet
+        room: 'Room 1',
+        data: b
+      };
+    });
+  }
+
+  calculateQueueStats() {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const todays = this.calendarEvents.filter(b => b.date === todayStr && !b.isBlockTime);
+    
+    this.waitingList = todays.filter(b => b.status === 'confirmed');
+    this.checkedInList = todays.filter(b => b.status === 'checked_in');
+    this.inTreatmentList = todays.filter(b => b.status === 'in_treatment');
+    
+    this.waitingCount = this.waitingList.length;
+    this.checkedInCount = this.checkedInList.length;
+    this.inTreatmentCount = this.inTreatmentList.length;
+    
+    const now = new Date();
+    const nowMins = now.getHours() * 60 + now.getMinutes();
+    this.arrivalsIn30Mins = this.waitingList.filter(b => {
+      const [h, m] = b.startTime.split(':').map(Number);
+      const apptMins = h * 60 + m;
+      return apptMins >= nowMins && apptMins <= nowMins + 30;
+    });
+  }
+
+  openBookingModal() { this.showModal.set(true); }
+  closeBookingModal() { this.showModal.set(false); }
+  onBookingCreated() { this.closeBookingModal(); this.fetchAppointments(); }
+
+  openReschedule(event: CalendarEvent) {
+    console.log('Clicked event', event);
+  }
+}
+"""
+
+html_content = """<div class="h-screen w-full flex flex-col bg-white overflow-hidden text-slate-800 font-sans selection:bg-[#b8924f] selection:text-white">
       
   <!-- Top Navbar (1st Row) -->
   <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-white shadow-xs z-20 shrink-0 h-[64px]">
@@ -137,7 +339,7 @@
       </div>
 
       <div class="min-w-[700px] h-full" [style.zoom]="zoomLevel / 100">
-        <app-weekly-calendar [startDate]="currentDate" [events]="calendarEvents" (eventClick)="openReschedule($event)" (actionTriggered)="handleCalendarAction($event)"></app-weekly-calendar>
+        <app-weekly-calendar [startDate]="currentDate" [events]="calendarEvents" (eventClick)="openReschedule($event)"></app-weekly-calendar>
       </div>
     </div>
 
@@ -226,17 +428,21 @@
 </div>
 
 <app-internal-booking-modal *ngIf="showModal()" (close)="closeBookingModal()" (bookingCreated)="onBookingCreated()"></app-internal-booking-modal>
+"""
 
+admin_dir = r"c:\\Users\\church\\Downloads\\HHCLASER5.0-main\\HHCLASER5.0-main\\frontend\\src\\app\\features\\admin\\bookings"
+staff_dir = r"c:\\Users\\church\\Downloads\\HHCLASER5.0-main\\HHCLASER5.0-main\\frontend\\src\\app\\features\\employee\\schedule"
 
-<app-add-note-modal *ngIf="showAddNoteModal()" 
-  [bookingId]="selectedEvent?.id || ''" 
-  [patientName]="selectedEvent?.patient || ''" 
-  (close)="showAddNoteModal.set(false)" 
-  (saved)="showAddNoteModal.set(false); fetchAppointments()">
-</app-add-note-modal>
+# Overwrite Admin
+with open(os.path.join(admin_dir, "admin-bookings.component.ts"), "w", encoding="utf-8") as f:
+    f.write(ts_content)
+with open(os.path.join(admin_dir, "admin-bookings.component.html"), "w", encoding="utf-8") as f:
+    f.write(html_content)
 
-<app-invoice-modal *ngIf="showInvoiceModal()" 
-  [eventData]="selectedEvent" 
-  (close)="showInvoiceModal.set(false)"
-  (paymentUpdated)="fetchAppointments()">
-</app-invoice-modal>
+# Overwrite Staff with slightly modified class name
+with open(os.path.join(staff_dir, "employee-schedule.component.ts"), "w", encoding="utf-8") as f:
+    f.write(ts_content.replace('AdminBookingsComponent', 'EmployeeScheduleComponent').replace('app-admin-bookings', 'app-employee-schedule').replace('admin-bookings.component.html', 'employee-schedule.component.html'))
+with open(os.path.join(staff_dir, "employee-schedule.component.html"), "w", encoding="utf-8") as f:
+    f.write(html_content)
+
+print("Admin and Staff booking dashboards updated successfully!")

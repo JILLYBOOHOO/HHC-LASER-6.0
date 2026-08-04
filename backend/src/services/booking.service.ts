@@ -1,3 +1,4 @@
+import { EmailService } from './email.service';
 import { executeQuery, executeQueryOne, executeUpdate, withTransaction } from '../config/database';
 import { AppError } from '../middleware/error.middleware';
 import { Appointment, CreateAppointmentDto, AppointmentStatus, Service } from '../models/types';
@@ -106,7 +107,7 @@ export class BookingService {
 
     const placeholders = serviceIds.map(() => '?').join(',');
     const services = await executeQuery<Service>(
-      `SELECT * FROM services WHERE id IN (${placeholders}) AND is_active = 1`,
+      `SELECT * FROM services WHERE id IN (${placeholders}) AND is_active = true`,
       serviceIds
     );
 
@@ -150,7 +151,7 @@ export class BookingService {
     }
 
     const groupId = dto.booking_type === 'group' ? uuidv4() : null;
-    const confirmationCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+    const confirmationCode = Math.floor(1000 + Math.random() * 9000).toString();
 
     return withTransaction(async (conn) => {
       const mainServiceId = dto.service_ids[0];
@@ -206,12 +207,37 @@ export class BookingService {
         }
       }
 
+      
       const appointment = await executeQueryOne<Appointment>(
         'SELECT * FROM appointments WHERE id = ?',
         [appointmentId]
       );
 
+      // --- Send Email Confirmation via Resend ---
+      try {
+        const user = await executeQueryOne<any>('SELECT first_name, email FROM users WHERE id = ?', [customerId]);
+        if (user && user.email) {
+          const serviceNames = services.map(s => s.name || s.title || `Service ID: ${s.id}`);
+          // Send asynchronously
+          EmailService.sendBookingConfirmation(
+            user.email,
+            user.first_name || 'Valued Customer',
+            {
+              date: dto.scheduled_date,
+              time: dto.start_time,
+              serviceNames,
+              totalPrice: totalAmountJmd
+            },
+            confirmationCode
+          ).catch(err => logger.error('Async email error:', err));
+        }
+      } catch (e) {
+        logger.error('Failed to send confirmation email', e);
+      }
+      // ------------------------------------------
+
       logger.info(`[Booking] Appointment ${appointmentId} created for customer ${customerId}`);
+
       return appointment!;
     });
   }
@@ -235,7 +261,7 @@ export class BookingService {
     }
 
     const groupId = dto.booking_type === 'group' ? uuidv4() : null;
-    const confirmationCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+    const confirmationCode = Math.floor(1000 + Math.random() * 9000).toString();
 
     return withTransaction(async (conn) => {
       const mainServiceId = dto.service_ids[0];
@@ -291,12 +317,37 @@ export class BookingService {
         }
       }
 
+      
       const appointment = await executeQueryOne<Appointment>(
         'SELECT * FROM appointments WHERE id = ?',
         [appointmentId]
       );
 
-      logger.info(`[Booking] Appointment ${appointmentId} created by staff ${staffUserId} for customer ${customerId}`);
+      // --- Send Email Confirmation via Resend ---
+      try {
+        const user = await executeQueryOne<any>('SELECT first_name, email FROM users WHERE id = ?', [customerId]);
+        if (user && user.email) {
+          const serviceNames = services.map(s => s.name || s.title || `Service ID: ${s.id}`);
+          // Send asynchronously
+          EmailService.sendBookingConfirmation(
+            user.email,
+            user.first_name || 'Valued Customer',
+            {
+              date: dto.scheduled_date,
+              time: dto.start_time,
+              serviceNames,
+              totalPrice: totalAmountJmd
+            },
+            confirmationCode
+          ).catch(err => logger.error('Async email error:', err));
+        }
+      } catch (e) {
+        logger.error('Failed to send confirmation email', e);
+      }
+      // ------------------------------------------
+
+      logger.info(`[Booking] Appointment ${appointmentId} created for customer ${customerId}`);
+
       return appointment!;
     });
   }

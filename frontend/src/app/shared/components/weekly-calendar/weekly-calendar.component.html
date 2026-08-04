@@ -12,7 +12,7 @@
   </div>
 
   <!-- Calendar Body (Scrollable) -->
-  <div class="flex-1 overflow-y-auto relative custom-scrollbar bg-[#f8fafc]">
+  <div #scrollContainer class="flex-1 overflow-y-auto relative custom-scrollbar bg-[#f8fafc]">
     
     <!-- Red Current Time Line -->
     <div *ngIf="currentTopPos > 0" class="current-time-line" [style.top.px]="currentTopPos">
@@ -23,12 +23,18 @@
     <div class="calendar-grid relative">
       <!-- Time Column (Left) -->
       <div class="time-col flex flex-col pt-1.5 pb-6">
-        <div *ngFor="let h of hours" class="h-[60px] relative">
+        <div *ngFor="let h of hours" class="h-[60px] relative border-b border-slate-200">
           <span class="absolute -top-[7px] right-2 text-[10px] font-bold text-slate-500">
             {{ h > 12 ? h - 12 : h }}:00 {{ h >= 12 ? 'PM' : 'AM' }}
           </span>
+          <span class="absolute top-[8px] right-2 text-[8px] font-medium text-slate-300">
+            {{ h > 12 ? h - 12 : h }}:15
+          </span>
           <span class="absolute top-[23px] right-2 text-[9px] font-medium text-slate-400">
             {{ h > 12 ? h - 12 : h }}:30
+          </span>
+          <span class="absolute top-[38px] right-2 text-[8px] font-medium text-slate-300">
+            {{ h > 12 ? h - 12 : h }}:45
           </span>
         </div>
       </div>
@@ -45,29 +51,107 @@
 
         <!-- Events for this day -->
         <ng-container *ngFor="let ev of getEventsForDay(day.date)">
+          <!-- Event Card -->
           <div class="event-card"
                [ngClass]="getEventClass(ev)"
                [ngStyle]="getEventStyle(ev)"
-               (click)="onEventClick(ev)">
+               (click)="onEventClick(ev)"
+               (contextmenu)="onRightClick($event, ev)"
+               [matMenuTriggerFor]="rightClickMenu"
+               [matMenuTriggerData]="{event: ev}"
+               [matTooltip]="'Check In | Edit | Reschedule | Cancel | Take Payment'">
             
-            <div class="font-extrabold text-[10px] truncate">{{ ev.patient || 'Patient' }}</div>
-            <div class="flex items-center gap-1 mt-0.5 truncate text-[9px] font-semibold opacity-90">
-              <mat-icon class="!text-[12px] !w-3 !h-3">bolt</mat-icon>
-              <span>{{ ev.title }}</span>
+            <div *ngIf="ev.isBlockTime; else appointmentTpl" class="flex flex-col h-full justify-center items-center opacity-70">
+              <span class="text-xs font-bold">{{ ev.title }}</span>
             </div>
-            <div class="flex items-center gap-1 mt-1 truncate text-[9px] font-medium opacity-80">
-              <mat-icon class="!text-[12px] !w-3 !h-3">schedule</mat-icon>
-              <span>{{ ev.durationMinutes }}m</span>
-            </div>
-            
-            <!-- Custom Status Text at bottom -->
-            <div class="absolute bottom-1 left-1.5 flex items-center gap-1 font-bold text-[8.5px] uppercase tracking-wide">
-              <mat-icon class="!text-[10px] !w-2.5 !h-2.5 opacity-70">{{ getEventIcon(ev.status) }}</mat-icon>
-              <span>{{ ev.subtitle || (ev.status.replace('_', ' ')) }}</span>
-            </div>
+
+            <ng-template #appointmentTpl>
+              <div class="flex flex-col h-full">
+                <div class="flex justify-between items-start">
+                  <div class="font-extrabold text-[10px] truncate">{{ ev.patient || 'Patient' }}</div>
+                  <div class="text-[8px] font-bold text-slate-500 whitespace-nowrap ml-1">{{ ev.startTime.substring(0, 5) }}</div>
+                </div>
+                
+                <div class="flex items-center gap-1 mt-0.5 truncate text-[9px] font-semibold opacity-90">
+                  <span class="text-[12px] shrink-0">{{ getServiceIcon(ev.title) }}</span>
+                  <span class="truncate">{{ ev.title }}</span>
+                </div>
+                
+                <div class="flex items-center gap-1 mt-0.5 truncate text-[9px] font-medium opacity-80" *ngIf="ev.durationMinutes > 15">
+                  <mat-icon class="!text-[10px] !w-2.5 !h-2.5 shrink-0">person</mat-icon>
+                  <span class="truncate">{{ ev.staffName || 'Staff' }}</span>
+                  <span class="mx-0.5 shrink-0">&bull;</span>
+                  <mat-icon class="!text-[10px] !w-2.5 !h-2.5 shrink-0">schedule</mat-icon>
+                  <span class="shrink-0">{{ ev.durationMinutes }}m</span>
+                </div>
+                
+                <!-- Payment and Status at bottom -->
+                <div class="mt-auto pt-1 flex justify-between items-center text-[8.5px] uppercase tracking-wide overflow-hidden" *ngIf="ev.durationMinutes > 30">
+                  <div class="font-bold flex items-center gap-1 truncate pr-1">
+                    <mat-icon class="!text-[10px] !w-2.5 !h-2.5 opacity-70 shrink-0">{{ getEventIcon(ev.status) }}</mat-icon>
+                    <span class="truncate">{{ ev.subtitle || (ev.status.replace('_', ' ')) }}</span>
+                  </div>
+                  <div class="font-bold px-1 py-0.5 rounded shrink-0" 
+                       [ngClass]="{'bg-green-100 text-green-700': ev.paymentStatus === 'Paid Online', 
+                                  'bg-yellow-100 text-yellow-700': ev.paymentStatus === 'Balance Due',
+                                  'bg-blue-100 text-blue-700': ev.paymentStatus === 'Pay In Person'}">
+                    {{ ev.paymentStatus || 'Balance Due' }}
+                  </div>
+                </div>
+              </div>
+            </ng-template>
           </div>
         </ng-container>
       </div>
     </div>
   </div>
 </div>
+
+<!-- Right Click Context Menu Template -->
+<mat-menu #rightClickMenu="matMenu">
+  <ng-template matMenuContent let-event="event">
+    <button mat-menu-item (click)="handleAction('Open', event)">
+      <mat-icon>open_in_new</mat-icon>
+      <span>Open</span>
+    </button>
+    <button mat-menu-item (click)="handleAction('Check In', event)">
+      <mat-icon>check_circle</mat-icon>
+      <span>Check In</span>
+    </button>
+    <button mat-menu-item (click)="handleAction('Complete', event)">
+      <mat-icon>done_all</mat-icon>
+      <span>Complete</span>
+    </button>
+    <mat-divider></mat-divider>
+    <button mat-menu-item (click)="handleAction('Reschedule', event)">
+      <mat-icon>event_repeat</mat-icon>
+      <span>Reschedule</span>
+    </button>
+    <button mat-menu-item (click)="handleAction('Cancel', event)" class="text-red-500">
+      <mat-icon class="text-red-500">cancel</mat-icon>
+      <span>Cancel</span>
+    </button>
+    <mat-divider></mat-divider>
+    <button mat-menu-item (click)="handleAction('Take Payment', event)">
+      <mat-icon>payments</mat-icon>
+      <span>Take Payment</span>
+    </button>
+    <button mat-menu-item (click)="handleAction('Invoice', event)">
+      <mat-icon>receipt</mat-icon>
+      <span>Invoice</span>
+    </button>
+    <mat-divider></mat-divider>
+    <button mat-menu-item (click)="handleAction('View Client', event)">
+      <mat-icon>person</mat-icon>
+      <span>View Client</span>
+    </button>
+    <button mat-menu-item (click)="handleAction('Call', event)">
+      <mat-icon>phone</mat-icon>
+      <span>Call</span>
+    </button>
+    <button mat-menu-item (click)="handleAction('Add Note', event)">
+      <mat-icon>note_add</mat-icon>
+      <span>Add Note</span>
+    </button>
+  </ng-template>
+</mat-menu>
