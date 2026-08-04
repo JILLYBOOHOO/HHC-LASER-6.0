@@ -62,6 +62,9 @@ const envSchema = z.object({
   EMAIL_FROM_NOREPLY: z.string().default("noreply@hhclaser.com"),
   EMAIL_DEV_SENDER: z.string().default("onboarding@resend.dev"),
 
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+
   // ── Scotiabank / Fiserv HPP ──────────────────────────────────────────────
   FISERV_MERCHANT_ID: z.string().optional(),
   FISERV_API_KEY: z.string().optional(),

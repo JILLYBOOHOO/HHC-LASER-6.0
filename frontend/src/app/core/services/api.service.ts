@@ -387,6 +387,25 @@ export class ApiService {
     });
   }
 
+  getAdminTransactions(
+    page = 1,
+    limit = 20,
+    search?: string,
+    status?: string,
+    from?: string,
+    to?: string
+  ): Observable<ApiResponse<any[]>> {
+    let params = new HttpParams().set('page', page).set('limit', limit);
+    if (search) params = params.set('search', search);
+    if (status) params = params.set('status', status);
+    if (from) params = params.set('from', from);
+    if (to) params = params.set('to', to);
+    
+    return this.http.get<ApiResponse<any[]>>(`${this.base}/admin/transactions`, {
+      params,
+    });
+  }
+
   updateUserStatus(userId: number, isActive: boolean): Observable<ApiResponse> {
     return this.http.patch<ApiResponse>(
       `${this.base}/admin/users/${userId}/status`,

@@ -1,6 +1,10 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges, SimpleChanges, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 export interface CalendarEvent {
   id: string;
@@ -11,19 +15,23 @@ export interface CalendarEvent {
   startTime: string; // HH:mm (24-hour)
   durationMinutes: number;
   status: 'confirmed' | 'checked_in' | 'in_treatment' | 'completed' | 'cancelled' | 'no_show';
-  color?: string; // Optional custom color class
-  data?: any; // Original appointment data
+  color?: string;
+  paymentStatus?: 'Paid Online' | 'Pay In Person' | 'Balance Due';
+  staffName?: string;
+  room?: string;
+  isBlockTime?: boolean;
+  data?: any;
 }
 
 @Component({
   selector: 'app-weekly-calendar',
   standalone: true,
-  imports: [CommonModule, MatIconModule],
+  imports: [CommonModule, MatIconModule, MatMenuModule, MatTooltipModule, MatDividerModule, MatSnackBarModule],
   templateUrl: './weekly-calendar.component.html',
   styles: [`
     .calendar-grid {
       display: grid;
-      grid-template-columns: 60px repeat(7, minmax(120px, 1fr));
+      grid-template-columns: 60px repeat(7, minmax(80px, 1fr));
       background-color: #f8fafc;
     }
     .time-col {
@@ -36,15 +44,6 @@ export interface CalendarEvent {
     }
     .day-col:last-child {
       border-right: none;
-    }
-    .grid-cell {
-      height: 60px; /* 1 hour = 60px, so 15 min = 15px */
-      border-bottom: 1px solid #f1f5f9;
-      box-sizing: border-box;
-    }
-    .grid-cell-half {
-      height: 30px;
-      border-bottom: 1px dashed #f8fafc;
     }
     .event-card {
       position: absolute;
@@ -60,6 +59,7 @@ export interface CalendarEvent {
       cursor: pointer;
       transition: all 0.2s ease;
       z-index: 10;
+      background-color: white;
     }
     .event-card:hover {
       z-index: 20;
@@ -74,10 +74,29 @@ export interface CalendarEvent {
       background-color: #ef4444;
       z-index: 30;
       pointer-events: none;
+      box-shadow: 0 0 4px rgba(239, 68, 68, 0.5);
+      transition: top 1s linear;
+    }
+    .current-time-line::before {
+      content: '';
+      position: absolute;
+      left: -4px;
+      top: -3px;
+      width: 8px;
+      height: 8px;
+      background-color: #ef4444;
+      border-radius: 50%;
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+      animation: pulse-red 2s infinite;
+    }
+    @keyframes pulse-red {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
     }
     .current-time-label {
       position: absolute;
-      left: -50px;
+      left: 10px;
       top: -9px;
       background: #ef4444;
       color: white;
@@ -86,6 +105,7 @@ export interface CalendarEvent {
       padding: 2px 6px;
       border-radius: 4px;
       z-index: 30;
+      box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
     }
     
     /* Status Colors based on the screenshot */
@@ -95,17 +115,20 @@ export interface CalendarEvent {
     .status-completed { background-color: #f3e8ff; border-left-color: #a855f7; color: #6b21a8; }
     .status-cancelled { background-color: #ffe4e6; border-left-color: #f43f5e; color: #be123c; }
     .status-no_show { background-color: #f1f5f9; border-left-color: #64748b; color: #334155; }
-    
-    /* Additional custom ones */
-    .status-payment_due { background-color: #fef9c3; border-left-color: #eab308; color: #854d0e; }
+    .status-block_time { background-color: #f3f4f6; border-left-color: #9ca3af; color: #374151; opacity: 0.8; }
   `]
 })
-export class WeeklyCalendarComponent implements OnInit, OnDestroy {
+export class WeeklyCalendarComponent implements OnInit, OnDestroy, OnChanges, AfterViewInit {
   @Input() events: CalendarEvent[] = [];
-  @Input() startDate: Date = new Date(); // Start of the week (Monday)
+  @Input() startDate: Date = new Date();
   @Output() eventClick = new EventEmitter<CalendarEvent>();
+  @Output() actionTriggered = new EventEmitter<{action: string, event: CalendarEvent}>();
   
-  hours = Array.from({length: 10}, (_, i) => i + 8); // 8 AM to 5 PM (17:00)
+  @ViewChild('scrollContainer') scrollContainer!: ElementRef;
+
+  constructor(private snackBar: MatSnackBar) {}
+
+  hours = Array.from({length: 10}, (_, i) => i + 8); // 8 AM to 5 PM
   days: { date: Date, label: string, dayNum: number }[] = [];
   
   currentTimeStr: string = '';
@@ -118,6 +141,16 @@ export class WeeklyCalendarComponent implements OnInit, OnDestroy {
     this.timeInterval = setInterval(() => this.updateCurrentTime(), 60000);
   }
 
+  ngAfterViewInit() {
+    setTimeout(() => this.scrollToCurrentTime(), 100);
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['startDate']) {
+      this.generateDays();
+    }
+  }
+
   ngOnDestroy() {
     if (this.timeInterval) {
       clearInterval(this.timeInterval);
@@ -127,7 +160,6 @@ export class WeeklyCalendarComponent implements OnInit, OnDestroy {
   generateDays() {
     this.days = [];
     const start = new Date(this.startDate);
-    // Ensure it's Monday
     const day = start.getDay();
     const diff = start.getDate() - day + (day === 0 ? -6 : 1);
     start.setDate(diff);
@@ -151,11 +183,15 @@ export class WeeklyCalendarComponent implements OnInit, OnDestroy {
   }
 
   getEventStyle(event: CalendarEvent): any {
-    // 8:00 AM is 0px
     const [h, m] = event.startTime.split(':').map(Number);
-    const startMins = (h * 60 + m) - (8 * 60);
-    const topPx = startMins; // 1 min = 1px since 60min = 60px
-    const heightPx = event.durationMinutes;
+    // Snap start to 15 mins visually
+    const snappedM = Math.round(m / 15) * 15;
+    const startMins = (h * 60 + snappedM) - (8 * 60);
+    const topPx = startMins; // 1 min = 1px
+    
+    // Snap duration to 15 mins visually
+    let heightPx = Math.round(event.durationMinutes / 15) * 15;
+    if (heightPx < 15) heightPx = 15;
     
     return {
       top: topPx + 'px',
@@ -164,8 +200,22 @@ export class WeeklyCalendarComponent implements OnInit, OnDestroy {
   }
 
   getEventClass(event: CalendarEvent): string {
+    if (event.isBlockTime) return 'status-block_time';
     if (event.color) return event.color;
     return 'status-' + event.status;
+  }
+
+  getServiceIcon(serviceName: string): string {
+    const name = serviceName.toLowerCase();
+    if (name.includes('laser')) return '⚡';
+    if (name.includes('rejuvenation') || name.includes('ipl')) return '✨';
+    if (name.includes('facial') || name.includes('hydrafacial')) return '💆';
+    if (name.includes('peel')) return '🧴';
+    if (name.includes('botox') || name.includes('filler') || name.includes('inject')) return '💉';
+    if (name.includes('contour') || name.includes('sculpt')) return '💪';
+    if (name.includes('body')) return '🌿';
+    if (name.includes('consultation')) return '🩺';
+    return '📅';
   }
 
   getEventIcon(status: string): string {
@@ -183,6 +233,14 @@ export class WeeklyCalendarComponent implements OnInit, OnDestroy {
     this.eventClick.emit(event);
   }
 
+  onRightClick(event: MouseEvent, calEvent: CalendarEvent) {
+    event.preventDefault();
+  }
+
+  handleAction(action: string, ev: CalendarEvent) {
+    this.actionTriggered.emit({ action, event: ev });
+  }
+
   updateCurrentTime() {
     const now = new Date();
     let h = now.getHours();
@@ -191,11 +249,16 @@ export class WeeklyCalendarComponent implements OnInit, OnDestroy {
     const h12 = h % 12 || 12;
     this.currentTimeStr = h12 + ':' + m.toString().padStart(2, '0') + ' ' + ampm;
     
-    // Position (1 min = 1px from 8AM)
-    if (h >= 8 && h <= 17) {
-      this.currentTopPos = ((h * 60 + m) - (8 * 60));
+    if (h >= 8 && h < 18) {
+      this.currentTopPos = ((h * 60) + m) - (8 * 60);
     } else {
-      this.currentTopPos = -9999; // Hide if outside 8-5
+      this.currentTopPos = -100;
+    }
+  }
+
+  scrollToCurrentTime() {
+    if (this.currentTopPos > 0 && this.scrollContainer) {
+      this.scrollContainer.nativeElement.scrollTop = this.currentTopPos - 100;
     }
   }
 }

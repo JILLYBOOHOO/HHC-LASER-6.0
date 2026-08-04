@@ -273,6 +273,7 @@ export interface ApiResponse<T = void> {
   success: boolean;
   data?: T;
   message?: string;
+  meta?: any;
   errors?: Record<string, string[]>;
   pagination?: {
     page: number;

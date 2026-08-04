@@ -322,6 +322,7 @@ export interface ApiResponse<T = void> {
   data?: T;
   message?: string;
   errors?: Record<string, string[]>;
+  meta?: any;
   pagination?: {
     page: number;
     limit: number;
@@ -342,11 +343,13 @@ export function paginatedResponse<T>(
   data: T,
   page: number,
   limit: number,
-  total: number
+  total: number,
+  meta?: any
 ): ApiResponse<T> {
   return {
     success: true,
     data,
+    meta,
     pagination: {
       page,
       limit,

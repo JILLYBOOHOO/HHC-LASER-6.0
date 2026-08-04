@@ -101,6 +101,7 @@ export class AdminLayoutComponent {
     { path: '/admin/staff',                 icon: 'badge',                  label: 'Staff' },
     { path: '/admin/services',              icon: 'spa',                    label: 'Services' },
     { path: '/admin/gallery',               icon: 'collections',            label: 'Gallery' },
+    { path: '/admin/transactions',          icon: 'receipt_long',           label: 'Transactions' },
     { path: '/admin/reports',               icon: 'bar_chart',              label: 'Reports' },
     { path: '/admin/settings',              icon: 'settings',               label: 'Settings' }
   ];

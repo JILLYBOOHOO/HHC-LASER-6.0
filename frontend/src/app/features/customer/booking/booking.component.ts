@@ -1731,7 +1731,7 @@ export class BookingComponent implements OnInit {
   availableSlots    = signal<string[]>([]);
   employees         = signal<Employee[]>([]);
   allServices       = signal<Service[]>(DEFAULT_SERVICES);
-  selectedService   = computed(() => {
+  selectedService   = computed<any | null>(() => {
     const id = this.selectedServiceId();
     return this.allServices().find(s => s.id === id) || this.allServices()[0] || null;
   });
@@ -2245,15 +2245,14 @@ export class BookingComponent implements OnInit {
       dateStr,
       duration
     ).subscribe({
-      next: res => {
-        // Mock some slots if API returns empty for demo purposes
-        this.availableSlots.set(res.data?.length ? res.data : ['09:00', '10:30', '13:00', '14:30', '16:00']);
+      next: (res) => {
         this.isLoadingSlots.set(false);
+        this.availableSlots.set(res.data || []);
         this.scrollToTimeSelection();
       },
       error: () => {
-        this.availableSlots.set(['09:00', '10:30', '13:00', '14:30', '16:00']);
         this.isLoadingSlots.set(false);
+        this.availableSlots.set([]);
         this.scrollToTimeSelection();
       }
     });
