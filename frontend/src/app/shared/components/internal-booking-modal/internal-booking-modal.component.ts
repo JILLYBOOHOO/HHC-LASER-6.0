@@ -1,4 +1,4 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -12,307 +12,302 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, FormsModule, MatIconModule, MatButtonModule],
   template: `
-    <div class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
-      <div class="bg-white rounded-xl shadow-2xl w-full max-w-[1200px] mx-auto my-8 flex flex-col text-neutral-800 animate-fadeIn relative">
+    <div class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm p-4 overflow-y-auto flex items-start justify-center">
+      <div class="rounded-2xl shadow-2xl w-full max-w-[1200px] flex flex-col text-neutral-800 animate-fadeIn relative bg-white overflow-hidden my-auto mt-8 mb-8">
         
-        <!-- Header & Top Bar -->
-        <div class="px-8 py-5 border-b border-neutral-200 flex items-center justify-between bg-white shrink-0">
+        <!-- Header -->
+        <div class="px-8 py-5 flex items-center justify-between shrink-0 bg-white border-b border-neutral-100">
           <h2 class="text-xl font-bold text-neutral-900 tracking-tight">New Appointment</h2>
           <button type="button" (click)="close.emit()" class="text-neutral-500 hover:text-black transition-colors">
             <mat-icon class="!text-3xl !w-8 !h-8">close</mat-icon>
           </button>
         </div>
 
-        <div class="flex-1 flex overflow-hidden">
-          
-          <!-- LEFT SIDE (75%) Form Area -->
-          <div class="w-[70%] flex flex-col relative bg-white border-r border-neutral-200">
+        <div class="bg-dot-pattern relative flex flex-col w-full h-full">
+          <!-- Progress Stepper -->
+          <div class="px-10 py-5 flex items-center justify-start gap-4 shrink-0 max-w-[800px]">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-full bg-[#d8972e] text-white flex items-center justify-center text-xs font-bold">1</div>
+              <span class="text-sm font-bold text-neutral-900">Client</span>
+            </div>
+            <div class="w-16 border-t-[3px] border-dotted border-[#d8972e]"></div>
             
-            <!-- Success/Error Messages -->
-            <div *ngIf="error" class="m-6 p-4 bg-red-50 text-red-600 rounded-lg text-sm font-bold border border-red-100">
-              {{ error }}
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-full bg-[#d8972e] text-white flex items-center justify-center text-xs font-bold">2</div>
+              <span class="text-sm font-bold text-neutral-900">Service</span>
             </div>
-            <div *ngIf="success" class="m-6 p-4 bg-emerald-50 text-emerald-600 rounded-lg text-sm font-bold border border-emerald-100 flex items-center gap-2">
-              <mat-icon>check_circle</mat-icon>
-              Booking created successfully!
+            <div class="w-16 border-t-[3px] border-dotted border-[#d8972e]"></div>
+            
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-full bg-[#d8972e] text-white flex items-center justify-center text-xs font-bold">3</div>
+              <span class="text-sm font-bold text-neutral-900">Location</span>
+            </div>
+            <div class="w-16 border-t-[3px] border-dotted border-neutral-400"></div>
+            
+            <div class="flex items-center gap-2 opacity-60">
+              <div class="w-6 h-6 rounded-full bg-neutral-500 text-white flex items-center justify-center text-xs font-bold">4</div>
+              <span class="text-sm font-bold text-neutral-900">Date & Time</span>
+            </div>
+          </div>
+
+          <div class="flex-1 flex overflow-hidden px-8 pb-8 gap-8 items-stretch">
+            
+            <!-- LEFT SIDE Form Area -->
+            <div *ngIf="showResumePrompt" class="flex-1 flex flex-col items-center justify-center p-8 text-center bg-white rounded-2xl border border-neutral-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
+              <mat-icon class="!text-6xl text-[#d8972e] mb-4">restore_page</mat-icon>
+              <h3 class="text-xl font-bold text-neutral-900 mb-2">Resume Booking?</h3>
+              <p class="text-sm text-neutral-500 mb-8 max-w-md">We found an unsaved booking draft. Would you like to resume where you left off or start a new booking?</p>
+              <div class="flex gap-4">
+                <button type="button" (click)="resumeDraft()" class="px-8 py-3 bg-[#d8972e] hover:bg-[#cc8a23] text-white font-bold rounded-lg transition-colors">
+                  Resume Draft
+                </button>
+                <button type="button" (click)="startNewBooking()" class="px-8 py-3 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-bold rounded-lg transition-colors">
+                  Start New
+                </button>
+              </div>
             </div>
 
-            <!-- Stepper -->
-            <div class="px-10 pt-6 pb-4 flex items-center justify-between shrink-0">
-              <!-- 1. Client -->
-              <div class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded-full bg-[#cc8a23] text-white flex items-center justify-center text-xs font-bold">1</div>
-                <span class="text-sm font-bold text-neutral-900">Client</span>
-              </div>
-              <div class="flex-1 border-t-4 border-dotted border-[#cc8a23] mx-4 opacity-50"></div>
-              <!-- 2. Service -->
-              <div class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded-full bg-[#cc8a23] text-white flex items-center justify-center text-xs font-bold">2</div>
-                <span class="text-sm font-bold text-neutral-900">Service</span>
-              </div>
-              <div class="flex-1 border-t-4 border-dotted border-[#cc8a23] mx-4 opacity-50"></div>
-              <!-- 3. Location -->
-              <div class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded-full bg-[#cc8a23] text-white flex items-center justify-center text-xs font-bold">3</div>
-                <span class="text-sm font-bold text-neutral-900">Location</span>
-              </div>
-              <div class="flex-1 border-t-4 border-dotted border-neutral-300 mx-4"></div>
-              <!-- 4. Date & Time -->
-              <div class="flex items-center gap-2 opacity-60">
-                <div class="w-6 h-6 rounded-full bg-neutral-500 text-white flex items-center justify-center text-xs font-bold">4</div>
-                <span class="text-sm font-bold text-neutral-900">Date & Time</span>
-              </div>
-            </div>
-
-            <form *ngIf="!success && !showResumePrompt" [formGroup]="form" class="flex flex-col px-10 pb-6">
+            <form *ngIf="!success && !showResumePrompt" [formGroup]="form" class="flex-1 flex flex-col justify-between">
               
-              <!-- 1. Client Details -->
-              <div class="mt-4 mb-5">
-                <h3 class="text-lg font-black text-neutral-900 mb-4">1. Client Details</h3>
-                <div class="grid grid-cols-2 gap-x-8 gap-y-4">
-                  <!-- Name row -->
-                  <div>
-                    <label class="block text-xs font-bold text-neutral-600 mb-1">First Name</label>
-                    <input type="text" formControlName="firstName" class="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm font-bold text-neutral-900 outline-none focus:border-[#cc8a23]">
-                  </div>
-                  <div class="flex gap-4 items-end">
-                    <div class="flex-1">
-                      <label class="block text-xs font-bold text-neutral-600 mb-1">Last Name</label>
-                      <input type="text" formControlName="lastName" class="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm font-bold text-neutral-900 outline-none focus:border-[#cc8a23]">
-                    </div>
-                    <!-- Search inside grid row -->
-                    <div class="flex-1 relative">
-                      <label class="block text-xs text-neutral-600 mb-1">Search or add customer</label>
-                      <div class="flex gap-2">
-                        <div class="relative flex-1">
-                          <input type="text" [(ngModel)]="customerSearchQuery" [ngModelOptions]="{standalone: true}" (input)="searchCustomer()"
-                                 placeholder="Search or add customer"
-                                 class="w-full pl-3 pr-3 py-2 border border-neutral-300 rounded-md text-sm outline-none focus:border-[#cc8a23]">
-                          
-                          <div *ngIf="searchedCustomers.length > 0" class="absolute z-20 w-full mt-1 bg-white border border-neutral-200 rounded-lg shadow-xl max-h-48 overflow-y-auto divide-y divide-neutral-100">
-                            <div *ngFor="let c of searchedCustomers" (click)="selectCustomer(c)" 
-                                 class="p-3 text-sm hover:bg-neutral-50 cursor-pointer flex flex-col text-left">
-                              <span class="font-bold text-neutral-900">{{ c.first_name }} {{ c.last_name }}</span>
-                              <span class="text-xs text-neutral-500">{{ c.phone }} · {{ c.email || 'No email' }}</span>
-                            </div>
+              <div class="grid grid-cols-2 gap-8 flex-1">
+                
+                <!-- Left Column of Grid -->
+                <div class="flex flex-col gap-8 h-full">
+                  <!-- 1. Client Details -->
+                  <div class="bg-white p-6 rounded-2xl border border-neutral-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
+                    <h3 class="text-base font-bold text-neutral-900 mb-4">1. Client Details</h3>
+                    
+                    <div class="relative mb-4 flex gap-2">
+                      <div class="relative flex-1">
+                        <mat-icon class="absolute left-3 top-2.5 !text-[20px] text-neutral-400">search</mat-icon>
+                        <input type="text" [(ngModel)]="customerSearchQuery" [ngModelOptions]="{standalone: true}" (input)="searchCustomer()"
+                               placeholder="Search or add customer"
+                               class="w-full pl-10 pr-3 py-2.5 border border-neutral-200 rounded-lg text-sm outline-none focus:border-[#d8972e]">
+                        
+                        <!-- search results dropdown -->
+                        <div *ngIf="searchedCustomers.length > 0" class="absolute z-20 w-full mt-1 bg-white border border-neutral-200 rounded-lg shadow-xl max-h-48 overflow-y-auto divide-y divide-neutral-100">
+                          <div *ngFor="let c of searchedCustomers" (click)="selectCustomer(c)" 
+                               class="p-3 text-sm hover:bg-neutral-50 cursor-pointer flex flex-col text-left">
+                            <span class="font-bold text-neutral-900">{{ c.first_name }} {{ c.last_name }}</span>
+                            <span class="text-xs text-neutral-500">{{ c.phone }} · {{ c.email || 'No email' }}</span>
                           </div>
                         </div>
-                        <button type="button" (click)="startNewCustomer()" class="px-4 py-2 bg-[#cc8a23] hover:bg-[#b57a1e] text-white text-sm font-bold rounded-md transition-colors">
-                          New
+                      </div>
+                      <button type="button" (click)="startNewCustomer()" class="px-6 py-2.5 bg-[#d8972e] hover:bg-[#cc8a23] text-white text-sm font-bold rounded-lg transition-colors">
+                        New
+                      </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                      <div>
+                        <label class="block text-xs font-bold text-neutral-500 mb-1">First Name</label>
+                        <input type="text" formControlName="firstName" class="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm font-bold text-neutral-900 outline-none focus:border-[#d8972e]">
+                      </div>
+                      <div>
+                        <label class="block text-xs font-bold text-neutral-500 mb-1">Last Name</label>
+                        <input type="text" formControlName="lastName" class="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm font-bold text-neutral-900 outline-none focus:border-[#d8972e]">
+                      </div>
+                      <div>
+                        <label class="block text-xs font-bold text-neutral-500 mb-1">Phone</label>
+                        <input type="text" formControlName="phone" class="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm font-bold text-neutral-900 outline-none focus:border-[#d8972e]">
+                      </div>
+                      <div>
+                        <label class="block text-xs font-bold text-neutral-500 mb-1">Email</label>
+                        <input type="email" formControlName="email" class="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm font-bold text-neutral-900 outline-none focus:border-[#d8972e]">
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 3. Choose Location -->
+                  <div class="bg-white p-6 rounded-2xl border border-neutral-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] flex-1">
+                    <h3 class="text-base font-bold text-neutral-900 mb-4">3. Choose Location</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                      <!-- Location 1 -->
+                      <div (click)="form.patchValue({locationId: 2})" [class.border-[#d8972e]]="form.value.locationId === 2" [class.shadow-sm]="form.value.locationId === 2" class="border border-neutral-200 rounded-xl p-4 cursor-pointer flex gap-3 items-start transition-all bg-white">
+                        <div class="mt-0.5 w-5 h-5 rounded-full border-[3px] flex items-center justify-center shrink-0 transition-colors" [class.border-[#d8972e]]="form.value.locationId === 2" [class.border-neutral-200]="form.value.locationId !== 2">
+                          <div *ngIf="form.value.locationId === 2" class="w-2.5 h-2.5 bg-[#d8972e] rounded-full"></div>
+                        </div>
+                        <div>
+                          <div class="text-sm font-bold text-neutral-900">Constant Spring</div>
+                          <div class="text-xs text-neutral-500 mt-1 leading-relaxed">48 Constant Spring Road<br>Kingston, Jamaica</div>
+                        </div>
+                      </div>
+                      <!-- Location 2 -->
+                      <div (click)="form.patchValue({locationId: 1})" [class.border-[#d8972e]]="form.value.locationId === 1" [class.shadow-sm]="form.value.locationId === 1" class="border border-neutral-200 rounded-xl p-4 cursor-pointer flex gap-3 items-start transition-all bg-white">
+                        <div class="mt-0.5 w-5 h-5 rounded-full border-[3px] flex items-center justify-center shrink-0 transition-colors" [class.border-[#d8972e]]="form.value.locationId === 1" [class.border-neutral-200]="form.value.locationId !== 1">
+                          <div *ngIf="form.value.locationId === 1" class="w-2.5 h-2.5 bg-[#d8972e] rounded-full"></div>
+                        </div>
+                        <div>
+                          <div class="text-sm font-bold text-neutral-900">Mannings Hill</div>
+                          <div class="text-xs text-neutral-500 mt-1 leading-relaxed">63 Mannings Hill Rd<br>Kingston, Jamaica</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Right Column of Grid -->
+                <div class="flex flex-col gap-8 h-full">
+                  <!-- 2. Select Services -->
+                  <div class="bg-white p-6 rounded-2xl border border-neutral-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
+                    <h3 class="text-base font-bold text-neutral-900 mb-4">2. Select Services</h3>
+                    
+                    <div class="relative mb-4">
+                      <mat-icon class="absolute left-3 top-2.5 !text-[20px] text-neutral-400">search</mat-icon>
+                      <input type="text" [(ngModel)]="serviceSearchQuery" [ngModelOptions]="{standalone: true}" (input)="filterServicesList()"
+                             placeholder="Search services..."
+                             class="w-full pl-10 pr-3 py-2.5 border border-neutral-200 rounded-lg text-sm outline-none focus:border-[#d8972e]">
+                    </div>
+
+                    <div class="rounded-lg flex flex-col gap-2 max-h-[220px] overflow-y-auto custom-scrollbar pr-2">
+                      <div *ngFor="let s of filteredServices" (click)="selectService(s)"
+                           [class.bg-[#fbf7f0]]="form.value.serviceId === s.id"
+                           [class.border-[#d8972e]]="form.value.serviceId === s.id"
+                           [class.bg-white]="form.value.serviceId !== s.id"
+                           [class.border-neutral-100]="form.value.serviceId !== s.id"
+                           class="px-4 py-3 border rounded-xl flex items-center justify-between cursor-pointer hover:border-[#d8972e] transition-all">
+                        
+                        <div class="flex items-center gap-3 w-1/2">
+                          <div class="w-6 h-6 rounded-full text-white flex items-center justify-center shrink-0 shadow-sm" [class.bg-[#d8972e]]="form.value.serviceId === s.id" [class.bg-neutral-300]="form.value.serviceId !== s.id">
+                            <mat-icon class="!text-[14px] !w-[14px] !h-[14px]">star</mat-icon>
+                          </div>
+                          <div class="text-sm font-bold text-neutral-900 truncate">{{ s.name }}</div>
+                        </div>
+                        
+                        <div class="text-xs font-bold text-neutral-500 w-16 text-center">{{ s.duration_minutes }}m</div>
+                        <div class="text-sm font-bold text-neutral-900 w-24 text-right">JMD $ {{ s.price_jmd | number:'1.0-0' }}</div>
+                        
+                        <button type="button" class="w-7 h-7 rounded border border-neutral-200 flex items-center justify-center hover:bg-neutral-100 transition-colors ml-2 shrink-0">
+                          <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-neutral-600">add</mat-icon>
                         </button>
                       </div>
                     </div>
                   </div>
 
-                  <!-- Contact row -->
-                  <div>
-                    <label class="block text-xs font-bold text-neutral-600 mb-1">Phone</label>
-                    <input type="text" formControlName="phone" class="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm font-bold text-neutral-900 outline-none focus:border-[#cc8a23]">
-                  </div>
-                  <div>
-                    <label class="block text-xs font-bold text-neutral-600 mb-1">Email</label>
-                    <input type="email" formControlName="email" class="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm font-bold text-neutral-900 outline-none focus:border-[#cc8a23]">
-                  </div>
-                </div>
-              </div>
+                  <!-- 4. Date & Time -->
+                  <div class="bg-white p-6 rounded-2xl border border-neutral-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] flex-1 flex flex-col">
+                    <h3 class="text-base font-bold text-neutral-900 mb-4">4. Date & Time</h3>
+                    
+                    <div class="flex flex-col gap-6 flex-1">
+                      <!-- Calendar -->
+                      <div class="bg-[#0a0a0a] text-white rounded-xl p-5 shadow-lg flex flex-col">
+                        <div class="flex items-center justify-between mb-4">
+                          <button type="button" (click)="prevMonth()" class="text-neutral-400 hover:text-white transition-colors">
+                            <mat-icon class="!text-[20px] !w-[20px] !h-[20px]">chevron_left</mat-icon>
+                          </button>
+                          <div class="text-sm font-bold tracking-wide">{{ currentMonthName }}</div>
+                          <button type="button" (click)="nextMonth()" class="text-neutral-400 hover:text-white transition-colors">
+                            <mat-icon class="!text-[20px] !w-[20px] !h-[20px]">chevron_right</mat-icon>
+                          </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-7 gap-1 mb-2">
+                          <div *ngFor="let day of weekDays" class="text-[10px] font-bold text-neutral-400 text-center">{{ day }}</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-7 gap-y-2 gap-x-1 content-start">
+                          <button type="button" *ngFor="let day of calendarDays" 
+                                  (click)="selectDate(day.fullDate)"
+                                  [class.opacity-30]="!day.isCurrentMonth"
+                                  [class.bg-[#d8972e]]="form.value.date === day.fullDate"
+                                  [class.text-white]="form.value.date === day.fullDate"
+                                  [class.text-neutral-300]="form.value.date !== day.fullDate"
+                                  class="w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold hover:bg-neutral-800 transition-colors mx-auto">
+                            {{ day.date }}
+                          </button>
+                        </div>
+                      </div>
 
-              <!-- 2. Select Service -->
-              <div class="mb-5">
-                <h3 class="text-lg font-black text-neutral-900 mb-4">2. Select Service</h3>
-                
-                <div class="relative mb-4 max-w-sm">
-                  <mat-icon class="absolute left-3 top-2 !text-xl text-neutral-400">search</mat-icon>
-                  <input type="text" [(ngModel)]="serviceSearchQuery" [ngModelOptions]="{standalone: true}" (input)="filterServicesList()"
-                         placeholder="Search services..."
-                         class="w-full pl-10 pr-3 py-2 border border-neutral-300 rounded-md text-sm outline-none focus:border-[#cc8a23]">
-                </div>
-
-                <div class="flex flex-wrap gap-2 mb-4">
-                  <button type="button" *ngFor="let cat of categories" (click)="selectedCategory = cat; filterServicesList()"
-                          [class.bg-[#cc8a23]]="selectedCategory === cat" [class.text-white]="selectedCategory === cat"
-                          [class.border-transparent]="selectedCategory === cat"
-                          [class.bg-white]="selectedCategory !== cat" [class.text-neutral-700]="selectedCategory !== cat"
-                          class="px-4 py-1.5 border border-neutral-300 rounded-full text-xs font-bold transition-colors">
-                    {{ cat }}
-                  </button>
-                </div>
-
-                <div class="border border-neutral-200 rounded-lg overflow-hidden divide-y divide-neutral-100 max-h-[300px] overflow-y-auto custom-scrollbar">
-                  <div *ngFor="let s of filteredServices" (click)="selectService(s)"
-                       [class.bg-neutral-200]="form.value.serviceId === s.id"
-                       class="px-5 py-3 flex items-center justify-between cursor-pointer hover:bg-neutral-100 transition-colors">
-                    <div class="text-sm font-bold text-neutral-900 w-1/2">{{ s.name }}</div>
-                    <div class="text-sm font-bold text-neutral-600 w-1/4 text-center">{{ s.duration_minutes }}m</div>
-                    <div class="font-bold text-neutral-900 w-1/4 text-right">JMD $ {{ s.price_jmd | number:'1.0-0' }}</div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 3. Choose Location -->
-              <div class="mb-5">
-                <h3 class="text-lg font-black text-neutral-900 mb-1">3. Choose Location</h3>
-                <p class="text-sm text-neutral-600 mb-4">Select the location where this appointment will take place.</p>
-                
-                <div class="grid grid-cols-2 gap-4">
-                  <!-- Location 1 -->
-                  <div (click)="form.patchValue({locationId: 2})" [class.border-[#cc8a23]]="form.value.locationId === 2" class="border rounded-lg p-4 cursor-pointer flex gap-4 items-start transition-all">
-                    <div class="mt-1 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0" [class.border-[#cc8a23]]="form.value.locationId === 2" [class.border-neutral-300]="form.value.locationId !== 2">
-                      <div *ngIf="form.value.locationId === 2" class="w-2.5 h-2.5 bg-[#cc8a23] rounded-full"></div>
-                    </div>
-                    <div>
-                      <div class="text-sm font-bold text-neutral-900">Constant Spring</div>
-                      <div class="text-xs text-neutral-500 mt-1">48 Constant Spring Road<br>Kingston, Jamaica</div>
-                    </div>
-                  </div>
-                  <!-- Location 2 -->
-                  <div (click)="form.patchValue({locationId: 1})" [class.border-[#cc8a23]]="form.value.locationId === 1" class="border rounded-lg p-4 cursor-pointer flex gap-4 items-start transition-all">
-                    <div class="mt-1 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0" [class.border-[#cc8a23]]="form.value.locationId === 1" [class.border-neutral-300]="form.value.locationId !== 1">
-                      <div *ngIf="form.value.locationId === 1" class="w-2.5 h-2.5 bg-[#cc8a23] rounded-full"></div>
-                    </div>
-                    <div>
-                      <div class="text-sm font-bold text-neutral-900">Mannings Hill</div>
-                      <div class="text-xs text-neutral-500 mt-1">63 Mannings Hill Rd<br>Kingston, Jamaica</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 4. Date & Time -->
-              <div class="mb-5">
-                <h3 class="text-lg font-black text-neutral-900 mb-4">4. Date & Time</h3>
-                
-                <div class="flex gap-8">
-                  <!-- Date Picker Placeholder -->
-                  <div class="w-64 shrink-0">
-                    <h4 class="text-sm font-bold text-neutral-900 mb-2">1. Select Date</h4>
-                    <div class="bg-[#141716] text-white rounded-lg p-4 font-sans shadow-lg">
-                      <input type="date" formControlName="date" class="w-full bg-transparent text-white border-b border-neutral-700 pb-2 outline-none mb-4 font-bold [color-scheme:dark]">
-                      <div class="text-xs text-neutral-400 text-center mb-2">Use the input above to pick a date</div>
-                      <div class="flex justify-center mt-4 border-t border-neutral-700 pt-3 text-xs gap-4">
-                        <div class="flex items-center gap-1"><div class="w-3 h-3 rounded-full bg-[#cc8a23]"></div> Selected</div>
-                        <div class="flex items-center gap-1"><div class="w-3 h-3 rounded-full border border-white"></div> Available</div>
-                        <div class="flex items-center gap-1"><div class="w-3 h-3 rounded-full bg-neutral-500"></div> Booked</div>
+                      <!-- Time Select -->
+                      <div class="flex-1 mt-2">
+                        <div class="text-sm font-bold text-neutral-900 mb-3">Select Time</div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 max-h-[160px] overflow-y-auto custom-scrollbar pr-2">
+                          <button type="button" *ngFor="let slot of timeSlots" (click)="selectTimeSlot(slot)"
+                                  [class.bg-[#d8972e]]="form.value.time === convertTo24h(slot)" 
+                                  [class.text-white]="form.value.time === convertTo24h(slot)" 
+                                  [class.border-transparent]="form.value.time === convertTo24h(slot)"
+                                  [class.shadow-sm]="form.value.time === convertTo24h(slot)"
+                                  [class.bg-white]="form.value.time !== convertTo24h(slot)" 
+                                  [class.border-neutral-200]="form.value.time !== convertTo24h(slot)" 
+                                  [class.text-neutral-700]="form.value.time !== convertTo24h(slot)"
+                                  class="py-2 px-1 border rounded-lg text-xs font-bold transition-all text-center">
+                            {{ slot }}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
-
-                  <!-- Time Picker & Payment -->
-                  <div class="flex-1">
-                    <h4 class="text-sm font-bold text-neutral-900 mb-2">2. Select Time</h4>
-                    <div class="grid grid-cols-4 gap-3 mb-6">
-                      <button type="button" *ngFor="let slot of timeSlots" (click)="selectTimeSlot(slot)"
-                              [class.bg-[#cc8a23]]="form.value.time === convertTo24h(slot)" [class.text-white]="form.value.time === convertTo24h(slot)" [class.border-transparent]="form.value.time === convertTo24h(slot)"
-                              [class.bg-white]="form.value.time !== convertTo24h(slot)" [class.border-neutral-300]="form.value.time !== convertTo24h(slot)" [class.text-neutral-900]="form.value.time !== convertTo24h(slot)"
-                              class="py-2 border rounded-md text-sm font-bold transition-all text-center">
-                        {{ slot }}
-                      </button>
-                    </div>
-
-                    <h4 class="text-sm font-bold text-neutral-900 mb-2">Payment Method</h4>
-                    <div class="border border-[#cc8a23] rounded-md p-4 flex items-center gap-3">
-                      <div class="w-4 h-4 rounded-full border-[3px] border-[#cc8a23] flex items-center justify-center">
-                        <div class="w-1.5 h-1.5 bg-[#cc8a23] rounded-full"></div>
-                      </div>
-                      <mat-icon class="text-neutral-700 !text-xl">storefront</mat-icon>
-                      <span class="text-sm font-bold text-neutral-900">Pay in Person at Location</span>
-                    </div>
-                  </div>
                 </div>
-              </div>
 
+              </div>
             </form>
 
-            <!-- Bottom Action Footer (Static) -->
-            <div *ngIf="!success && !showResumePrompt" class="bg-white px-10 py-4 border-t border-neutral-200 flex items-center justify-between mt-auto">
-              <div class="text-sm text-neutral-400 font-bold">
-                Auto-Saved
+            <!-- RIGHT SIDE Appointment Summary -->
+            <div class="w-[320px] shrink-0 bg-[#fbf7f0] p-7 flex flex-col justify-between rounded-2xl relative shadow-md z-10">
+              
+              <div *ngIf="success" class="absolute inset-0 bg-white/95 backdrop-blur-sm z-20 flex flex-col items-center justify-center rounded-2xl text-center p-6">
+                <mat-icon class="!text-6xl text-emerald-500 mb-4">check_circle</mat-icon>
+                <h3 class="text-xl font-black text-neutral-900 mb-2">Booking Confirmed!</h3>
+                <p class="text-sm text-neutral-500">Your appointment has been successfully scheduled.</p>
               </div>
-              <div class="flex gap-4">
-                <button type="button" (click)="close.emit()" class="px-8 py-3 bg-white hover:bg-neutral-50 border border-neutral-300 text-neutral-600 font-bold text-sm rounded-md transition-colors tracking-wide">
-                  CANCEL
-                </button>
-                <button type="button" (click)="submit()" [disabled]="form.invalid || loading" class="px-10 py-3 bg-[#cc8a23] hover:bg-[#b57a1e] text-white font-bold text-sm rounded-md transition-colors tracking-wide disabled:opacity-50 flex items-center gap-2">
-                  <mat-icon *ngIf="loading" class="animate-spin !text-sm">refresh</mat-icon>
+
+              <div *ngIf="error" class="absolute top-4 left-4 right-4 bg-red-50 text-red-600 p-3 rounded-lg text-xs font-bold border border-red-100 shadow-sm z-20">
+                {{ error }}
+              </div>
+
+              <div>
+                <h3 class="text-[#d8972e] text-xs font-black tracking-widest mb-8">APPOINTMENT SUMMARY</h3>
+                
+                <div class="space-y-6">
+                  <!-- Treatment -->
+                  <div>
+                    <div class="text-[10px] text-neutral-500 font-bold tracking-widest uppercase mb-2">Treatment</div>
+                    <div class="text-base font-black text-neutral-900 mb-2 uppercase">{{ selectedServiceObj?.name || 'Select a service' }}</div>
+                    <div class="flex items-center justify-between text-sm font-bold mb-3">
+                      <div class="flex items-center gap-1.5 text-neutral-700">
+                        <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">schedule</mat-icon>
+                        {{ selectedServiceObj?.duration_minutes || 0 }} min
+                      </div>
+                      <div class="text-neutral-900">JMD $ {{ selectedServiceObj?.price_jmd || 0 | number:'1.0-0' }}</div>
+                    </div>
+                    <p class="text-xs text-neutral-700 leading-relaxed pb-6 border-b border-neutral-300">
+                      {{ selectedServiceObj?.description || 'Improves Blood Circulation, Reduces Cellulites While Promoting Lymphatic Drainage to Flush Toxins.' }}
+                    </p>
+                  </div>
+
+                  <!-- Location -->
+                  <div class="pb-6 border-b border-neutral-300">
+                    <div class="text-[10px] text-[#d8972e] font-bold tracking-widest uppercase mb-2">Location</div>
+                    <div class="text-sm font-black text-neutral-900 mb-1">
+                      {{ form.value.locationId === 2 ? 'Constant Spring' : 'Mannings Hill' }}
+                    </div>
+                    <div class="text-xs text-neutral-700 leading-relaxed">
+                      {{ form.value.locationId === 2 ? '48 Constant Spring Road' : '63 Mannings Hill Rd' }}<br>Kingston, Jamaica
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <div class="mt-8 flex flex-col gap-4">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs text-neutral-500 font-bold tracking-widest">TOTAL AMOUNT DUE</span>
+                  <span class="text-lg font-black text-[#d8972e]">JMD $ {{ totalJmd | number:'1.0-0' }}</span>
+                </div>
+
+                <button type="button" (click)="submit()" [disabled]="form.invalid || loading" 
+                        class="w-full py-3.5 bg-black hover:bg-neutral-800 text-white font-bold text-sm rounded-lg transition-colors tracking-widest disabled:opacity-50 flex items-center justify-center gap-2">
+                  <mat-icon *ngIf="loading" class="animate-spin !text-sm !w-4 !h-4">refresh</mat-icon>
                   BOOK NOW
                 </button>
-              </div>
-            </div>
-
-            <!-- Resume Draft Overlay -->
-            <div *ngIf="showResumePrompt" class="absolute inset-0 bg-white/95 backdrop-blur-sm z-50 flex items-center justify-center p-8">
-              <div class="text-center bg-white p-8 rounded-2xl shadow-2xl border border-neutral-200 max-w-md w-full">
-                <div class="w-20 h-20 rounded-full bg-amber-50 mx-auto mb-6 flex items-center justify-center text-[#cc8a23]">
-                  <mat-icon class="!text-4xl">bookmark_added</mat-icon>
-                </div>
-                <h3 class="text-2xl font-black text-neutral-900 mb-2">Unsaved Draft</h3>
-                <p class="text-sm font-bold text-neutral-500 mb-8">
-                  We found an unsaved draft from your last session. Would you like to resume it?
-                </p>
-                <div class="flex flex-col gap-3">
-                  <button type="button" (click)="resumeDraft()" class="w-full py-4 bg-[#cc8a23] hover:bg-[#b57a1e] text-white font-black text-sm rounded-xl transition-all tracking-wider">
-                    RESUME DRAFT
-                  </button>
-                  <button type="button" (click)="startNewBooking()" class="w-full py-4 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-bold text-sm rounded-xl transition-all tracking-wider">
-                    START NEW
-                  </button>
-                </div>
+                <button type="button" (click)="close.emit()" 
+                        class="w-full py-3.5 bg-transparent border-2 border-[#f0c586] hover:bg-[#d8972e]/10 text-[#d8972e] font-bold text-sm rounded-lg transition-colors tracking-widest">
+                  CANCEL
+                </button>
               </div>
             </div>
 
           </div>
-
-          <!-- RIGHT SIDE (25%) Appointment Summary -->
-          <div class="w-[30%] bg-[#0a0a0a] text-white p-10 flex flex-col justify-between">
-            <div>
-              <h3 class="text-[#cc8a23] text-sm font-bold tracking-wider mb-10">APPOINTMENT SUMMARY</h3>
-              
-              <div class="space-y-8">
-                <!-- Treatment -->
-                <div>
-                  <div class="text-[10px] text-neutral-400 font-bold tracking-widest uppercase mb-2">Treatment</div>
-                  <div class="text-lg font-bold mb-2 uppercase">{{ selectedServiceObj?.name || 'Select a service' }}</div>
-                  <div class="flex items-center gap-4 text-sm font-bold mb-4">
-                    <div class="flex items-center gap-1.5">
-                      <mat-icon class="!text-base !w-4 !h-4 text-neutral-400">schedule</mat-icon>
-                      {{ selectedServiceObj?.duration_minutes || 0 }} min
-                    </div>
-                    <div class="text-xs text-neutral-400 mt-0.5 ml-auto">JMD $ {{ selectedServiceObj?.price_jmd || 0 | number:'1.0-0' }}</div>
-                  </div>
-                  <p class="text-xs text-neutral-400 leading-relaxed pb-6 border-b border-neutral-800">
-                    {{ selectedServiceObj?.description || 'Improves Blood Circulation, Reduces Cellulites While Promoting Lymphatic Drainage to Flush Toxins.' }}
-                  </p>
-                </div>
-
-                <!-- Location -->
-                <div class="pb-6 border-b border-neutral-800">
-                  <div class="text-[10px] text-[#cc8a23] font-bold tracking-widest uppercase mb-2">Location</div>
-                  <div class="text-sm font-bold mb-1">
-                    {{ form.value.locationId === 2 ? 'Constant Spring' : 'Mannings Hill' }}
-                  </div>
-                  <div class="text-xs text-neutral-400 leading-relaxed">
-                    {{ form.value.locationId === 2 ? '48 Constant Spring Road' : '63 Mannings Hill Rd' }}<br>Kingston, Jamaica
-                  </div>
-                </div>
-
-                <!-- Guest Info -->
-                <div>
-                  <div class="text-[10px] text-[#cc8a23] font-bold tracking-widest uppercase mb-2">Guest Info</div>
-                  <div class="text-sm font-bold mb-1">
-                    {{ form.value.firstName || 'HHC' }} {{ form.value.lastName || 'Admin' }}
-                  </div>
-                  <div class="text-xs text-neutral-400">
-                    {{ form.value.email || 'admin@hhclaser.com' }}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="flex items-end justify-between border-t border-neutral-800 pt-6 mt-6">
-              <span class="text-sm text-neutral-300 font-bold">Total Amount Due</span>
-              <span class="text-xl font-bold text-[#cc8a23]">JMD $ {{ totalJmd | number:'1.0-0' }}</span>
-            </div>
-          </div>
-
         </div>
       </div>
     </div>
@@ -320,12 +315,20 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
   styles: [`
     .scrollbar-none::-webkit-scrollbar { display: none; }
     .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
-    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e5e5; border-radius: 4px; }
+    
+    .bg-dot-pattern {
+      background-image: radial-gradient(#d4d4d4 1px, transparent 1px);
+      background-size: 24px 24px;
+      background-color: #fafafa;
+    }
   `]
 })
 export class InternalBookingModalComponent implements OnInit {
+  @Input() initialDate: string = '';
+  @Input() initialTime: string = '';
   @Output() close = new EventEmitter<void>();
   
   form: FormGroup;
@@ -342,13 +345,18 @@ export class InternalBookingModalComponent implements OnInit {
 
   // Service listing items
   categories = ['All', 'Popular Services', 'Facial & Skin Treatments', 'Body & Wellness', 'Injectables & Aesthetics'];
-  selectedCategory = 'Popular Services';
+  selectedCategory = 'All';
   serviceSearchQuery = '';
   services: any[] = [];
   filteredServices: any[] = [];
 
   // Time navigation slots
-  timeSlots = ['09:30 AM', '10:00 AM', '10:11 AM', '10:30 AM', '11:00 AM'];
+  timeSlots = ['09:00 AM', '10:11 AM', '10:30 AM', '1:00 PM', '2:30 PM', '4:00 PM'];
+  
+  // Calendar properties
+  currentMonthDate = new Date();
+  weekDays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+  calendarDays: any[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -372,6 +380,14 @@ export class InternalBookingModalComponent implements OnInit {
   }
 
   ngOnInit() {
+    if (this.initialDate) {
+      this.form.patchValue({ date: this.initialDate });
+    }
+    if (this.initialTime) {
+      this.form.patchValue({ time: this.initialTime });
+    }
+    
+    this.generateCalendar();
     this.loadServices();
     this.loadDraft();
     
@@ -381,6 +397,69 @@ export class InternalBookingModalComponent implements OnInit {
         localStorage.setItem(this.DRAFT_KEY, JSON.stringify(val));
       }
     });
+  }
+
+  generateCalendar() {
+    this.calendarDays = [];
+    const year = this.currentMonthDate.getFullYear();
+    const month = this.currentMonthDate.getMonth();
+    
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPrevMonth = new Date(year, month, 0).getDate();
+    
+    // Previous month days
+    for (let i = firstDay - 1; i >= 0; i--) {
+      this.calendarDays.push({
+        date: daysInPrevMonth - i,
+        fullDate: this.formatDate(year, month - 1, daysInPrevMonth - i),
+        isCurrentMonth: false
+      });
+    }
+    
+    // Current month days
+    for (let i = 1; i <= daysInMonth; i++) {
+      this.calendarDays.push({
+        date: i,
+        fullDate: this.formatDate(year, month, i),
+        isCurrentMonth: true
+      });
+    }
+    
+    // Next month days to complete grid (42 days total for 6 rows)
+    const remainingDays = 42 - this.calendarDays.length;
+    for (let i = 1; i <= remainingDays; i++) {
+      this.calendarDays.push({
+        date: i,
+        fullDate: this.formatDate(year, month + 1, i),
+        isCurrentMonth: false
+      });
+    }
+  }
+
+  formatDate(year: number, month: number, day: number): string {
+    const d = new Date(year, month, day);
+    const m = (d.getMonth() + 1).toString().padStart(2, '0');
+    const dayStr = d.getDate().toString().padStart(2, '0');
+    return `${d.getFullYear()}-${m}-${dayStr}`;
+  }
+
+  prevMonth() {
+    this.currentMonthDate = new Date(this.currentMonthDate.getFullYear(), this.currentMonthDate.getMonth() - 1, 1);
+    this.generateCalendar();
+  }
+
+  nextMonth() {
+    this.currentMonthDate = new Date(this.currentMonthDate.getFullYear(), this.currentMonthDate.getMonth() + 1, 1);
+    this.generateCalendar();
+  }
+
+  selectDate(fullDate: string) {
+    this.form.patchValue({ date: fullDate });
+  }
+
+  get currentMonthName(): string {
+    return this.currentMonthDate.toLocaleString('default', { month: 'long', year: 'numeric' });
   }
 
   loadServices() {
