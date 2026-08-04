@@ -179,14 +179,14 @@ export class AdminBookingsComponent implements OnInit {
         };
       });
     } else {
-      // Default sample appointments matching prompt specifications
+      // Default sample appointments matching prompt & reference image specifications
       this.calendarEvents = [
         {
           id: 'sample-1',
-          patient: 'Sarah Jenkins',
+          patient: 'James Scott',
           title: 'Laser Hair Removal',
           date: todayStr,
-          startTime: '09:00',
+          startTime: '09:30',
           durationMinutes: 45,
           status: 'confirmed',
           paymentStatus: 'Paid Online', // Deposit Paid

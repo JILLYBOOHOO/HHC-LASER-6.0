@@ -2,7 +2,7 @@
   
   <!-- Calendar Header (Days Mon-Sun) -->
   <div class="flex border-b border-slate-200 bg-white sticky top-0 z-40 shadow-xs">
-    <div class="w-[70px] shrink-0 border-r border-slate-200 flex items-center justify-center bg-slate-50">
+    <div class="w-[75px] shrink-0 border-r border-slate-200 flex items-center justify-center bg-slate-50">
       <mat-icon class="!text-[18px] text-slate-400">schedule</mat-icon>
     </div>
     <div class="flex-1 grid grid-cols-7">
@@ -30,17 +30,17 @@
       
       <!-- Left Time Column (8:00 AM - 5:00 PM) -->
       <div class="time-col flex flex-col pt-0 pb-6">
-        <div *ngFor="let h of hours" class="h-[76px] relative border-b border-slate-300">
-          <span class="absolute -top-[8px] right-2 text-[10px] font-extrabold text-slate-700">
+        <div *ngFor="let h of hours" class="h-[112px] relative border-b border-slate-300">
+          <span class="absolute -top-[9px] right-2 text-[11px] font-extrabold text-slate-700">
             {{ h > 12 ? h - 12 : h }}:00 {{ h >= 12 ? 'PM' : 'AM' }}
           </span>
-          <span class="absolute top-[11px] right-2 text-[8px] font-semibold text-slate-300">
+          <span class="absolute top-[19px] right-2 text-[9px] font-semibold text-slate-300">
             {{ h > 12 ? h - 12 : h }}:15
           </span>
-          <span class="absolute top-[30px] right-2 text-[9px] font-bold text-slate-400">
+          <span class="absolute top-[47px] right-2 text-[10px] font-bold text-slate-400">
             {{ h > 12 ? h - 12 : h }}:30
           </span>
-          <span class="absolute top-[49px] right-2 text-[8px] font-semibold text-slate-300">
+          <span class="absolute top-[75px] right-2 text-[9px] font-semibold text-slate-300">
             {{ h > 12 ? h - 12 : h }}:45
           </span>
         </div>
@@ -50,17 +50,17 @@
       <div *ngFor="let day of days" class="day-col pt-0 pb-6 relative" [class.bg-amber-50]="day.isToday">
         
         <!-- Horizontal Grid Lines for 15-min Intervals -->
-        <div *ngFor="let h of hours" class="h-[76px] border-b border-slate-300">
-          <div class="h-[19px] border-b border-dashed border-slate-100"></div>
-          <div class="h-[19px] border-b border-dashed border-slate-100"></div>
-          <div class="h-[19px] border-b border-dashed border-slate-100"></div>
-          <div class="h-[19px]"></div>
+        <div *ngFor="let h of hours" class="h-[112px] border-b border-slate-300">
+          <div class="h-[28px] border-b border-dashed border-slate-100"></div>
+          <div class="h-[28px] border-b border-dashed border-slate-100"></div>
+          <div class="h-[28px] border-b border-dashed border-slate-100"></div>
+          <div class="h-[28px]"></div>
         </div>
 
         <!-- Appointment Cards for this Day -->
         <ng-container *ngFor="let ev of getEventsForDay(day.date)">
           
-          <div class="event-card"
+          <div class="event-card relative"
                [ngClass]="getEventClass(ev)"
                [ngStyle]="getEventStyle(ev)"
                (click)="onEventClick(ev)"
@@ -68,44 +68,47 @@
                [matMenuTriggerFor]="rightClickMenu"
                [matMenuTriggerData]="{event: ev}">
             
+            <!-- Left Accent Status Bar -->
+            <div class="absolute left-0 top-0 bottom-0 w-[4px] rounded-l-xl" [ngClass]="getLeftBarClass(ev)"></div>
+
             <!-- Blocked Time Card -->
-            <div *ngIf="ev.isBlockTime; else appointmentTpl" class="flex flex-col h-full justify-center items-center opacity-80 text-center px-1">
-              <span class="text-xs font-black tracking-tight text-slate-800">🚫 {{ ev.title }}</span>
-              <span class="text-[9px] font-bold text-slate-500 mt-0.5" *ngIf="ev.durationMinutes >= 30">{{ ev.startTime }} ({{ ev.durationMinutes }}m)</span>
+            <div *ngIf="ev.isBlockTime; else appointmentTpl" class="flex flex-col h-full justify-center items-center opacity-80 text-center px-2 py-1">
+              <span class="text-xs font-black tracking-tight text-slate-800">🔒 {{ ev.title }}</span>
+              <span class="text-[10px] font-bold text-slate-500 mt-0.5">{{ getFormattedStartTime(ev.startTime) }} ({{ ev.durationMinutes }}m)</span>
             </div>
 
-            <!-- Standard Appointment Card -->
+            <!-- Standard Appointment Card Matching Reference Image Exactly -->
             <ng-template #appointmentTpl>
-              <div class="flex flex-col h-full justify-between font-sans text-slate-900 overflow-hidden">
-                <div>
-                  <!-- Time & Status Tag Badge -->
-                  <div class="flex items-center justify-between text-[10px] font-bold mb-0.5 gap-1">
-                    <span class="font-black text-slate-900 tracking-tight">{{ getFormattedTime(ev.startTime, ev.durationMinutes) }}</span>
-                    <span *ngIf="ev.durationMinutes >= 30" class="text-[8.5px] px-1.5 py-0.5 rounded font-black uppercase tracking-wider shrink-0 border" [ngClass]="getStatusBadgeClass(ev.status)">
-                      {{ getStatusTagIcon(ev.status) }} {{ getStatusLabel(ev.status) }}
-                    </span>
-                  </div>
-
-                  <!-- Patient Name (Bold) -->
-                  <div class="font-black text-xs text-slate-900 truncate leading-snug">
-                    {{ ev.patient || 'Patient' }}
-                  </div>
-
-                  <!-- Service Name -->
-                  <div class="text-[10.5px] font-semibold text-slate-700 truncate leading-tight mt-0.5">
-                    {{ getServiceIcon(ev.title) }} {{ ev.title }}
-                  </div>
+              <div class="flex flex-col h-full justify-start pl-3 pr-2 py-2 font-sans space-y-1 overflow-hidden">
+                
+                <!-- 1. Start Time -->
+                <div class="text-[11px] font-extrabold tracking-tight" [ngClass]="getTimeColorClass(ev)">
+                  {{ getFormattedStartTime(ev.startTime) }}
                 </div>
 
-                <!-- Footer: Duration & Payment Status -->
-                <div class="flex items-center justify-between gap-1 text-[9.5px] font-bold border-t border-slate-200/80 pt-1 mt-auto shrink-0 overflow-hidden" *ngIf="ev.durationMinutes >= 30">
-                  <span class="flex items-center gap-0.5 text-slate-700 font-extrabold shrink-0">
-                    ⏱ {{ ev.durationMinutes }}m
-                  </span>
-                  <span class="text-slate-800 font-extrabold truncate text-right">
-                    {{ getPaymentDisplay(ev.paymentStatus) }}
-                  </span>
+                <!-- 2. Patient Name (Bold) -->
+                <div class="font-black text-[13px] text-slate-900 truncate leading-snug tracking-tight">
+                  {{ ev.patient || 'Patient' }}
                 </div>
+
+                <!-- 3. Service Name with Icon -->
+                <div class="flex items-center gap-1.5 text-[11px] font-semibold text-slate-800 truncate">
+                  <span class="text-[11px] shrink-0">{{ getServiceIcon(ev.title) }}</span>
+                  <span class="truncate">{{ ev.title }}</span>
+                </div>
+
+                <!-- 4. Duration -->
+                <div class="flex items-center gap-1.5 text-[11px] font-medium text-slate-700">
+                  <span class="text-[11px] shrink-0">🕒</span>
+                  <span>{{ ev.durationMinutes }}m</span>
+                </div>
+
+                <!-- 5. Payment Status or Appointment Status -->
+                <div class="flex items-center gap-1.5 text-[11px] font-black text-slate-900 truncate">
+                  <span class="text-[11px] shrink-0">{{ getStatusOrPaymentIcon(ev) }}</span>
+                  <span class="truncate">{{ getStatusOrPaymentLabel(ev) }}</span>
+                </div>
+
               </div>
             </ng-template>
 
