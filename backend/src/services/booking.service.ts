@@ -217,7 +217,7 @@ export class BookingService {
       try {
         const user = await executeQueryOne<any>('SELECT first_name, email FROM users WHERE id = ?', [customerId]);
         if (user && user.email) {
-          const serviceNames = services.map(s => s.name || s.title || `Service ID: ${s.id}`);
+          const serviceNames = services.map(s => s.name || (s as any).title || `Service ID: ${s.id}`);
           // Send asynchronously
           EmailService.sendBookingConfirmation(
             user.email,
@@ -327,7 +327,7 @@ export class BookingService {
       try {
         const user = await executeQueryOne<any>('SELECT first_name, email FROM users WHERE id = ?', [customerId]);
         if (user && user.email) {
-          const serviceNames = services.map(s => s.name || s.title || `Service ID: ${s.id}`);
+          const serviceNames = services.map(s => s.name || (s as any).title || `Service ID: ${s.id}`);
           // Send asynchronously
           EmailService.sendBookingConfirmation(
             user.email,
