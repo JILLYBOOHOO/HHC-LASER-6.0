@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
@@ -15,16 +15,18 @@ import { MatIconModule } from '@angular/material/icon';
           <mat-icon>error_outline</mat-icon>
         </div>
         <h1>Payment Failed</h1>
-        <p class="subtitle">Unfortunately, your payment could not be processed.</p>
+        <p class="subtitle">{{ errorMessage }}</p>
         
         <div class="details-box">
-          <p class="note">Your booking is not confirmed yet. No charges were applied. Please try a different payment method or verify your card details.</p>
+          <p class="note">Your booking is not confirmed yet. No charges were applied.</p>
         </div>
         
         <div class="actions">
-          <button mat-flat-button color="primary" routerLink="/customer/book">
-            Retry Booking
-          </button>
+          @if (isSoftDecline) {
+            <button mat-flat-button color="primary" (click)="retryPayment()">
+              Try Again
+            </button>
+          }
           <button mat-stroked-button routerLink="/contact">
             Contact Support
           </button>
@@ -93,4 +95,54 @@ import { MatIconModule } from '@angular/material/icon';
     }
   `]
 })
-export class PaymentFailedComponent {}
+export class PaymentFailedComponent implements OnInit {
+  errorMessage: string = 'Unfortunately, your payment could not be processed.';
+  isSoftDecline: boolean = true;
+  approvalCode: string | null = null;
+  responseCode: string | null = null;
+
+  // Fiserv Response Codes Dictionary
+  // Common codes mapping severity
+  private responseCodeMap: Record<string, { severity: 'Soft' | 'Hard', msg: string }> = {
+    '14': { severity: 'Soft', msg: 'Invalid Account Number' },
+    '41': { severity: 'Hard', msg: 'Lost Card - Pick up (fraud account)' },
+    '43': { severity: 'Hard', msg: 'Stolen Card - Pick up (fraud account)' },
+    '51': { severity: 'Soft', msg: 'Insufficient funds' },
+    '54': { severity: 'Soft', msg: 'Expired Card' },
+    '57': { severity: 'Hard', msg: 'Transaction not permitted to Cardholder' },
+    '61': { severity: 'Soft', msg: 'Exceeds withdrawal amount limit' },
+    '65': { severity: 'Soft', msg: 'Exceeds withdrawal frequency limit' },
+    '82': { severity: 'Soft', msg: 'Incorrect CVV' },
+  };
+
+  constructor(private route: ActivatedRoute, private router: Router) {}
+
+  ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      this.responseCode = params['responseCode'] || null;
+      this.approvalCode = params['approvalCode'] || null;
+
+      if (this.responseCode) {
+        const errorInfo = this.responseCodeMap[this.responseCode];
+        
+        if (errorInfo) {
+          if (errorInfo.severity === 'Soft') {
+             this.errorMessage = `There was an issue with your card: ${errorInfo.msg}. Please try again.`;
+             this.isSoftDecline = true;
+          } else {
+             this.errorMessage = `Your transaction was declined by the issuer: ${errorInfo.msg}. Please contact your bank.`;
+             this.isSoftDecline = false;
+          }
+        } else {
+          // If code not in dictionary but we got a response code
+          this.errorMessage = `Payment declined (Code: ${this.responseCode}). Please try a different payment method.`;
+          this.isSoftDecline = true; // Default to allowing retry
+        }
+      }
+    });
+  }
+
+  retryPayment() {
+    this.router.navigate(['/customer/book']);
+  }
+}

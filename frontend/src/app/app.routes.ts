@@ -24,6 +24,7 @@ export const routes: Routes = [
         path: 'services/:slug',
         loadComponent: () => import('./features/public/service-detail/service-detail.component')
           .then(m => m.ServiceDetailComponent),
+        title: 'Service Detail — HHC LASER Jamaica',
       },
       {
         path: 'gallery',

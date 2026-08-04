@@ -59,7 +59,10 @@ app.use(helmet({
 const allowedOrigins = env.ALLOWED_ORIGINS.split(',').map(o => o.trim());
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    // No Origin = same-origin / server-to-server.
+    // Origin "null" (literal string) = browser form POST from opaque origins
+    // (Fiserv/3DS ACS return pages). Must allow payment success/fail callbacks.
+    if (!origin || origin === 'null' || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error(`CORS: Origin not allowed — ${origin}`));

@@ -156,15 +156,24 @@ export class ServicesComponent implements OnInit {
   filteredServices = computed(() => {
     const catId = this.selectedCategoryId();
     const query = this.searchQuery().toLowerCase().trim();
+    const liveOrder = new Map(treatments.map((t, index) => [t.id!, index]));
 
-    return this.services().filter(s => {
-      const matchesCat = !catId || s.category_id === catId;
-      const matchesSearch = !query || 
-        s.name.toLowerCase().includes(query) || 
-        (s.short_description && s.short_description.toLowerCase().includes(query)) ||
-        (s.description && s.description.toLowerCase().includes(query));
-      return matchesCat && matchesSearch;
-    });
+    return this.services()
+      .filter((s) => {
+        const matchesCat = !catId || s.category_id === catId;
+        const matchesSearch =
+          !query ||
+          s.name.toLowerCase().includes(query) ||
+          (s.short_description && s.short_description.toLowerCase().includes(query)) ||
+          (s.description && s.description.toLowerCase().includes(query));
+        return matchesCat && matchesSearch;
+      })
+      .sort((a, b) => {
+        const ai = liveOrder.has(a.id) ? liveOrder.get(a.id)! : Number.MAX_SAFE_INTEGER;
+        const bi = liveOrder.has(b.id) ? liveOrder.get(b.id)! : Number.MAX_SAFE_INTEGER;
+        if (ai !== bi) return ai - bi;
+        return (a.sort_order ?? 0) - (b.sort_order ?? 0) || a.id - b.id;
+      });
   });
 
   ngOnInit() {

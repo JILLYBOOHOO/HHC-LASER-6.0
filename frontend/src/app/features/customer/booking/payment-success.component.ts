@@ -69,8 +69,8 @@ export class PaymentSuccessComponent implements OnInit {
       if (params['oid'] || params['transaction_id']) {
         this.transactionId.set(params['oid'] || params['transaction_id']);
       }
-      if (params['approval_code']) {
-        this.approvalCode.set(params['approval_code']);
+      if (params['approvalCode'] || params['approval_code']) {
+        this.approvalCode.set(params['approvalCode'] || params['approval_code']);
       }
     });
   }

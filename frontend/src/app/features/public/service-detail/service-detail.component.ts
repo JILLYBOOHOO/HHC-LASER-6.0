@@ -5,13 +5,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { ApiService } from '../../../core/services/api.service';
 import { Service } from '../../../core/models/models';
+import { treatments } from '../../../core/data/services.data';
 
 @Component({
   selector: 'app-service-detail',
   standalone: true,
   imports: [CommonModule, RouterModule, MatButtonModule, MatIconModule],
   template: `
-    <div class="pt-4 pb-16 min-h-screen" style="background: var(--color-cream)">
+    <div class="pt-24 pb-16 min-h-screen" style="background: var(--color-cream, #faf7f2)">
       @if (loading()) {
         <div class="flex justify-center items-center py-32">
           <mat-icon class="animate-spin text-gold-500 !w-12 !h-12 !text-5xl">refresh</mat-icon>
@@ -47,7 +48,7 @@ import { Service } from '../../../core/models/models';
                   <p class="whitespace-pre-wrap">{{ service()?.description || service()?.short_description }}</p>
                 </div>
 
-                <a routerLink="/customer/book" [queryParams]="{ serviceId: service()?.id }"
+                <a routerLink="/customer/book" [queryParams]="{ service: service()?.id }"
                    mat-flat-button class="!bg-black !text-white !h-14 !text-lg !rounded-xl w-full hover:!bg-gold-600 transition-colors">
                   Book This Treatment
                 </a>
@@ -55,7 +56,6 @@ import { Service } from '../../../core/models/models';
             </div>
           </div>
 
-          <!-- What to Expect Section -->
           <div class="mb-16">
             <div class="bg-white rounded-3xl p-8 md:p-10 shadow-lg border border-cream-200">
               <h3 class="font-heading font-bold text-black mb-6 text-2xl text-center md:text-left">What to Expect</h3>
@@ -79,32 +79,43 @@ import { Service } from '../../../core/models/models';
               </div>
             </div>
           </div>
-          
-          <!-- Treatment Gallery Section -->
+
           @if (galleryImages().length > 0) {
-            <div class="mt-8">
+            <div class="mt-8 mb-8">
               <div class="text-center mb-10">
-                <span class="section-label" style="color: var(--gold);">RESULTS & PROOF</span>
+                <span class="section-label" style="color: var(--gold, #d4a359);">RESULTS &amp; PROOF</span>
                 <div class="divider-gold mx-auto"></div>
                 <h2 class="mt-4 font-heading text-3xl md:text-4xl text-black">Treatment Gallery</h2>
-                <p class="mt-3 text-neutral-500 text-sm">Real results from our actual clients.</p>
+                <p class="mt-3 text-neutral-500 text-sm">
+                  {{ galleryImages().length }} media item{{ galleryImages().length === 1 ? '' : 's' }} from real client results.
+                </p>
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                @for (item of galleryImages(); track $index) {
-                  <div class="aspect-square rounded-2xl overflow-hidden border border-black/10 shadow-sm hover:shadow-md transition-shadow">
-                    @if (item.media_type === 'video') {
-                      <video [src]="item.video_url || item.url" controls playsinline class="w-full h-full object-cover bg-black"></video>
-                    } @else if (item.media_type === 'image' || item.image_url) {
-                      <img loading="lazy" [src]="item.image_url || item.url" alt="Treatment Result" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                @for (item of galleryImages(); track trackGalleryItem(item, $index)) {
+                  <div class="aspect-square rounded-2xl overflow-hidden border border-black/10 shadow-sm bg-black relative">
+                    @if (isVideo(item)) {
+                      <video
+                        [src]="videoSrc(item)"
+                        controls
+                        playsinline
+                        preload="metadata"
+                        [attr.poster]="posterSrc(item) || null"
+                        class="absolute inset-0 w-full h-full object-contain bg-black"
+                        (error)="onMediaError($event, item)">
+                      </video>
                     } @else {
-                      <img loading="lazy" [src]="item" alt="Treatment Result" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                      <img
+                        loading="lazy"
+                        [src]="imageSrc(item)"
+                        alt="Treatment Result"
+                        class="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                        (error)="onMediaError($event, item)" />
                     }
                   </div>
                 }
               </div>
             </div>
           }
-          
         </div>
       } @else {
         <div class="text-center py-32">
@@ -127,33 +138,106 @@ export class ServiceDetailComponent implements OnInit {
   galleryImages = computed(() => {
     const s = this.service();
     if (!s || !s.gallery_images) return [];
-    if (Array.isArray(s.gallery_images)) return s.gallery_images;
-    try {
-      const parsed = JSON.parse(s.gallery_images);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (e) {
-      return [];
+
+    let items: any[] = [];
+    if (Array.isArray(s.gallery_images)) {
+      items = s.gallery_images as any[];
+    } else if (typeof s.gallery_images === 'string') {
+      try {
+        const parsed = JSON.parse(s.gallery_images);
+        items = Array.isArray(parsed) ? parsed : [];
+      } catch {
+        items = [];
+      }
+    } else if (typeof s.gallery_images === 'object') {
+      // Postgres/json edge case: object map instead of array
+      items = Object.values(s.gallery_images as Record<string, unknown>);
     }
+
+    return items
+      .filter(Boolean)
+      .sort((a, b) => (a?.sort_order ?? 0) - (b?.sort_order ?? 0) || (a?.id ?? 0) - (b?.id ?? 0));
   });
 
   ngOnInit() {
-    this.route.paramMap.subscribe(params => {
+    this.route.paramMap.subscribe((params) => {
       const slug = params.get('slug');
       if (!slug) {
         this.loading.set(false);
+        this.service.set(null);
         return;
       }
       this.loading.set(true);
       this.api.getServiceBySlug(slug).subscribe({
-        next: res => {
-          this.service.set(res.data ?? null);
+        next: (res) => {
+          if (res?.data) {
+            this.service.set(res.data);
+          } else {
+            this.service.set(this.fallbackFromCatalog(slug));
+          }
           this.loading.set(false);
         },
         error: () => {
-          this.service.set(null);
+          this.service.set(this.fallbackFromCatalog(slug));
           this.loading.set(false);
-        }
+        },
       });
     });
+  }
+
+  private fallbackFromCatalog(slugOrId: string): Service | null {
+    const asId = Number(slugOrId);
+    const match = treatments.find(
+      (t) =>
+        (t as any).slug === slugOrId ||
+        (!Number.isNaN(asId) && t.id === asId) ||
+        this.slugify(t.name || '') === slugOrId
+    );
+    return (match as Service) || null;
+  }
+
+  private slugify(name: string): string {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+  }
+
+  trackGalleryItem(item: any, index: number): string | number {
+    return item?.id ?? item?.video_url ?? item?.image_url ?? index;
+  }
+
+  isVideo(item: any): boolean {
+    if (!item || typeof item === 'string') {
+      return typeof item === 'string' && /\.(mp4|webm|mov)(\?|$)/i.test(item);
+    }
+    if (item.media_type === 'video') return true;
+    if (item.video_url) return true;
+    const url = String(item.image_url || item.url || '');
+    return /\.(mp4|webm|mov)(\?|$)/i.test(url);
+  }
+
+  videoSrc(item: any): string {
+    if (typeof item === 'string') return item;
+    return item?.video_url || item?.url || item?.image_url || '';
+  }
+
+  posterSrc(item: any): string | null {
+    if (!item || typeof item === 'string') return null;
+    const poster = item.poster_url || item.thumbnail_url;
+    if (poster && !/\.(mp4|webm|mov)(\?|$)/i.test(poster)) return poster;
+    // image_url is often the mp4 itself for these galleries — don't use as poster
+    const img = item.image_url;
+    if (img && !/\.(mp4|webm|mov)(\?|$)/i.test(img)) return img;
+    return null;
+  }
+
+  imageSrc(item: any): string {
+    if (typeof item === 'string') return item;
+    return item?.image_url || item?.url || '';
+  }
+
+  onMediaError(event: Event, item: any) {
+    console.warn('Gallery media failed to load', this.videoSrc(item) || this.imageSrc(item), event);
   }
 }

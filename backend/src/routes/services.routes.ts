@@ -4,6 +4,40 @@ import { successResponse } from '../models/types';
 
 const router = Router();
 
+/** Load live gallery map once (keyed by service id). */
+function loadLiveGalleries(): Record<string, unknown[]> {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const fs = require('fs');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const path = require('path');
+    const galleriesPath = path.join(__dirname, '../../../live_galleries.json');
+    if (fs.existsSync(galleriesPath)) {
+      return JSON.parse(fs.readFileSync(galleriesPath, 'utf8'));
+    }
+  } catch (e) {
+    console.error('Error reading live_galleries.json', e);
+  }
+  return {};
+}
+
+const LIVE_GALLERIES = loadLiveGalleries();
+
+function attachGalleryImages<T extends { id?: number; gallery_images?: unknown }>(service: T): T {
+  const existing = service.gallery_images;
+  const hasExisting =
+    (Array.isArray(existing) && existing.length > 0) ||
+    (typeof existing === 'string' && existing.trim().length > 2);
+
+  if (hasExisting) return service;
+
+  const fromFile = service.id != null ? LIVE_GALLERIES[String(service.id)] : undefined;
+  if (fromFile?.length) {
+    return { ...service, gallery_images: fromFile };
+  }
+  return service;
+}
+
 const FALLBACK_SERVICES = [
   {
     "id": 55,
@@ -622,7 +656,7 @@ router.get('/', async (req, res) => {
       sql += ' AND s.is_featured = true';
     }
     
-    sql += ' ORDER BY sc.sort_order ASC, s.sort_order ASC';
+    sql += ' ORDER BY s.sort_order ASC, s.id ASC';
     
     const services = await executeQuery(sql, params);
     if (services && services.length > 0) {
@@ -635,7 +669,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/services/categories  — list categories
+// GET /api/services/categories  — must be registered before /:slug
 router.get('/categories', async (_req, res, next) => {
   try {
     const categories = await executeQuery(
@@ -649,46 +683,29 @@ router.get('/categories', async (_req, res, next) => {
 router.get('/:slug', async (req, res, next) => {
   try {
     const slug = req.params['slug'];
-    // Let's also support fetching by ID just in case
     const isId = !isNaN(Number(slug));
-    
+
     const sql = `
       SELECT s.*, sc.name as category_name, sc.slug as category_slug
       FROM services s
       JOIN service_categories sc ON sc.id = s.category_id
-      WHERE (s.slug = $1 OR s.id = $2) AND s.is_active = true
+      WHERE (s.slug = ? OR s.id = ?) AND s.is_active = true
       LIMIT 1
     `;
-    
-    let service = await executeQueryOne(sql, [slug, isId ? Number(slug) : 0]);
-    
-    if (!service) {
-      // Fallback to memory array if DB doesn't have it
-      const fallbackMatch = FALLBACK_SERVICES.find(s => (s as any).slug === slug || (isId && s.id === Number(slug)));
-      if (fallbackMatch) {
-        let galleryStr = null;
-        try {
-          const fs = require('fs');
-          const path = require('path');
-          const galleriesPath = path.join(__dirname, '../../../live_galleries.json');
-          if (fs.existsSync(galleriesPath)) {
-            const allGalleries = JSON.parse(fs.readFileSync(galleriesPath, 'utf8'));
-            if (allGalleries[fallbackMatch.id]) {
-              galleryStr = JSON.stringify(allGalleries[fallbackMatch.id]);
-            }
-          }
-        } catch (e) {
-          console.error('Error reading live_galleries.json', e);
-        }
 
-        service = {
-          ...fallbackMatch,
-          gallery_images: galleryStr
-        };
+    let service = await executeQueryOne(sql, [slug, isId ? Number(slug) : 0]);
+
+    if (!service) {
+      const fallbackMatch = FALLBACK_SERVICES.find(
+        (s) => (s as any).slug === slug || (isId && s.id === Number(slug))
+      );
+      if (fallbackMatch) {
+        service = { ...fallbackMatch } as any;
       }
     }
-    
+
     if (service) {
+      service = attachGalleryImages(service);
       res.json(successResponse(service));
     } else {
       res.status(404).json({ error: 'Service not found' });
