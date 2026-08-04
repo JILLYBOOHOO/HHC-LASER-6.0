@@ -9,7 +9,7 @@ const router = Router();
 router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
     const rows = await executeQuery(
-      'SELECT id, section_type, display_order, is_active, config_json FROM homepage_sections WHERE is_active = TRUE ORDER BY display_order ASC'
+      'SELECT id, section_type, display_order, is_active, config_json FROM homepage_sections WHERE is_active = 1 ORDER BY display_order ASC'
     );
     res.json({ success: true, data: rows });
   } catch (error) {

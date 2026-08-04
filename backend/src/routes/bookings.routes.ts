@@ -250,7 +250,7 @@ async function normalizeAdminBookingPayload(req: Request, res: Response, next: N
 // Admin can create bookings for customers
 router.post('/admin',
   authenticate,
-  requireRole('admin', 'manager', 'owner'),
+  requireRole('admin', 'manager', 'owner', 'specialist'),
   (req: Request, res: Response, next: NextFunction) => { normalizeAdminBookingPayload(req, res, next); },
   [
     body('customer_user_id').isInt({ min: 1 }).withMessage('customer_user_id is required'),

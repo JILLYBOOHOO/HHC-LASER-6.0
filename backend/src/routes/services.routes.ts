@@ -687,7 +687,7 @@ router.get("/", async (req, res) => {
       SELECT s.*, sc.name as category_name, sc.slug as category_slug
       FROM services s
       JOIN service_categories sc ON sc.id = s.category_id
-      WHERE s.is_active = true
+      WHERE s.is_active = 1
     `;
     const params: any[] = [];
 
@@ -696,7 +696,7 @@ router.get("/", async (req, res) => {
       params.push(categoryId);
     }
     if (isFeatured === "true") {
-      sql += " AND s.is_featured = true";
+      sql += " AND s.is_featured = 1";
     }
 
     sql += " ORDER BY sc.sort_order ASC, s.sort_order ASC";
@@ -723,7 +723,7 @@ router.get("/:slug", async (req, res, next) => {
       SELECT s.*, sc.name as category_name, sc.slug as category_slug
       FROM services s
       JOIN service_categories sc ON sc.id = s.category_id
-      WHERE (s.slug = $1 OR s.id = $2) AND s.is_active = true
+      WHERE (s.slug = $1 OR s.id = $2) AND s.is_active = 1
       LIMIT 1
     `;
 
@@ -866,7 +866,7 @@ router.delete("/:id", async (req, res, next) => {
 router.get("/categories", async (_req, res, next) => {
   try {
     const categories = await executeQuery(
-      "SELECT * FROM service_categories WHERE is_active = true ORDER BY sort_order ASC",
+      "SELECT * FROM service_categories WHERE is_active = 1 ORDER BY sort_order ASC",
     );
     res.json(successResponse(categories));
   } catch (e) {
@@ -881,7 +881,7 @@ router.get("/:slug", async (req, res, next) => {
       `SELECT s.*, sc.name as category_name
        FROM services s
        JOIN service_categories sc ON sc.id = s.category_id
-       WHERE s.slug = ? AND s.is_active = true`,
+       WHERE s.slug = ? AND s.is_active = 1`,
       [req.params["slug"]],
     );
     if (!service) {

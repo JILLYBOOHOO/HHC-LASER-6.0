@@ -106,7 +106,7 @@ export class BookingService {
 
     const placeholders = serviceIds.map(() => '?').join(',');
     const services = await executeQuery<Service>(
-      `SELECT * FROM services WHERE id IN (${placeholders}) AND is_active = true`,
+      `SELECT * FROM services WHERE id IN (${placeholders}) AND is_active = 1`,
       serviceIds
     );
 

@@ -7,6 +7,31 @@ import { AppError } from '../middleware/error.middleware';
 
 const router = Router();
 
+// GET /api/admin/bookings - list all bookings
+router.get('/bookings',
+  authenticate,
+  requireRole('owner', 'admin', 'manager', 'specialist'),
+  async (req, res, next) => {
+    try {
+      const bookings = await executeQuery(
+        `SELECT a.*, u.first_name as customer_first_name, u.last_name as customer_last_name,
+                s.name as service_name, s.duration_minutes as service_duration_minutes
+         FROM appointments a
+         JOIN users u ON a.customer_user_id = u.id
+         JOIN services s ON a.service_id = s.id
+         ORDER BY a.scheduled_date ASC, a.start_time ASC`
+      );
+      // Map scheduled_date to appointment_date and start_time to appointment_time
+      const formatted = bookings.map((b: any) => ({
+        ...b,
+        appointment_date: b.scheduled_date ? new Date(b.scheduled_date).toISOString().split('T')[0] : null,
+        appointment_time: b.start_time
+      }));
+      res.json(successResponse(formatted));
+    } catch (e) { next(e); }
+  }
+);
+
 // GET /api/admin/dashboard  — analytics overview
 router.get('/dashboard',
   authenticate,
