@@ -528,7 +528,7 @@ export class InternalBookingModalComponent implements OnInit {
   filteredServices: any[] = [];
 
   // Time navigation slots
-  timeSlots = ['09:00 AM', '10:11 AM', '10:30 AM', '1:00 PM', '2:30 PM', '4:00 PM'];
+  timeSlots = ['09:00 AM', '09:15 AM', '09:30 AM', '09:45 AM', '10:00 AM', '10:15 AM', '10:30 AM', '10:45 AM', '11:00 AM', '11:15 AM', '11:30 AM', '11:45 AM', '12:00 PM', '12:15 PM', '12:30 PM', '12:45 PM', '1:00 PM', '1:15 PM', '1:30 PM', '1:45 PM', '2:00 PM', '2:15 PM', '2:30 PM', '2:45 PM', '3:00 PM', '3:15 PM', '3:30 PM', '3:45 PM', '4:00 PM', '4:15 PM', '4:30 PM'];
   
   // Calendar properties
   currentMonthDate = new Date();
@@ -549,7 +549,7 @@ export class InternalBookingModalComponent implements OnInit {
       locationId: [1, Validators.required],
       serviceId: [1, Validators.required],
       date: [today, Validators.required],
-      time: ['10:11', Validators.required],
+      time: ['09:00', Validators.required],
       employeeId: [1, Validators.required],
       notes: [''],
       paymentMethod: ['pay_at_appointment', Validators.required]
