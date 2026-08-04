@@ -15,10 +15,16 @@ router.get('/bookings',
     try {
       const bookings = await executeQuery(
         `SELECT a.*, u.first_name as customer_first_name, u.last_name as customer_last_name,
-                s.name as service_name, s.duration_minutes as service_duration_minutes
+                u.phone as customer_phone,
+                s.name as service_name, s.duration_minutes as service_duration_minutes,
+                eu.first_name as employee_first_name, eu.last_name as employee_last_name,
+                l.name as location_name
          FROM appointments a
          JOIN users u ON a.customer_user_id = u.id
          JOIN services s ON a.service_id = s.id
+         LEFT JOIN employees e ON e.id = a.employee_id
+         LEFT JOIN users eu ON eu.id = e.user_id
+         LEFT JOIN locations l ON l.id = a.location_id
          ORDER BY a.scheduled_date ASC, a.start_time ASC`
       );
       // Map scheduled_date to appointment_date and start_time to appointment_time
