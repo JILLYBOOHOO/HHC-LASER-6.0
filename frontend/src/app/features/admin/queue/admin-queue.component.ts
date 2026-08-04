@@ -8,6 +8,7 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
 import { ApiService } from '../../../core/services/api.service';
 import { RealtimeService } from '../../../core/services/realtime.service';
 import { environment } from '../../../../environments/environment';
+import { printAppointmentInvoice } from '../../../shared/utils/invoice-print.util';
 
 type QueueStatus = 'pending' | 'confirmed' | 'checked_in' | 'in_treatment' | 'completed' | 'cancelled' | 'no_show';
 
@@ -19,12 +20,15 @@ interface QueueBooking {
   customer_first_name?: string;
   customer_last_name?: string;
   customer_phone?: string;
+  customer_user_id?: number;
   service_name?: string;
   confirmation_code?: string;
   employee_first_name?: string;
   employee_last_name?: string;
   location_name?: string;
   service_duration_minutes?: number;
+  payment_status?: string;
+  total_amount_jmd?: number;
   updated_at?: string;
 }
 
@@ -54,7 +58,35 @@ interface QueueBooking {
           </button>
         </div>
 
-        <div class="flex items-center gap-3 self-end lg:self-auto">
+        <div class="flex items-center gap-3 self-end lg:self-auto flex-wrap">
+          <div class="flex rounded-md overflow-hidden border border-slate-300">
+            <button
+              type="button"
+              (click)="setDateView('today')"
+              class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors"
+              [class.bg-black]="dateView() === 'today'"
+              [class.text-white]="dateView() === 'today'"
+              [class.bg-white]="dateView() !== 'today'"
+              [class.text-slate-600]="dateView() !== 'today'">
+              Today
+            </button>
+            <button
+              type="button"
+              (click)="setDateView('upcoming')"
+              class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider border-l border-slate-300 transition-colors"
+              [class.bg-black]="dateView() === 'upcoming'"
+              [class.text-white]="dateView() === 'upcoming'"
+              [class.bg-white]="dateView() !== 'upcoming'"
+              [class.text-slate-600]="dateView() !== 'upcoming'">
+              Upcoming
+            </button>
+          </div>
+          <input
+            type="date"
+            [ngModel]="selectedDate()"
+            (ngModelChange)="onDatePicked($event)"
+            [min]="todayStr"
+            class="px-3 py-2 border border-slate-300 rounded-md text-xs font-semibold text-slate-700 focus:outline-none focus:border-black">
           <button
             type="button"
             (click)="fetchAppointments()"
@@ -63,7 +95,6 @@ interface QueueBooking {
             <mat-icon class="!text-sm" [class.animate-spin]="loading()">refresh</mat-icon>
             Refresh
           </button>
-          <span class="text-xs text-slate-500 font-medium">{{ todayLabel }}</span>
         </div>
       </div>
 
@@ -106,7 +137,10 @@ interface QueueBooking {
       <!-- Live Queue -->
       <div class="bg-white border border-slate-200 rounded-lg mb-8">
         <div class="px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200">
-          <h2 class="text-xl font-semibold text-black tracking-tight">Live Queue</h2>
+          <div>
+            <h2 class="text-xl font-semibold text-black tracking-tight">{{ queueTitle() }}</h2>
+            <p class="text-xs text-slate-500 mt-0.5">{{ queueSubtitle() }}</p>
+          </div>
           <div class="flex items-center gap-2 flex-wrap">
             @for (f of statusFilters; track f.value) {
               <button
@@ -135,18 +169,18 @@ interface QueueBooking {
 
         <div class="divide-y divide-slate-200">
           @if (loading() && filteredQueue().length === 0) {
-            <div class="px-6 py-16 text-center text-slate-500 text-sm">Loading today's queue…</div>
+            <div class="px-6 py-16 text-center text-slate-500 text-sm">Loading appointments…</div>
           } @else if (filteredQueue().length === 0) {
             <div class="px-6 py-16 text-center text-slate-500 text-sm">
-              No appointments in the queue{{ searchTerm() ? ' matching your search' : ' for today' }}.
+              No appointments{{ searchTerm() ? ' matching your search' : '' }} {{ emptyRangeLabel() }}.
             </div>
           } @else {
             @for (item of filteredQueue(); track item.id) {
               <div
                 class="grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-slate-50 transition-colors"
-                [class.bg-blue-50]="item.status === 'in_treatment'"
-                [class.border-l-2]="item.status === 'in_treatment'"
-                [class.border-blue-500]="item.status === 'in_treatment'">
+                [class.bg-blue-50]="item.status === 'in_treatment' && isAppointmentDay(item)"
+                [class.border-l-2]="item.status === 'in_treatment' && isAppointmentDay(item)"
+                [class.border-blue-500]="item.status === 'in_treatment' && isAppointmentDay(item)">
 
                 <div class="md:col-span-4 flex items-center gap-4">
                   <div class="w-10 h-10 rounded bg-black text-white font-bold flex items-center justify-center shrink-0 text-sm">
@@ -164,9 +198,10 @@ interface QueueBooking {
                 </div>
 
                 <div class="md:col-span-2 text-xs font-medium text-slate-700">
-                  {{ formatTime(item.appointment_time) }}
-                  @if (isLate(item)) {
-                    <span class="ml-2 text-[9px] font-bold uppercase text-red-600">Late</span>
+                  <div>{{ formatDateLabel(item.appointment_date) }}</div>
+                  <div class="text-slate-500">{{ formatTime(item.appointment_time) }}</div>
+                  @if (isAppointmentDay(item) && isLate(item)) {
+                    <span class="text-[9px] font-bold uppercase text-red-600">Late</span>
                   }
                 </div>
 
@@ -181,62 +216,92 @@ interface QueueBooking {
                 </div>
 
                 <div class="md:col-span-3 flex items-center justify-start md:justify-end gap-2 flex-wrap">
-                  <div class="flex rounded-full overflow-hidden border border-slate-300 bg-white">
-                    <button
-                      type="button"
-                      class="px-3 py-1 text-[9px] font-bold transition-colors"
-                      [class.bg-amber-400]="isWaiting(item.status)"
-                      [class.text-black]="isWaiting(item.status)"
-                      [class.text-slate-400]="!isWaiting(item.status)"
-                      disabled>
-                      Waiting
-                    </button>
-                    <button
-                      type="button"
-                      (click)="setStatus(item, 'checked_in')"
-                      [disabled]="!canAdvance(item, 'checked_in') || updatingId() === item.id"
-                      class="px-3 py-1 text-[9px] font-bold transition-colors disabled:opacity-40"
-                      [class.bg-cyan-400]="item.status === 'checked_in'"
-                      [class.text-black]="item.status === 'checked_in' || canAdvance(item, 'checked_in')"
-                      [class.text-slate-400]="item.status !== 'checked_in' && !canAdvance(item, 'checked_in')"
-                      [class.hover:bg-cyan-100]="canAdvance(item, 'checked_in')">
-                      Check-in
-                    </button>
-                    <button
-                      type="button"
-                      (click)="setStatus(item, 'in_treatment')"
-                      [disabled]="!canAdvance(item, 'in_treatment') || updatingId() === item.id"
-                      class="px-3 py-1 text-[9px] font-bold transition-colors disabled:opacity-40"
-                      [class.bg-blue-500]="item.status === 'in_treatment'"
-                      [class.text-white]="item.status === 'in_treatment'"
-                      [class.text-black]="item.status !== 'in_treatment' && canAdvance(item, 'in_treatment')"
-                      [class.text-slate-400]="item.status !== 'in_treatment' && !canAdvance(item, 'in_treatment')"
-                      [class.hover:bg-blue-100]="canAdvance(item, 'in_treatment')">
-                      Treatment
-                    </button>
-                    <button
-                      type="button"
-                      (click)="setStatus(item, 'completed')"
-                      [disabled]="!canAdvance(item, 'completed') || updatingId() === item.id"
-                      class="px-3 py-1 text-[9px] font-bold transition-colors disabled:opacity-40"
-                      [class.bg-emerald-500]="item.status === 'completed'"
-                      [class.text-white]="item.status === 'completed'"
-                      [class.text-black]="item.status !== 'completed' && canAdvance(item, 'completed')"
-                      [class.text-slate-400]="item.status !== 'completed' && !canAdvance(item, 'completed')"
-                      [class.hover:bg-emerald-100]="canAdvance(item, 'completed')">
-                      Done
-                    </button>
-                  </div>
+                  @if (isAppointmentDay(item)) {
+                    <div class="flex rounded-full overflow-hidden border border-slate-300 bg-white">
+                      <button
+                        type="button"
+                        class="px-3 py-1 text-[9px] font-bold transition-colors"
+                        [class.bg-amber-400]="isWaiting(item.status)"
+                        [class.text-black]="isWaiting(item.status)"
+                        [class.text-slate-400]="!isWaiting(item.status)"
+                        disabled>
+                        Waiting
+                      </button>
+                      <button
+                        type="button"
+                        (click)="setStatus(item, 'checked_in')"
+                        [disabled]="!canAdvance(item, 'checked_in') || updatingId() === item.id"
+                        class="px-3 py-1 text-[9px] font-bold transition-colors disabled:opacity-40"
+                        [class.bg-cyan-400]="item.status === 'checked_in'"
+                        [class.text-black]="item.status === 'checked_in' || canAdvance(item, 'checked_in')"
+                        [class.text-slate-400]="item.status !== 'checked_in' && !canAdvance(item, 'checked_in')"
+                        [class.hover:bg-cyan-100]="canAdvance(item, 'checked_in')">
+                        Check-in
+                      </button>
+                      <button
+                        type="button"
+                        (click)="setStatus(item, 'in_treatment')"
+                        [disabled]="!canAdvance(item, 'in_treatment') || updatingId() === item.id"
+                        class="px-3 py-1 text-[9px] font-bold transition-colors disabled:opacity-40"
+                        [class.bg-blue-500]="item.status === 'in_treatment'"
+                        [class.text-white]="item.status === 'in_treatment'"
+                        [class.text-black]="item.status !== 'in_treatment' && canAdvance(item, 'in_treatment')"
+                        [class.text-slate-400]="item.status !== 'in_treatment' && !canAdvance(item, 'in_treatment')"
+                        [class.hover:bg-blue-100]="canAdvance(item, 'in_treatment')">
+                        Treatment
+                      </button>
+                      <button
+                        type="button"
+                        (click)="setStatus(item, 'completed')"
+                        [disabled]="!canAdvance(item, 'completed') || updatingId() === item.id"
+                        class="px-3 py-1 text-[9px] font-bold transition-colors disabled:opacity-40"
+                        [class.bg-emerald-500]="item.status === 'completed'"
+                        [class.text-white]="item.status === 'completed'"
+                        [class.text-black]="item.status !== 'completed' && canAdvance(item, 'completed')"
+                        [class.text-slate-400]="item.status !== 'completed' && !canAdvance(item, 'completed')"
+                        [class.hover:bg-emerald-100]="canAdvance(item, 'completed')">
+                        Done
+                      </button>
+                    </div>
 
-                  @if (isWaiting(item.status)) {
+                    @if (isWaiting(item.status)) {
+                      <button
+                        type="button"
+                        (click)="setStatus(item, 'no_show')"
+                        [disabled]="updatingId() === item.id"
+                        class="px-2 py-1 text-[9px] font-bold uppercase text-red-600 border border-red-200 rounded hover:bg-red-50 disabled:opacity-40"
+                        title="Mark as no-show">
+                        No-show
+                      </button>
+                    }
+
                     <button
                       type="button"
-                      (click)="setStatus(item, 'no_show')"
-                      [disabled]="updatingId() === item.id"
-                      class="px-2 py-1 text-[9px] font-bold uppercase text-red-600 border border-red-200 rounded hover:bg-red-50 disabled:opacity-40"
-                      title="Mark as no-show">
-                      No-show
+                      (click)="generateInvoice(item)"
+                      [disabled]="invoiceLoadingId() === item.id"
+                      class="px-2 py-1 text-[9px] font-bold uppercase text-slate-700 border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-40 flex items-center gap-1"
+                      title="Generate invoice">
+                      <mat-icon class="!text-sm !w-3.5 !h-3.5">receipt_long</mat-icon>
+                      {{ invoiceLoadingId() === item.id ? '…' : 'Invoice' }}
                     </button>
+                  } @else {
+                    <div class="text-right flex flex-col items-end gap-2">
+                      <div>
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Scheduled</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">
+                          Check-in opens {{ formatDateLabel(item.appointment_date) }}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        (click)="generateInvoice(item)"
+                        [disabled]="invoiceLoadingId() === item.id"
+                        class="px-2 py-1 text-[9px] font-bold uppercase text-slate-700 border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-40 flex items-center gap-1"
+                        title="Generate invoice">
+                        <mat-icon class="!text-sm !w-3.5 !h-3.5">receipt_long</mat-icon>
+                        {{ invoiceLoadingId() === item.id ? '…' : 'Invoice' }}
+                      </button>
+                    </div>
                   }
                 </div>
               </div>
@@ -325,32 +390,71 @@ export class AdminQueueComponent implements OnInit, OnDestroy {
   searchQuery = '';
   searchTerm = signal('');
   statusFilter = signal<'active' | 'all' | QueueStatus>('active');
+  dateView = signal<'today' | 'upcoming' | 'date'>('today');
+  selectedDate = signal(this.localDateString(new Date()));
   loading = signal(false);
   error = signal('');
   updatingId = signal<number | null>(null);
+  invoiceLoadingId = signal<number | null>(null);
   bookings = signal<QueueBooking[]>([]);
 
   readonly statusFilters: { label: string; value: 'active' | 'all' | QueueStatus }[] = [
     { label: 'Active', value: 'active' },
-    { label: 'All Today', value: 'all' },
+    { label: 'All', value: 'all' },
     { label: 'Waiting', value: 'confirmed' },
     { label: 'Checked In', value: 'checked_in' },
     { label: 'Treatment', value: 'in_treatment' },
     { label: 'Done', value: 'completed' },
   ];
 
-  todayLabel = new Date().toLocaleDateString('en-JM', {
-    weekday: 'long',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-
-  private todayStr = this.localDateString(new Date());
+  todayStr = this.localDateString(new Date());
 
   todaysBookings = computed(() =>
     this.bookings().filter((b) => b.appointment_date === this.todayStr),
   );
+
+  visibleBookings = computed(() => {
+    const all = this.bookings().filter((b) => !['cancelled'].includes(b.status));
+    const view = this.dateView();
+
+    if (view === 'today') {
+      return all.filter((b) => b.appointment_date === this.todayStr);
+    }
+
+    if (view === 'date') {
+      const date = this.selectedDate();
+      return all.filter((b) => b.appointment_date === date);
+    }
+
+    // Upcoming: tomorrow and beyond
+    return all.filter((b) => !!b.appointment_date && b.appointment_date > this.todayStr);
+  });
+
+  queueTitle = computed(() => {
+    if (this.dateView() === 'upcoming') return 'Upcoming Appointments';
+    if (this.dateView() === 'date') return 'Appointments';
+    return 'Live Queue';
+  });
+
+  queueSubtitle = computed(() => {
+    if (this.dateView() === 'upcoming') {
+      return 'Future bookings — check-in unlocks on the appointment day.';
+    }
+    if (this.dateView() === 'date') {
+      const date = this.selectedDate();
+      if (date === this.todayStr) return this.formatDateLabel(date);
+      if (date > this.todayStr) {
+        return `${this.formatDateLabel(date)} — check-in unlocks on this day.`;
+      }
+      return this.formatDateLabel(date);
+    }
+    return new Date().toLocaleDateString('en-JM', {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  });
 
   waitingCount = computed(() =>
     this.todaysBookings().filter((b) => this.isWaiting(b.status)).length,
@@ -376,7 +480,7 @@ export class AdminQueueComponent implements OnInit, OnDestroy {
   filteredQueue = computed(() => {
     const filter = this.statusFilter();
     const q = this.searchTerm().trim().toLowerCase();
-    let list = this.todaysBookings();
+    let list = this.visibleBookings();
 
     if (filter === 'active') {
       list = list.filter((b) =>
@@ -400,9 +504,11 @@ export class AdminQueueComponent implements OnInit, OnDestroy {
       });
     }
 
-    return [...list].sort((a, b) =>
-      String(a.appointment_time || '').localeCompare(String(b.appointment_time || '')),
-    );
+    return [...list].sort((a, b) => {
+      const byDate = String(a.appointment_date || '').localeCompare(String(b.appointment_date || ''));
+      if (byDate !== 0) return byDate;
+      return String(a.appointment_time || '').localeCompare(String(b.appointment_time || ''));
+    });
   });
 
   alerts = computed(() => {
@@ -473,6 +579,29 @@ export class AdminQueueComponent implements OnInit, OnDestroy {
     this.statusFilter.set(value);
   }
 
+  setDateView(view: 'today' | 'upcoming') {
+    this.dateView.set(view);
+    this.selectedDate.set(view === 'today' ? this.todayStr : '');
+    if (view === 'upcoming' && this.statusFilter() === 'checked_in') {
+      this.statusFilter.set('active');
+    }
+  }
+
+  onDatePicked(value: string) {
+    if (!value) {
+      this.setDateView('today');
+      return;
+    }
+    this.selectedDate.set(value);
+    this.dateView.set(value === this.todayStr ? 'today' : 'date');
+  }
+
+  emptyRangeLabel() {
+    if (this.dateView() === 'upcoming') return 'in upcoming days';
+    if (this.dateView() === 'date') return `for ${this.formatDateLabel(this.selectedDate())}`;
+    return 'for today';
+  }
+
   fetchAppointments(silent = false) {
     if (!silent) this.loading.set(true);
     this.error.set('');
@@ -497,6 +626,10 @@ export class AdminQueueComponent implements OnInit, OnDestroy {
 
   setStatus(item: QueueBooking, status: QueueStatus) {
     if (this.updatingId() === item.id) return;
+    if (!this.isAppointmentDay(item)) {
+      this.error.set('Check-in is only available on the appointment day.');
+      return;
+    }
     this.updatingId.set(item.id);
     this.error.set('');
 
@@ -516,11 +649,36 @@ export class AdminQueueComponent implements OnInit, OnDestroy {
     });
   }
 
+  generateInvoice(item: QueueBooking) {
+    if (this.invoiceLoadingId() === item.id) return;
+    this.invoiceLoadingId.set(item.id);
+    this.error.set('');
+    this.api.getAppointmentInvoice(item.id).subscribe({
+      next: (res) => {
+        this.invoiceLoadingId.set(null);
+        if ((res as any)?.success && (res as any)?.data) {
+          printAppointmentInvoice((res as any).data);
+        } else {
+          this.error.set('Could not generate invoice.');
+        }
+      },
+      error: (err) => {
+        this.invoiceLoadingId.set(null);
+        this.error.set(err?.error?.message || 'Could not generate invoice.');
+      },
+    });
+  }
+
   isWaiting(status: QueueStatus) {
     return status === 'pending' || status === 'confirmed';
   }
 
+  isAppointmentDay(item: QueueBooking) {
+    return item.appointment_date === this.todayStr;
+  }
+
   canAdvance(item: QueueBooking, next: QueueStatus): boolean {
+    if (!this.isAppointmentDay(item)) return false;
     if (item.status === next) return false;
     if (next === 'checked_in') return this.isWaiting(item.status);
     if (next === 'in_treatment') return item.status === 'checked_in';
@@ -549,8 +707,22 @@ export class AdminQueueComponent implements OnInit, OnDestroy {
     return `${h}:${m.slice(0, 2)} ${ampm}`;
   }
 
+  formatDateLabel(date?: string) {
+    if (!date) return '—';
+    if (date === this.todayStr) return 'Today';
+    const [y, m, d] = date.split('-').map(Number);
+    if (!y || !m || !d) return date;
+    return new Date(y, m - 1, d).toLocaleDateString('en-JM', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    });
+  }
+
   isLate(item: QueueBooking, now = new Date()) {
-    if (!this.isWaiting(item.status) || !item.appointment_time) return false;
+    if (!this.isAppointmentDay(item) || !this.isWaiting(item.status) || !item.appointment_time) {
+      return false;
+    }
     const [h, m] = String(item.appointment_time).split(':').map(Number);
     if (Number.isNaN(h)) return false;
     const appt = new Date(now);
