@@ -5,7 +5,6 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatDividerModule } from '@angular/material/divider';
 import { AuthStateService } from '../../../core/store/auth-state.service';
 import { AuthService } from '../../../core/services/auth.service';
 
@@ -14,7 +13,7 @@ import { AuthService } from '../../../core/services/auth.service';
   standalone: true,
   imports: [
     CommonModule, RouterModule,
-    MatToolbarModule, MatButtonModule, MatIconModule, MatMenuModule, MatDividerModule,
+    MatToolbarModule, MatButtonModule, MatIconModule, MatMenuModule,
   ],
   template: `
     <nav class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 flex items-center py-2"
@@ -62,42 +61,59 @@ import { AuthService } from '../../../core/services/auth.service';
             <a routerLink="/customer/dashboard" class="hidden sm:inline-flex items-center justify-center h-9 px-4 xl:px-5 rounded-full bg-white text-black text-[10px] font-bold uppercase tracking-[0.15em] border border-black/10 hover:bg-neutral-100 transition-all shadow-sm">
               Dashboard
             </a>
-            <button mat-icon-button [matMenuTriggerFor]="userMenu"
-                    class="transition-colors"
-                    [ngClass]="isHome() ? '!text-text-muted hover:!text-white' : '!text-neutral-600 hover:!text-black'">
-              <mat-icon>account_circle</mat-icon>
+            <button type="button"
+                    [matMenuTriggerFor]="userMenu"
+                    class="inline-flex items-center justify-center h-9 w-9 flex-shrink-0 rounded-full p-0 border-0 bg-transparent cursor-pointer align-middle transition-transform hover:scale-105"
+                    aria-label="Account menu">
+              <span class="user-menu-avatar"
+                    [ngClass]="isHome() ? 'user-menu-avatar--on-dark' : 'user-menu-avatar--on-light'">
+                {{ userInitial() }}
+              </span>
             </button>
-            <mat-menu #userMenu>
-              <div class="mt-8 text-center border-t border-black/10 pt-4">
-                <div class="font-semibold text-sm text-black">{{ authState.userFullName() }}</div>
-                <div class="text-xs text-text-muted">{{ authState.user()?.email }}</div>
+            <mat-menu #userMenu="matMenu" xPosition="before" yPosition="below" panelClass="hhc-user-menu">
+              <div class="hhc-user-menu__header" (click)="$event.stopPropagation()">
+                <div class="hhc-user-menu__avatar">{{ userInitial() }}</div>
+                <div class="hhc-user-menu__identity min-w-0">
+                  <div class="hhc-user-menu__name truncate">{{ authState.userFullName() || 'Account' }}</div>
+                  <div class="hhc-user-menu__email truncate">{{ authState.user()?.email }}</div>
+                </div>
               </div>
+              <div class="hhc-user-menu__divider"></div>
               @if (authState.isStaff()) {
-                <a mat-menu-item routerLink="/employee">
-                  <mat-icon>dashboard</mat-icon> My Schedule
+                <a mat-menu-item routerLink="/employee" class="hhc-user-menu__item">
+                  <mat-icon>calendar_month</mat-icon>
+                  <span>My Schedule</span>
                 </a>
               }
               @if (authState.isAdmin()) {
-                <a mat-menu-item routerLink="/admin">
-                  <mat-icon>admin_panel_settings</mat-icon> Admin Dashboard
+                <a mat-menu-item routerLink="/admin" class="hhc-user-menu__item">
+                  <mat-icon>admin_panel_settings</mat-icon>
+                  <span>Admin Dashboard</span>
                 </a>
               }
-              <a mat-menu-item routerLink="/customer/dashboard">
-                <mat-icon>home</mat-icon> Dashboard
+              <a mat-menu-item routerLink="/customer/dashboard" class="hhc-user-menu__item">
+                <mat-icon>dashboard</mat-icon>
+                <span>Dashboard</span>
               </a>
-              <a mat-menu-item routerLink="/customer/book">
-                <mat-icon>calendar_today</mat-icon> Book Appointment
+              <a mat-menu-item routerLink="/customer/book" class="hhc-user-menu__item">
+                <mat-icon>event_available</mat-icon>
+                <span>Book Appointment</span>
               </a>
-              <mat-divider class="!border-white/5"></mat-divider>
-              <button mat-menu-item (click)="logout()">
-                <mat-icon>logout</mat-icon> Logout
+              <div class="hhc-user-menu__divider"></div>
+              <button mat-menu-item (click)="logout()" class="hhc-user-menu__item hhc-user-menu__item--logout">
+                <mat-icon>logout</mat-icon>
+                <span>Logout</span>
               </button>
             </mat-menu>
           }
 
           <!-- Mobile menu (visible on mobile/tablet/small screens, hidden on desktop/large screens) -->
-          <button mat-icon-button class="block lg:!hidden transition-colors" [ngClass]="isHome() ? '!text-text-muted hover:!text-white' : '!text-black'" (click)="toggleMobile()">
-            <mat-icon>{{ mobileOpen() ? 'close' : 'menu' }}</mat-icon>
+          <button type="button"
+                  class="inline-flex lg:!hidden items-center justify-center h-9 w-9 flex-shrink-0 rounded-full p-0 border-0 bg-transparent cursor-pointer transition-colors"
+                  [ngClass]="isHome() ? 'text-white/80 hover:text-white' : 'text-black'"
+                  (click)="toggleMobile()"
+                  aria-label="Toggle menu">
+            <mat-icon class="!text-[22px] !w-[22px] !h-[22px]">{{ mobileOpen() ? 'close' : 'menu' }}</mat-icon>
           </button>
         </div>
       </div>
@@ -177,6 +193,31 @@ import { AuthService } from '../../../core/services/auth.service';
     .nav-link:hover::after {
       width: 50%;
     }
+
+    .user-menu-avatar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 9999px;
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      line-height: 1;
+    }
+    .user-menu-avatar--on-dark {
+      color: #0B0B0D;
+      background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 55%, var(--gold-dark) 100%);
+      box-shadow: 0 0 0 1px rgba(214, 179, 106, 0.45), 0 4px 14px rgba(0, 0, 0, 0.25);
+    }
+    .user-menu-avatar--on-light {
+      color: #0B0B0D;
+      background: linear-gradient(135deg, #F1D89A 0%, #D6B36A 100%);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
   `],
   host: {
     '(window:scroll)': 'onScroll()',
@@ -206,6 +247,13 @@ export class NavbarComponent {
         this.isHome.set(event.urlAfterRedirects === '/' || event.urlAfterRedirects === '/home');
       }
     });
+  }
+
+  userInitial(): string {
+    const name = (this.authState.userFullName() || '').trim();
+    if (name) return name.charAt(0).toUpperCase();
+    const email = this.authState.user()?.email || '';
+    return email ? email.charAt(0).toUpperCase() : 'A';
   }
 
   onScroll(): void {

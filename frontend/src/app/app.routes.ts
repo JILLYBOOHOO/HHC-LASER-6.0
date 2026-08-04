@@ -24,7 +24,6 @@ export const routes: Routes = [
         path: 'services/:slug',
         loadComponent: () => import('./features/public/service-detail/service-detail.component')
           .then(m => m.ServiceDetailComponent),
-        title: 'Service Detail — HHC LASER Jamaica',
       },
       {
         path: 'gallery',
@@ -361,8 +360,9 @@ export const routes: Routes = [
       },
       {
         path: 'media',
-        redirectTo: 'services',
-        pathMatch: 'full'
+        loadComponent: () => import('./features/admin/media/admin-media.component')
+          .then(m => m.AdminMediaComponent),
+        title: 'Media Library — HHC LASER',
       },
       {
         path: 'settings',

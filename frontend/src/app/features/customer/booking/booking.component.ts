@@ -1076,30 +1076,45 @@ const DEFAULT_SERVICES: Service[] = [
               </div>
             </div>
 
-            <!-- Booking Target Selection (Ultra Compact) -->
-            @if (selectedLocationId()) {
-              <div id="location-continue-section" class="mt-3 border-t border-black/10 pt-2.5">
-                <h3 class="mb-2 text-center font-bold text-xs">Who are you booking for?</h3>
-                <div class="flex flex-row justify-center items-center gap-2">
-                  <button (click)="bookingFor.set('myself'); populateGuestDetails()" 
-                          [ngClass]="bookingFor() === 'myself' ? 'bg-black text-white border-black' : 'bg-white text-black border-black/20 hover:border-black'" 
-                          class="px-4 py-1.5 rounded-lg border font-bold text-[11px] uppercase tracking-wider transition-all">
-                    Myself
+            <div class="flex justify-between mt-3">
+              <button class="btn-secondary" (click)="prevStep()">Back</button>
+              <button class="btn-primary" [disabled]="!selectedLocationId()" (click)="continueFromLocation()">
+                Continue <mat-icon class="!text-base ml-1">arrow_forward</mat-icon>
+              </button>
+            </div>
+          }
+
+          <!-- Bottom sheet: who is this booking for? (before calendar) -->
+          @if (showBookingForSheet()) {
+            <div class="fixed inset-0 z-[100] flex flex-col justify-end" role="dialog" aria-modal="true" aria-labelledby="booking-for-title">
+              <div class="absolute inset-0 bg-black/45 backdrop-blur-[2px]" (click)="closeBookingForSheet()"></div>
+              <div class="booking-for-sheet relative z-10 mx-auto w-full max-w-lg rounded-t-2xl bg-white shadow-2xl border border-black/10 px-5 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+                <div class="mx-auto mb-3 h-1 w-10 rounded-full bg-neutral-300"></div>
+                <h3 id="booking-for-title" class="text-center font-heading text-xl text-charcoal-900 mb-1">Who are you booking for?</h3>
+                <p class="text-center text-sm text-neutral-500 mb-5">Choose an option to continue to scheduling.</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
+                  <button type="button" (click)="chooseBookingFor('myself')"
+                          class="flex items-center gap-3 rounded-xl border-2 border-black/15 bg-white px-4 py-3.5 text-left transition-all hover:border-gold-500 hover:bg-[#D2B48C]/15 active:scale-[0.98]">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-full bg-black text-gold">
+                      <mat-icon>person</mat-icon>
+                    </span>
+                    <span>
+                      <span class="block font-bold text-sm text-black">Myself</span>
+                      <span class="block text-[11px] text-neutral-500 mt-0.5">Book for your own treatment</span>
+                    </span>
                   </button>
-                  <button (click)="bookingFor.set('someone_else'); populateGuestDetails()" 
-                          [ngClass]="bookingFor() === 'someone_else' ? 'bg-black text-white border-black' : 'bg-white text-black border-black/20 hover:border-black'" 
-                          class="px-4 py-1.5 rounded-lg border font-bold text-[11px] uppercase tracking-wider transition-all">
-                    Someone else
+                  <button type="button" (click)="chooseBookingFor('someone_else')"
+                          class="flex items-center gap-3 rounded-xl border-2 border-black/15 bg-white px-4 py-3.5 text-left transition-all hover:border-gold-500 hover:bg-[#D2B48C]/15 active:scale-[0.98]">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-full bg-black text-gold">
+                      <mat-icon>person_add</mat-icon>
+                    </span>
+                    <span>
+                      <span class="block font-bold text-sm text-black">Someone else</span>
+                      <span class="block text-[11px] text-neutral-500 mt-0.5">Book on behalf of another person</span>
+                    </span>
                   </button>
                 </div>
               </div>
-            }
-
-            <div class="flex justify-between mt-3">
-              <button class="btn-secondary" (click)="prevStep()">Back</button>
-              <button class="btn-primary" [disabled]="!selectedLocationId()" (click)="nextStep()">
-                Continue <mat-icon class="!text-base ml-1">arrow_forward</mat-icon>
-              </button>
             </div>
           }
 
@@ -1194,6 +1209,7 @@ const DEFAULT_SERVICES: Service[] = [
 
           <!-- Step 4: Contact Details -->
           @if (currentStep() === 'details') {
+            <div id="booking-details-section" class="scroll-mt-24">
             <div class="mb-4 flex items-center justify-between border-b border-black/10 pb-3">
               <div>
                 <h3 class="text-xl font-bold text-black">
@@ -1262,6 +1278,7 @@ const DEFAULT_SERVICES: Service[] = [
                 </button>
               </div>
             </form>
+            </div>
           }
 
           <!-- Step 5: Payment (Secure Fiserv Hosted Checkout) -->
@@ -1272,7 +1289,7 @@ const DEFAULT_SERVICES: Service[] = [
                 <div class="flex items-center gap-2 mb-2">
                   <mat-icon class="text-neutral-500 !text-base">person</mat-icon>
                   <h4 class="font-extrabold text-xs text-black uppercase tracking-wider">Patient Information</h4>
-                  <button type="button" (click)="currentStep.set('details')" 
+                  <button type="button" (click)="goToStep('details')" 
                           class="absolute top-2 right-2 px-2.5 py-0.5 border border-black/15 bg-white text-black font-extrabold text-[10px] hover:bg-neutral-100 transition-colors flex items-center gap-1 rounded">
                     <mat-icon class="!text-[10px] text-neutral-600">edit</mat-icon> Edit
                   </button>
@@ -1596,6 +1613,14 @@ const DEFAULT_SERVICES: Service[] = [
     </div>
   `,
   styles: [`
+    .booking-for-sheet {
+      animation: bookingForSlideUp 280ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes bookingForSlideUp {
+      from { transform: translateY(100%); opacity: 0.85; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
     /* ─── Booking Calendar Custom Styles ──────────────────────────── */
     .booking-calendar {
       background: #000000 !important;
@@ -1695,7 +1720,8 @@ export class BookingComponent implements OnInit {
   groupSize         = 1;
   selectedServiceId = signal<number | null>(1);
   selectedEmployeeId = signal<number | null>(null);
-  bookingFor = signal<'myself' | 'someone_else' | 'group'>('myself');
+  bookingFor = signal<'myself' | 'someone_else' | 'group' | null>(null);
+  showBookingForSheet = signal(false);
   // Mobile summary expanded state for collapsible drawer on mobile
   mobileSummaryExpanded = signal<boolean>(false);
   // Toggle helper method
@@ -2049,7 +2075,7 @@ export class BookingComponent implements OnInit {
         email: user?.email || '',
         phone: user?.phone || '',
       });
-    } else {
+    } else if (this.bookingFor() === 'someone_else') {
       // Clear fields for guest details when booking for someone else
       this.detailsForm.patchValue({
         first_name: '',
@@ -2106,6 +2132,11 @@ export class BookingComponent implements OnInit {
 
   goToStep(step: BookingStep): void {
     if (this.currentStep() !== 'confirmation') {
+      // Don't jump to calendar (or beyond) without choosing who the booking is for
+      if (step !== 'location' && !this.bookingFor()) {
+        this.showBookingForSheet.set(true);
+        return;
+      }
       this.currentStep.set(step);
       if (step === 'datetime') {
         this.triggerLoadDates();
@@ -2113,6 +2144,7 @@ export class BookingComponent implements OnInit {
         if (!this.detailsForm.get('first_name')?.value) {
           this.populateGuestDetails();
         }
+        this.scrollToDetailsSection();
       }
       this.saveBookingProgress();
     }
@@ -2120,8 +2152,35 @@ export class BookingComponent implements OnInit {
 
   selectLocation(id: number): void {
     this.selectedLocationId.set(id);
-    // Proceed to the next step (datetime) and load dates
+    // Require who-the-booking-is-for before the calendar
+    this.bookingFor.set(null);
+    this.showBookingForSheet.set(true);
+  }
+
+  continueFromLocation(): void {
+    if (!this.selectedLocationId()) return;
+    if (!this.bookingFor()) {
+      this.showBookingForSheet.set(true);
+      return;
+    }
     this.nextStep();
+  }
+
+  chooseBookingFor(who: 'myself' | 'someone_else'): void {
+    this.bookingFor.set(who);
+    this.selectedBookingType.set(who === 'myself' ? 'self' : 'other');
+    this.populateGuestDetails();
+    this.showBookingForSheet.set(false);
+    this.saveBookingProgress();
+    // Advance to date/time only after an explicit choice
+    if (this.currentStep() === 'location') {
+      this.nextStep();
+    }
+  }
+
+  closeBookingForSheet(): void {
+    // Allow dismiss, but stay on location until they choose
+    this.showBookingForSheet.set(false);
   }
 
   redirectToLogin(): void {
@@ -2134,6 +2193,11 @@ export class BookingComponent implements OnInit {
     const order: BookingStep[] = ['location', 'datetime', 'details', 'payment', 'confirmation'];
     const idx = order.indexOf(this.currentStep());
     if (idx < order.length - 1) {
+      // Block calendar until booking-for is chosen
+      if (this.currentStep() === 'location' && !this.bookingFor()) {
+        this.showBookingForSheet.set(true);
+        return;
+      }
       const next = order[idx + 1];
       this.currentStep.set(next);
       if (next === 'datetime') {
@@ -2142,6 +2206,7 @@ export class BookingComponent implements OnInit {
         if (!this.detailsForm.get('first_name')?.value) {
           this.populateGuestDetails();
         }
+        this.scrollToDetailsSection();
       }
       this.saveBookingProgress();
     }
@@ -2203,6 +2268,18 @@ export class BookingComponent implements OnInit {
         }
       }
     }, 100);
+  }
+
+  private scrollToDetailsSection(): void {
+    // Wait for the details step to render, then scroll so the form is fully visible on mobile
+    setTimeout(() => {
+      const detailsSection = document.getElementById('booking-details-section');
+      if (detailsSection) {
+        detailsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 50);
   }
 
   confirmBooking(): void {
