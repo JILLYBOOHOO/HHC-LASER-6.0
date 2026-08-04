@@ -1,6 +1,5 @@
 import {
   Component,
-  OnInit,
   signal,
   inject,
   computed,
@@ -21,8 +20,6 @@ import {
   query,
   stagger,
 } from '@angular/animations';
-import { ApiService } from '../../../core/services/api.service';
-import { Service } from '../../../core/models/models';
 import { BeforeAfterSliderComponent } from '../../../shared/components/before-after-slider/before-after-slider.component';
 import { ContactPurchaseDialogComponent } from '../../../shared/components/contact-purchase-dialog/contact-purchase-dialog.component';
 import { CheckoutComponent } from '../../../shared/components/checkout/checkout.component';
@@ -357,97 +354,6 @@ import { CheckoutComponent } from '../../../shared/components/checkout/checkout.
       </div>
     </section>
 
-    <!-- Popular Treatments Section (Frosted Glass Card Showcase) -->
-    <section class="section bg-background">
-      <div class="container-luxury px-6">
-        <div class="text-center max-w-2xl mx-auto mb-20" @fadeUp>
-          <span class="section-label">Signature Offerings</span>
-          <h2 class="mt-4 font-heading text-white">The Collection</h2>
-          <div class="divider-gold"></div>
-          <p class="text-text-muted text-base font-light">
-            A curated selection of our most sought-after medical aesthetic
-            procedures.
-          </p>
-        </div>
-
-        @if (loading()) {
-          <div class="flex justify-center py-20">
-            <div
-              class="w-10 h-10 border-2 border-gold/20 border-t-gold rounded-full animate-spin"
-            ></div>
-          </div>
-        } @else {
-          <div
-            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-            @staggerList
-          >
-            @for (service of featuredServices(); track service.id) {
-              <div class="stagger-item card group flex flex-col h-full">
-                <!-- Image Wrapper with Desktop Zoom Effect -->
-                <div
-                  class="aspect-[4/3] w-full overflow-hidden relative bg-surface-light"
-                >
-                  <img
-                    [src]="
-                      service.thumbnail_url ||
-                      'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&q=80'
-                    "
-                    [alt]="service.name"
-                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-[10000ms]"
-                    (error)="handleImageError($event)"
-                  />
-                  <div
-                    class="absolute top-4 right-4 glass text-gold text-[10px] tracking-widest font-semibold px-3 py-1.5 rounded-full uppercase shadow-sm"
-                  >
-                    Featured
-                  </div>
-                </div>
-
-                <div class="p-6 flex flex-col flex-1 space-y-4">
-                  <div>
-                    <span
-                      class="text-[10px] text-gold font-semibold uppercase tracking-widest"
-                      >{{ service.category_name }}</span
-                    >
-                    <h3
-                      class="font-heading text-2xl text-white mt-1 group-hover:text-gold-light transition-colors duration-300"
-                    >
-                      {{ service.name }}
-                    </h3>
-                  </div>
-
-                  <div
-                    class="flex items-center justify-between mt-auto pt-6 border-t border-white/5"
-                  >
-                    <span class="text-white font-medium text-sm font-body"
-                      >J$ {{ service.price_jmd | number: '1.2-2' }}</span
-                    >
-                    <a
-                      [routerLink]="['/customer/book']"
-                      [queryParams]="{ service: service.id }"
-                      class="text-xs font-semibold text-gold hover:text-gold-light uppercase tracking-widest flex items-center gap-1.5 group/btn"
-                    >
-                      Book Now
-                      <mat-icon
-                        class="!text-sm !w-4 !h-4 flex items-center justify-center transition-transform duration-300 group-hover/btn:translate-x-1"
-                        >arrow_forward</mat-icon
-                      >
-                    </a>
-                  </div>
-                </div>
-              </div>
-            }
-          </div>
-
-          <div class="mt-20 text-center">
-            <a routerLink="/services" class="btn-outline"
-              >View All 59 Treatments</a
-            >
-          </div>
-        }
-      </div>
-    </section>
-
     <!-- Featured Products Section -->
     <section class="section bg-surface-light border-t border-white/5">
       <div class="container-luxury px-6">
@@ -462,48 +368,40 @@ import { CheckoutComponent } from '../../../shared/components/checkout/checkout.
         </div>
 
         <div
-          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8"
           @staggerList
         >
           @for (product of featuredProducts; track product.name) {
             <div
-              class="stagger-item card group flex flex-col h-full bg-surface border-white/5 hover:border-gold/30 transition-colors duration-500"
+              class="stagger-item group flex flex-col h-full rounded-2xl overflow-hidden bg-surface border border-white/10 hover:border-gold/35 transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
             >
               <div
-                class="aspect-[4/5] w-full overflow-hidden relative bg-[#F5F5F5]"
+                class="relative aspect-square w-full bg-gradient-to-b from-[#F7F3EC] to-[#EDE7DC] flex items-center justify-center p-5 md:p-6"
               >
                 <img
                   [src]="product.image"
                   [alt]="product.name"
-                  class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  class="max-w-full max-h-full w-auto h-auto object-contain transition-transform duration-500 group-hover:scale-[1.03]"
                 />
-                <div
-                  class="absolute top-4 left-4 glass text-charcoal-900 bg-white/90 text-[9px] tracking-widest font-bold px-3 py-1.5 rounded-full uppercase shadow-sm"
-                >
-                  {{ product.category }}
-                </div>
               </div>
 
-              <div class="p-6 flex flex-col flex-1">
+              <div class="p-5 md:p-6 flex flex-col flex-1">
                 <h3
                   class="font-heading text-lg text-white mb-2 leading-snug group-hover:text-gold transition-colors duration-300"
                 >
                   {{ product.name }}
                 </h3>
-                <p class="text-text-muted text-xs font-light mb-6 flex-1">
+                <p class="text-text-muted text-xs font-light mb-5 flex-1 leading-relaxed">
                   {{ product.description }}
                 </p>
 
-                <div class="flex items-center justify-between mb-6">
-                  <span class="text-white font-medium text-lg font-body">{{
+                <div class="mb-5">
+                  <span class="text-white font-medium text-base font-body">{{
                     product.price
-                  }}</span>
-                  <span class="text-[#25D366] text-[11px] font-medium">{{
-                    product.stock
                   }}</span>
                 </div>
 
-                <div class="flex flex-col gap-3 mt-auto">
+                <div class="flex flex-col gap-2.5 mt-auto">
                   <a
                     [routerLink]="['/products']"
                     class="btn-outline w-full text-center text-xs py-2.5 !border-white/20"
@@ -575,7 +473,7 @@ import { CheckoutComponent } from '../../../shared/components/checkout/checkout.
 
         <!-- Instagram Gallery Grid -->
         <div
-          class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-12 max-w-6xl mx-auto place-items-stretch"
+          class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3 md:gap-4 mb-12 max-w-6xl mx-auto place-items-stretch"
         >
           @for (post of instagramPosts; track post.url) {
             <a
@@ -635,14 +533,10 @@ import { CheckoutComponent } from '../../../shared/components/checkout/checkout.
     </section>
   `,
 })
-export class HomeComponent implements OnInit, AfterViewInit {
-  private api = inject(ApiService);
+export class HomeComponent implements AfterViewInit {
   private dialog = inject(MatDialog);
 
   @ViewChild('heroVideo') heroVideo!: ElementRef<HTMLVideoElement>;
-
-  featuredServices = signal<Service[]>([]);
-  loading = signal<boolean>(true);
 
   instagramPosts = [
     {
@@ -668,6 +562,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
     {
       type: 'video' as const,
       url: '/instagram/keloid-results.mp4',
+      link: 'https://www.instagram.com/havendale_healthcare',
+    },
+    {
+      type: 'video' as const,
+      url: '/instagram/laser-hair-results.mp4',
       link: 'https://www.instagram.com/havendale_healthcare',
     },
   ];
@@ -744,7 +643,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     { id: 'all', name: 'All Treatments' },
     { id: 'laser-hair-removal', name: 'Laser Hair Removal' },
     { id: 'folliculitis', name: 'Folliculitis' },
-    { id: 'body-contouring', name: 'Body Contouring' },
+    { id: 'stretch-marks', name: 'Stretch Marks' },
   ];
 
   // Raw Case Studies Datastore
@@ -780,37 +679,18 @@ export class HomeComponent implements OnInit, AfterViewInit {
       },
     },
     {
-      beforeImage:
-        'https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=800&q=80',
-      afterImage:
-        'https://images.unsplash.com/photo-1508962914676-134849a727f0?w=800&q=80',
-      treatmentName: 'Acne Scar Treatment',
+      beforeImage: '/images/before-after/stretch-marks-before.png',
+      afterImage: '/images/before-after/stretch-marks-after.png',
+      treatmentName: 'Stretch Mark Treatment',
       duration: '6 Sessions • 8 Months',
       description:
-        'Smoothed deep pitted scars using fractional micro-needling RF laser therapy to stimulate collagen rebuild.',
-      category: 'skin-rejuvenation',
+        'Softened and lightened prominent stretch marks, reducing deep reddish-purple striae to thinner, less visible marks with smoother skin texture.',
+      category: 'stretch-marks',
       rating: 5,
       testimonial: {
         quote:
-          'Finally feel confident without makeup. The deep scars have faded.',
-        author: 'Daniel K.',
-      },
-    },
-    {
-      beforeImage:
-        'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=800&q=80',
-      afterImage:
-        'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800&q=80',
-      treatmentName: 'Abdomen Sculpting',
-      duration: '4 Sessions • 2 Months',
-      description:
-        'High-intensity electromagnetic sculpting to burn fat deposits and build abdominal muscle definition.',
-      category: 'body-contouring',
-      rating: 5,
-      testimonial: {
-        quote:
-          'Highly recommend. Gained noticeable core definition and strength without any downtime.',
-        author: 'Michael T.',
+          'The stretch marks faded so much. My skin looks smoother and more even.',
+        author: 'Client Result',
       },
     },
   ];
@@ -821,21 +701,4 @@ export class HomeComponent implements OnInit, AfterViewInit {
     if (active === 'all') return this.comparisons;
     return this.comparisons.filter((item) => item.category === active);
   });
-
-  ngOnInit() {
-    this.api.getServices(undefined, true).subscribe({
-      next: (res) => {
-        if (res.success && res.data) {
-          this.featuredServices.set(res.data.slice(0, 6)); // Curated limit to 6 premium services
-        }
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
-    });
-  }
-
-  handleImageError(event: any) {
-    event.target.src =
-      'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80';
-  }
 }

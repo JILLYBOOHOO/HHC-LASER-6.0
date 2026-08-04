@@ -13,76 +13,76 @@ import { DomSanitizer } from '@angular/platform-browser';
   standalone: true,
   imports: [CommonModule, MatIconModule, MatButtonModule, MatInputModule, MatFormFieldModule, ReactiveFormsModule],
   template: `
-    <div class="pt-24 pb-16 min-h-screen bg-background">
+    <div class="pt-24 pb-16 min-h-screen bg-white">
       <div class="max-w-6xl mx-auto px-4">
         
         <!-- Header -->
         <div class="text-center mb-16">
           <span class="section-label">Get in Touch</span>
           <div class="divider-gold"></div>
-          <h1 class="mt-4 font-heading text-4xl md:text-5xl text-white">
+          <h1 class="mt-4 font-heading text-4xl md:text-5xl text-black">
             Contact <span class="text-gold-500">Us</span>
           </h1>
-          <p class="mt-4 max-w-2xl mx-auto text-text-muted font-light leading-relaxed">
+          <p class="mt-4 max-w-2xl mx-auto text-slate-600 font-light leading-relaxed">
             Whether you have questions about our treatments, booking process, or personalized care options, our team is happy to assist you. Expect a response from our team within 24 hours.
           </p>
         </div>
 
         <!-- Location Details Section -->
         <div class="text-center mb-10">
-          <h2 class="font-heading text-3xl md:text-4xl font-extrabold text-white">Location Details</h2>
+          <h2 class="font-heading text-3xl md:text-4xl font-extrabold text-black">Location Details</h2>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-20">
           
           <!-- Mannings Hill Road Clinic -->
-          <div class="border-[1.5px] border-black bg-white p-8">
-            <h3 class="font-heading text-2xl font-extrabold text-black mb-8">Mannings Hill Road Clinic</h3>
+          <div class="border-[1.5px] border-black bg-black p-8">
+            <h3 class="font-heading text-2xl font-extrabold text-white mb-8">Mannings Hill Road Clinic</h3>
             
             <div class="space-y-8">
               <div class="flex items-start gap-5">
-                <div class="w-12 h-12 bg-black text-white flex items-center justify-center flex-shrink-0">
+                <div class="w-12 h-12 bg-white text-black flex items-center justify-center flex-shrink-0">
                   <mat-icon>location_on</mat-icon>
                 </div>
                 <div>
-                  <div class="font-extrabold text-black mb-1">Address</div>
-                  <div class="text-black font-medium leading-relaxed">
+                  <div class="font-extrabold text-white mb-1">Address</div>
+                  <div class="text-white/80 font-medium leading-relaxed">
                     63 Mannings Hill Rd<br>Kingston<br>Jamaica
                   </div>
                 </div>
               </div>
 
               <div class="flex items-start gap-5">
-                <div class="w-12 h-12 bg-black text-white flex items-center justify-center flex-shrink-0">
+                <div class="w-12 h-12 bg-white text-black flex items-center justify-center flex-shrink-0">
                   <mat-icon>phone</mat-icon>
                 </div>
                 <div>
-                  <div class="font-extrabold text-black mb-1">Phone</div>
-                  <div class="text-black font-medium leading-relaxed">
+                  <div class="font-extrabold text-white mb-1">Phone</div>
+                  <div class="text-white/80 font-medium leading-relaxed">
                     (876) 319-6241<br>(876) 631-8134
                   </div>
                 </div>
               </div>
 
               <div class="flex items-start gap-5">
-                <div class="w-12 h-12 bg-black text-white flex items-center justify-center flex-shrink-0">
+                <div class="w-12 h-12 bg-white text-black flex items-center justify-center flex-shrink-0">
                   <mat-icon>email</mat-icon>
                 </div>
                 <div>
-                  <div class="font-extrabold text-black mb-1">Email</div>
-                  <div class="text-black font-medium">
+                  <div class="font-extrabold text-white mb-1">Email</div>
+                  <div class="text-white/80 font-medium">
                     infohhcLaser&#64;gmail.com
                   </div>
                 </div>
               </div>
 
               <div class="flex items-start gap-5">
-                <div class="w-12 h-12 bg-black text-white flex items-center justify-center flex-shrink-0">
+                <div class="w-12 h-12 bg-white text-black flex items-center justify-center flex-shrink-0">
                   <mat-icon>schedule</mat-icon>
                 </div>
                 <div>
-                  <div class="font-extrabold text-black mb-1">Business Hours</div>
-                  <div class="text-black font-medium leading-relaxed">
+                  <div class="font-extrabold text-white mb-1">Business Hours</div>
+                  <div class="text-white/80 font-medium leading-relaxed">
                     Mon-Fri: 9AM-5PM<br>Sat: By Appointment<br>Sun: Closed
                   </div>
                 </div>
@@ -91,53 +91,53 @@ import { DomSanitizer } from '@angular/platform-browser';
           </div>
 
           <!-- Constant Spring Road Clinic -->
-          <div class="border-[1.5px] border-black bg-white p-8">
-            <h3 class="font-heading text-2xl font-extrabold text-black mb-8">Constant Spring Road Clinic</h3>
+          <div class="border-[1.5px] border-black bg-black p-8">
+            <h3 class="font-heading text-2xl font-extrabold text-white mb-8">Constant Spring Road Clinic</h3>
             
             <div class="space-y-8">
               <div class="flex items-start gap-5">
-                <div class="w-12 h-12 bg-black text-white flex items-center justify-center flex-shrink-0">
+                <div class="w-12 h-12 bg-white text-black flex items-center justify-center flex-shrink-0">
                   <mat-icon>location_on</mat-icon>
                 </div>
                 <div>
-                  <div class="font-extrabold text-black mb-1">Address</div>
-                  <div class="text-black font-medium leading-relaxed">
+                  <div class="font-extrabold text-white mb-1">Address</div>
+                  <div class="text-white/80 font-medium leading-relaxed">
                     48 Constant Spring Road<br>Kingston<br>Jamaica
                   </div>
                 </div>
               </div>
 
               <div class="flex items-start gap-5">
-                <div class="w-12 h-12 bg-black text-white flex items-center justify-center flex-shrink-0">
+                <div class="w-12 h-12 bg-white text-black flex items-center justify-center flex-shrink-0">
                   <mat-icon>phone</mat-icon>
                 </div>
                 <div>
-                  <div class="font-extrabold text-black mb-1">Phone</div>
-                  <div class="text-black font-medium leading-relaxed">
+                  <div class="font-extrabold text-white mb-1">Phone</div>
+                  <div class="text-white/80 font-medium leading-relaxed">
                     (876) 319-6241<br>(876) 631-8134
                   </div>
                 </div>
               </div>
 
               <div class="flex items-start gap-5">
-                <div class="w-12 h-12 bg-black text-white flex items-center justify-center flex-shrink-0">
+                <div class="w-12 h-12 bg-white text-black flex items-center justify-center flex-shrink-0">
                   <mat-icon>email</mat-icon>
                 </div>
                 <div>
-                  <div class="font-extrabold text-black mb-1">Email</div>
-                  <div class="text-black font-medium">
+                  <div class="font-extrabold text-white mb-1">Email</div>
+                  <div class="text-white/80 font-medium">
                     infohhcLaser&#64;gmail.com
                   </div>
                 </div>
               </div>
 
               <div class="flex items-start gap-5">
-                <div class="w-12 h-12 bg-black text-white flex items-center justify-center flex-shrink-0">
+                <div class="w-12 h-12 bg-white text-black flex items-center justify-center flex-shrink-0">
                   <mat-icon>schedule</mat-icon>
                 </div>
                 <div>
-                  <div class="font-extrabold text-black mb-1">Business Hours</div>
-                  <div class="text-black font-medium leading-relaxed">
+                  <div class="font-extrabold text-white mb-1">Business Hours</div>
+                  <div class="text-white/80 font-medium leading-relaxed">
                     Mon-Fri: 9AM-5PM<br>Sat: By Appointment<br>Sun: Closed
                   </div>
                 </div>
@@ -150,7 +150,7 @@ import { DomSanitizer } from '@angular/platform-browser';
         <div class="grid grid-cols-1 md:grid-cols-2 gap-16 mt-16">
           
           <!-- Google Map -->
-          <div class="rounded-2xl overflow-hidden border border-white/10 min-h-[400px]">
+          <div class="rounded-2xl overflow-hidden border border-black/10 min-h-[400px]">
             <iframe 
               [src]="mapUrl"
               width="100%"
@@ -163,9 +163,9 @@ import { DomSanitizer } from '@angular/platform-browser';
           </div>
 
           <!-- Contact Form -->
-          <div class="bg-surface border border-white/10 p-8 rounded-2xl">
+          <div class="bg-black border border-black p-8 rounded-2xl">
             <h3 class="font-heading text-2xl text-white mb-2">Send a Message</h3>
-            <p class="text-text-muted text-sm mb-8">Fill out the form below and we'll get back to you within 24 hours.</p>
+            <p class="text-white/60 text-sm mb-8">Fill out the form below and we'll get back to you within 24 hours.</p>
             
             <form [formGroup]="contactForm" (ngSubmit)="onSubmit()" class="space-y-5">
               
@@ -237,14 +237,14 @@ import { DomSanitizer } from '@angular/platform-browser';
           <div class="text-center mb-12">
             <span class="section-label">Common Questions</span>
             <div class="divider-gold"></div>
-            <h2 class="mt-4 font-heading text-3xl md:text-4xl text-white">FAQ</h2>
+            <h2 class="mt-4 font-heading text-3xl md:text-4xl text-black">FAQ</h2>
           </div>
           
           <div class="max-w-3xl mx-auto space-y-4">
             @for (faq of faqs; track faq.q) {
-              <div class="bg-surface border border-white/10 p-6 rounded-xl">
+              <div class="bg-black border border-black p-6 rounded-xl">
                 <h4 class="font-heading text-lg text-white mb-2">{{ faq.q }}</h4>
-                <p class="text-text-muted text-sm leading-relaxed">{{ faq.a }}</p>
+                <p class="text-white/60 text-sm leading-relaxed">{{ faq.a }}</p>
               </div>
             }
           </div>

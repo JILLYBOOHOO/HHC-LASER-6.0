@@ -16,10 +16,10 @@ interface GalleryItem {
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="min-h-screen py-16 px-4 bg-charcoal-900">
+    <div class="min-h-screen pt-28 md:pt-32 pb-16 px-4 bg-charcoal-900">
       <div class="max-w-7xl mx-auto">
         <!-- Header -->
-        <div class="text-center mb-12">
+        <div class="text-center mb-12 md:mb-16">
           <h2 class="text-3xl md:text-5xl font-light text-cream-50 mb-4" style="font-family: var(--font-heading)">
             Our <span class="text-gold-500 italic">Gallery</span>
           </h2>
