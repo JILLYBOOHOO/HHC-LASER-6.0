@@ -214,7 +214,7 @@ export class WeeklyCalendarComponent implements OnInit, OnDestroy, OnChanges, Af
 
   getEventsForDay(date: Date): CalendarEvent[] {
     const dateStr = date.toISOString().split('T')[0];
-    return this.events.filter(e => e.date === dateStr);
+    return this.events.filter(e => e.date === dateStr && e.status !== 'cancelled');
   }
 
   getEventStyle(event: CalendarEvent): any {
