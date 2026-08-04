@@ -99,7 +99,7 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
                   <div class="p-3 px-4 flex items-center justify-between cursor-pointer hover:bg-neutral-50/80 transition-colors" (click)="expandedStep = 1">
                     <div class="flex items-center gap-3">
                        <div class="w-9 h-9 bg-black rounded-lg flex items-center justify-center shrink-0 shadow-sm">
-                         <mat-icon class="text-[#B36A17] !text-[18px] !w-[18px] !h-[18px]">person_outline</mat-icon>
+                         <mat-icon class="text-white !text-[18px] !w-[18px] !h-[18px]">person_outline</mat-icon>
                        </div>
                        <div class="flex items-center gap-4">
                          <div class="flex items-center gap-2.5 shrink-0">
@@ -158,7 +158,7 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
                       </div>
                       
                       <div class="mt-4 flex justify-end">
-                        <button type="button" (click)="expandedStep = 2; $event.stopPropagation()" [disabled]="!form.get('firstName')?.valid || !form.get('lastName')?.valid || !form.get('phone')?.valid" class="px-5 py-2 bg-black hover:bg-neutral-800 text-[#B36A17] text-xs font-bold rounded-lg disabled:opacity-50 transition-colors shadow-md tracking-wider uppercase">Continue</button>
+                        <button type="button" (click)="expandedStep = 2; $event.stopPropagation()" [disabled]="!form.get('firstName')?.valid || !form.get('lastName')?.valid || !form.get('phone')?.valid" class="px-5 py-2 bg-black hover:bg-neutral-800 text-white text-xs font-bold rounded-lg disabled:opacity-50 transition-colors shadow-md tracking-wider uppercase">Continue</button>
                       </div>
                   </div>
                 </div>
@@ -168,7 +168,7 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
                   <div class="p-3 px-4 flex items-center justify-between cursor-pointer hover:bg-neutral-50/80 transition-colors" (click)="expandedStep = 2">
                     <div class="flex items-center gap-3">
                        <div class="w-9 h-9 bg-black rounded-lg flex items-center justify-center shrink-0 shadow-sm">
-                         <mat-icon class="text-[#B36A17] !text-[18px] !w-[18px] !h-[18px]">star_border</mat-icon>
+                         <mat-icon class="text-white !text-[18px] !w-[18px] !h-[18px]">star_border</mat-icon>
                        </div>
                        <div class="flex items-center gap-4">
                          <div class="flex items-center gap-2.5 shrink-0">
@@ -208,7 +208,7 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
                         </div>
                       </div>
                       <div class="mt-4 flex justify-end">
-                        <button type="button" (click)="expandedStep = 3; $event.stopPropagation()" [disabled]="!form.value.serviceId" class="px-5 py-2 bg-black hover:bg-neutral-800 text-[#B36A17] text-xs font-bold rounded-lg disabled:opacity-50 transition-colors shadow-md tracking-wider uppercase">Continue</button>
+                        <button type="button" (click)="expandedStep = 3; $event.stopPropagation()" [disabled]="!form.value.serviceId" class="px-5 py-2 bg-black hover:bg-neutral-800 text-white text-xs font-bold rounded-lg disabled:opacity-50 transition-colors shadow-md tracking-wider uppercase">Continue</button>
                       </div>
                   </div>
                 </div>
@@ -218,7 +218,7 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
                   <div class="p-3 px-4 flex items-center justify-between cursor-pointer hover:bg-neutral-50/80 transition-colors" (click)="expandedStep = 3">
                     <div class="flex items-center gap-3">
                        <div class="w-9 h-9 bg-black rounded-lg flex items-center justify-center shrink-0 shadow-sm">
-                         <mat-icon class="text-[#B36A17] !text-[18px] !w-[18px] !h-[18px]">location_on</mat-icon>
+                         <mat-icon class="text-white !text-[18px] !w-[18px] !h-[18px]">location_on</mat-icon>
                        </div>
                        <div class="flex items-center gap-4">
                          <div class="flex items-center gap-2.5 shrink-0">
@@ -256,7 +256,7 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
                         </div>
                       </div>
                       <div class="mt-4 flex justify-end">
-                        <button type="button" (click)="expandedStep = 4; $event.stopPropagation()" [disabled]="!form.value.locationId" class="px-5 py-2 bg-black hover:bg-neutral-800 text-[#B36A17] text-xs font-bold rounded-lg disabled:opacity-50 transition-colors shadow-md tracking-wider uppercase">Continue</button>
+                        <button type="button" (click)="expandedStep = 4; $event.stopPropagation()" [disabled]="!form.value.locationId" class="px-5 py-2 bg-black hover:bg-neutral-800 text-white text-xs font-bold rounded-lg disabled:opacity-50 transition-colors shadow-md tracking-wider uppercase">Continue</button>
                       </div>
                   </div>
                 </div>
@@ -266,7 +266,7 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
                   <div class="p-3 px-4 flex items-center justify-between cursor-pointer hover:bg-neutral-50/80 transition-colors" (click)="expandedStep = 4">
                     <div class="flex items-center gap-3">
                        <div class="w-9 h-9 bg-black rounded-lg flex items-center justify-center shrink-0 shadow-sm">
-                         <mat-icon class="text-[#B36A17] !text-[18px] !w-[18px] !h-[18px]">calendar_today</mat-icon>
+                         <mat-icon class="text-white !text-[18px] !w-[18px] !h-[18px]">calendar_today</mat-icon>
                        </div>
                        <div class="flex items-center gap-4">
                          <div class="flex items-center gap-2.5 shrink-0">
@@ -293,7 +293,7 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
                   <div class="p-3 px-4 flex items-center justify-between cursor-pointer hover:bg-neutral-50/80 transition-colors" (click)="expandedStep = 5" *ngIf="expandedStep !== 4 && expandedStep !== 5">
                     <div class="flex items-center gap-3">
                        <div class="w-9 h-9 bg-black rounded-lg flex items-center justify-center shrink-0 shadow-sm">
-                         <mat-icon class="text-[#B36A17] !text-[18px] !w-[18px] !h-[18px]">schedule</mat-icon>
+                         <mat-icon class="text-white !text-[18px] !w-[18px] !h-[18px]">schedule</mat-icon>
                        </div>
                        <div class="flex items-center gap-4">
                          <div class="flex items-center gap-2.5 shrink-0">
@@ -380,7 +380,7 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
                   <div class="p-3 px-4 flex items-center justify-between cursor-pointer hover:bg-neutral-50/80 transition-colors" (click)="expandedStep = 6">
                     <div class="flex items-center gap-3">
                        <div class="w-9 h-9 bg-black rounded-lg flex items-center justify-center shrink-0 shadow-sm">
-                         <mat-icon class="text-[#B36A17] !text-[18px] !w-[18px] !h-[18px]">assignment</mat-icon>
+                         <mat-icon class="text-white !text-[18px] !w-[18px] !h-[18px]">assignment</mat-icon>
                        </div>
                        <div class="flex items-center gap-4">
                          <div class="flex items-center gap-2.5 shrink-0">
@@ -474,7 +474,7 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
 
                 <div class="p-4 pt-2 bg-[#FAF8F5] flex flex-col gap-2 shrink-0 border-t border-neutral-200/50">
                   <button type="button" (click)="submit()" [disabled]="form.invalid || loading" 
-                          class="w-full py-3 bg-black hover:bg-neutral-800 text-[#B36A17] font-black text-xs rounded-xl transition-all tracking-widest disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 uppercase">
+                          class="w-full py-3 bg-black hover:bg-neutral-800 text-white font-black text-xs rounded-xl transition-all tracking-widest disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 uppercase">
                     <mat-icon *ngIf="loading" class="animate-spin !text-[16px] !w-[16px] !h-[16px]">refresh</mat-icon>
                     <mat-icon *ngIf="!loading" class="!text-[16px] !w-[16px] !h-[16px]">event_available</mat-icon>
                     BOOK NOW
