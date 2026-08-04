@@ -4,7 +4,6 @@ import { RouterModule, Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { Service, ServiceCategory } from '../../../core/models/models';
 import { SeoService } from '../../../core/services/seo.service';
-import { ApiService } from '../../../core/services/api.service';
 import { treatments } from '../../../core/data/services.data';
 
 
@@ -140,7 +139,6 @@ import { FormsModule } from '@angular/forms';
 export class ServicesComponent implements OnInit {
   private router = inject(Router);
   private seo = inject(SeoService);
-  private api = inject(ApiService);
 
   services = signal<Service[]>([]);
   categories = signal<ServiceCategory[]>([
@@ -156,24 +154,15 @@ export class ServicesComponent implements OnInit {
   filteredServices = computed(() => {
     const catId = this.selectedCategoryId();
     const query = this.searchQuery().toLowerCase().trim();
-    const liveOrder = new Map(treatments.map((t, index) => [t.id!, index]));
 
-    return this.services()
-      .filter((s) => {
-        const matchesCat = !catId || s.category_id === catId;
-        const matchesSearch =
-          !query ||
-          s.name.toLowerCase().includes(query) ||
-          (s.short_description && s.short_description.toLowerCase().includes(query)) ||
-          (s.description && s.description.toLowerCase().includes(query));
-        return matchesCat && matchesSearch;
-      })
-      .sort((a, b) => {
-        const ai = liveOrder.has(a.id) ? liveOrder.get(a.id)! : Number.MAX_SAFE_INTEGER;
-        const bi = liveOrder.has(b.id) ? liveOrder.get(b.id)! : Number.MAX_SAFE_INTEGER;
-        if (ai !== bi) return ai - bi;
-        return (a.sort_order ?? 0) - (b.sort_order ?? 0) || a.id - b.id;
-      });
+    return this.services().filter(s => {
+      const matchesCat = !catId || s.category_id === catId;
+      const matchesSearch = !query || 
+        s.name.toLowerCase().includes(query) || 
+        (s.short_description && s.short_description.toLowerCase().includes(query)) ||
+        (s.description && s.description.toLowerCase().includes(query));
+      return matchesCat && matchesSearch;
+    });
   });
 
   ngOnInit() {
@@ -187,22 +176,10 @@ export class ServicesComponent implements OnInit {
   }
 
   loadData() {
-    this.loading.set(true);
-    this.api.getServices().subscribe({
-      next: (res) => {
-        if (res.success && Array.isArray(res.data)) {
-          this.services.set(res.data);
-        } else {
-          this.services.set(treatments as Service[]);
-        }
-        this.loading.set(false);
-      },
-      error: (err) => {
-        console.error('Failed to load services from backend, falling back to static catalog', err);
-        this.services.set(treatments as Service[]);
-        this.loading.set(false);
-      }
-    });
+    
+
+    this.services.set(treatments as Service[]);
+    this.loading.set(false);
   }
 
   selectCategory(id: number | null) {

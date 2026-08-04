@@ -134,7 +134,6 @@ CREATE TABLE services (
   aftercare_notes       TEXT DEFAULT NULL,
   thumbnail_url         VARCHAR(512) DEFAULT NULL,
   prep_video_url        VARCHAR(512) DEFAULT NULL,
-  gallery_images        JSONB DEFAULT NULL,
   is_featured           BOOLEAN   NOT NULL DEFAULT FALSE,
   is_active             BOOLEAN   NOT NULL DEFAULT TRUE,
   sort_order            SMALLINT NOT NULL DEFAULT 0,

@@ -35,35 +35,32 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
     MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatSnackBarModule,
   ],
   template: `
-    <div class="min-h-screen flex items-center justify-center px-4 py-12 bg-white relative font-sans"
-         style="background-image: radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px); background-size: 24px 24px;">
+    <div class="min-h-screen flex items-center justify-center px-4 py-12 bg-white relative"
+         style="background-image: radial-gradient(circle, rgba(0,0,0,0.05) 1px, transparent 1px); background-size: 40px 40px;">
       
       <!-- Back to site -->
       <a routerLink="/" class="absolute top-6 left-6 flex items-center gap-1.5 text-neutral-500 hover:text-neutral-900 transition-colors">
         <mat-icon class="!text-sm !w-4 !h-4 flex items-center justify-center">arrow_back</mat-icon>
-        <span class="text-xs font-black tracking-widest uppercase">Back to Website</span>
+        <span class="text-xs font-semibold tracking-widest uppercase">Back to Website</span>
       </a>
 
-      <div class="w-full max-w-lg mt-8 mb-4">
+      <div class="w-full max-w-lg mt-8 mb-4 animate-fade-up">
         <!-- Brand Header -->
-        <div class="text-center mb-8">
-          <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[#b8924f] text-white shadow-md mb-3">
-            <mat-icon class="!text-2xl flex items-center justify-center">spa</mat-icon>
-          </div>
-          <h1 class="font-serif text-3xl text-black tracking-widest leading-none">HHC LASER</h1>
-          <p class="text-[10px] font-black tracking-widest text-[#b8924f] mt-1.5 uppercase">Member Registration</p>
+        <div class="text-center mb-10">
+          <a routerLink="/" class="inline-block">
+            <div class="font-heading text-4xl text-neutral-900 mb-1">HHC LASER</div>
+            <div class="text-neutral-700 text-xs tracking-widest uppercase font-semibold">Jamaica's Premier MedSpa</div>
+          </a>
         </div>
 
         <!-- Register Card -->
-        <div class="bg-[#111312] border border-white/10 rounded-3xl p-8 shadow-2xl text-white">
-          <div class="flex flex-col items-center mb-6">
-            <h2 class="text-xl font-bold font-serif uppercase tracking-widest text-center">Register</h2>
-            <div class="w-10 h-0.5 bg-[#b8924f] mt-1.5 rounded-full"></div>
-          </div>
+        <div class="bg-black border border-white/10 rounded-2xl p-8 md:p-10 shadow-2xl text-white">
+          <h2 class="text-white text-2xl font-heading font-medium mb-2">Create Account</h2>
+          <p class="text-neutral-400 text-sm mb-8">Register to book treatments and manage your appointments.</p>
 
           @if (showFormError()) {
-            <div class="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-2.5 rounded-xl text-xs font-bold mb-6 text-center animate-pulse">
-              Please correct the highlighted fields below before creating your account.
+            <div class="bg-red-900/30 border border-red-500/40 rounded-lg px-4 py-3 mb-6">
+              <p class="text-red-300 text-sm">Please correct the highlighted fields below before creating your account.</p>
             </div>
           }
 
@@ -72,23 +69,23 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
             <!-- First & Last Name side-by-side -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <div class="relative flex items-center border border-white/10 rounded-xl bg-transparent focus-within:border-[#b8924f] transition-all px-4 py-3">
-                  <mat-icon class="text-neutral-500 mr-2 !text-lg !w-5 !h-5">person</mat-icon>
+                <div class="relative flex items-center border border-white/20 rounded-xl bg-transparent focus-within:border-gold transition-all px-4 py-3">
+                  <mat-icon class="text-gold-400 mr-2 !text-sm !w-5 !h-5">person</mat-icon>
                   <input type="text" formControlName="firstName" placeholder="First Name*" 
-                         class="bg-transparent border-none text-white text-xs font-bold placeholder-neutral-500 outline-none w-full">
+                         class="bg-transparent border-none text-white text-sm font-medium placeholder-neutral-500 outline-none w-full">
                 </div>
-                <p class="text-red-400 text-[10px] font-bold mt-1 text-left" *ngIf="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched">
+                <p class="text-red-300 text-xs mt-1 text-left" *ngIf="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched">
                   Please enter your first name.
                 </p>
               </div>
 
               <div>
-                <div class="relative flex items-center border border-white/10 rounded-xl bg-transparent focus-within:border-[#b8924f] transition-all px-4 py-3">
-                  <mat-icon class="text-neutral-500 mr-2 !text-lg !w-5 !h-5">person</mat-icon>
+                <div class="relative flex items-center border border-white/20 rounded-xl bg-transparent focus-within:border-gold transition-all px-4 py-3">
+                  <mat-icon class="text-gold-400 mr-2 !text-sm !w-5 !h-5">person</mat-icon>
                   <input type="text" formControlName="lastName" placeholder="Last Name*" 
-                         class="bg-transparent border-none text-white text-xs font-bold placeholder-neutral-500 outline-none w-full">
+                         class="bg-transparent border-none text-white text-sm font-medium placeholder-neutral-500 outline-none w-full">
                 </div>
-                <p class="text-red-400 text-[10px] font-bold mt-1 text-left" *ngIf="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched">
+                <p class="text-red-300 text-xs mt-1 text-left" *ngIf="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched">
                   Please enter your last name.
                 </p>
               </div>
@@ -96,12 +93,12 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
 
             <!-- Email Address -->
             <div>
-              <div class="relative flex items-center border border-white/10 rounded-xl bg-transparent focus-within:border-[#b8924f] transition-all px-4 py-3">
-                <mat-icon class="text-neutral-500 mr-2 !text-lg !w-5 !h-5">email</mat-icon>
+              <div class="relative flex items-center border border-white/20 rounded-xl bg-transparent focus-within:border-gold transition-all px-4 py-3">
+                <mat-icon class="text-gold-400 mr-2 !text-sm !w-5 !h-5">email</mat-icon>
                 <input type="email" formControlName="email" placeholder="Email Address*" 
-                       class="bg-transparent border-none text-white text-xs font-bold placeholder-neutral-500 outline-none w-full">
+                       class="bg-transparent border-none text-white text-sm font-medium placeholder-neutral-500 outline-none w-full">
               </div>
-              <p class="text-red-400 text-[10px] font-bold mt-1 text-left" *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+              <p class="text-red-300 text-xs mt-1 text-left" *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
                 <span *ngIf="registerForm.get('email')?.hasError('required')">Please enter your email address.</span>
                 <span *ngIf="registerForm.get('email')?.hasError('email')">Please enter a valid email address.</span>
               </p>
@@ -109,40 +106,40 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
 
             <!-- Phone Number -->
             <div>
-              <div class="relative flex items-center border border-white/10 rounded-xl bg-transparent focus-within:border-[#b8924f] transition-all px-4 py-3">
-                <mat-icon class="text-neutral-500 mr-2 !text-lg !w-5 !h-5">phone</mat-icon>
+              <div class="relative flex items-center border border-white/20 rounded-xl bg-transparent focus-within:border-gold transition-all px-4 py-3">
+                <mat-icon class="text-gold-400 mr-2 !text-sm !w-5 !h-5">phone</mat-icon>
                 <input type="tel" formControlName="phone" placeholder="Phone Number*" 
-                       class="bg-transparent border-none text-white text-xs font-bold placeholder-neutral-500 outline-none w-full">
+                       class="bg-transparent border-none text-white text-sm font-medium placeholder-neutral-500 outline-none w-full">
               </div>
-              <p class="text-red-400 text-[10px] font-bold mt-1 text-left" *ngIf="registerForm.get('phone')?.invalid && registerForm.get('phone')?.touched">
+              <p class="text-red-300 text-xs mt-1 text-left" *ngIf="registerForm.get('phone')?.invalid && registerForm.get('phone')?.touched">
                 Please enter your phone number.
               </p>
             </div>
 
             <!-- Date of Birth (D.O.B) -->
             <div>
-              <div class="relative flex items-center border border-white/10 rounded-xl bg-transparent focus-within:border-[#b8924f] transition-all px-4 py-3">
-                <mat-icon class="text-neutral-500 mr-3 !text-lg !w-5 !h-5">calendar_today</mat-icon>
-                <span class="text-neutral-400 text-xs font-bold mr-auto">Date of Birth (D.O.B)*</span>
+              <div class="relative flex items-center border border-white/20 rounded-xl bg-transparent focus-within:border-gold transition-all px-4 py-3">
+                <mat-icon class="text-gold-400 mr-3 !text-sm !w-5 !h-5">calendar_today</mat-icon>
+                <span class="text-neutral-400 text-sm font-medium mr-auto">Date of Birth*</span>
                 <input type="date" formControlName="dateOfBirth" 
-                       class="bg-transparent border-none text-white text-xs font-bold outline-none cursor-pointer w-32 text-right">
+                       class="bg-transparent border-none text-white text-sm font-medium outline-none cursor-pointer w-32 text-right">
               </div>
-              <p class="text-red-400 text-[10px] font-bold mt-1 text-left" *ngIf="registerForm.get('dateOfBirth')?.invalid && registerForm.get('dateOfBirth')?.touched">
+              <p class="text-red-300 text-xs mt-1 text-left" *ngIf="registerForm.get('dateOfBirth')?.invalid && registerForm.get('dateOfBirth')?.touched">
                 Please enter your date of birth.
               </p>
             </div>
 
             <!-- Password -->
             <div>
-              <div class="relative flex items-center border border-white/10 rounded-xl bg-transparent focus-within:border-[#b8924f] transition-all px-4 py-3">
-                <mat-icon class="text-neutral-500 mr-2 !text-lg !w-5 !h-5">lock</mat-icon>
+              <div class="relative flex items-center border border-white/20 rounded-xl bg-transparent focus-within:border-gold transition-all px-4 py-3">
+                <mat-icon class="text-gold-400 mr-2 !text-sm !w-5 !h-5">lock</mat-icon>
                 <input [type]="hidePassword() ? 'password' : 'text'" formControlName="password" placeholder="Password*" 
-                       class="bg-transparent border-none text-white text-xs font-bold placeholder-neutral-500 outline-none w-full pr-10">
-                <button type="button" (click)="hidePassword.set(!hidePassword())" class="absolute right-4 text-neutral-500 hover:text-white transition-colors">
+                       class="bg-transparent border-none text-white text-sm font-medium placeholder-neutral-500 outline-none w-full pr-10">
+                <button type="button" (click)="hidePassword.set(!hidePassword())" class="absolute right-4 text-neutral-400 hover:text-white transition-colors">
                   <mat-icon class="!text-lg flex items-center justify-center">{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
                 </button>
               </div>
-              <p class="text-red-400 text-[10px] font-bold mt-1 text-left" *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+              <p class="text-red-300 text-xs mt-1 text-left" *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
                 <span *ngIf="registerForm.get('password')?.hasError('required')">Please create a password.</span>
                 <span *ngIf="registerForm.get('password')?.hasError('minlength')">Password must be at least 8 characters.</span>
                 <span *ngIf="registerForm.get('password')?.hasError('pattern')">Use uppercase, lowercase, and a number.</span>
@@ -151,15 +148,15 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
 
             <!-- Confirm Password -->
             <div>
-              <div class="relative flex items-center border border-white/10 rounded-xl bg-transparent focus-within:border-[#b8924f] transition-all px-4 py-3">
-                <mat-icon class="text-neutral-500 mr-2 !text-lg !w-5 !h-5">lock</mat-icon>
+              <div class="relative flex items-center border border-white/20 rounded-xl bg-transparent focus-within:border-gold transition-all px-4 py-3">
+                <mat-icon class="text-gold-400 mr-2 !text-sm !w-5 !h-5">lock</mat-icon>
                 <input [type]="hideConfirmPassword() ? 'password' : 'text'" formControlName="confirmPassword" placeholder="Confirm Password*" 
-                       class="bg-transparent border-none text-white text-xs font-bold placeholder-neutral-500 outline-none w-full pr-10">
-                <button type="button" (click)="hideConfirmPassword.set(!hideConfirmPassword())" class="absolute right-4 text-neutral-500 hover:text-white transition-colors">
+                       class="bg-transparent border-none text-white text-sm font-medium placeholder-neutral-500 outline-none w-full pr-10">
+                <button type="button" (click)="hideConfirmPassword.set(!hideConfirmPassword())" class="absolute right-4 text-neutral-400 hover:text-white transition-colors">
                   <mat-icon class="!text-lg flex items-center justify-center">{{ hideConfirmPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
                 </button>
               </div>
-              <p class="text-red-400 text-[10px] font-bold mt-1 text-left" *ngIf="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
+              <p class="text-red-300 text-xs mt-1 text-left" *ngIf="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
                 <span *ngIf="registerForm.get('confirmPassword')?.hasError('required')">Please confirm your password.</span>
                 <span *ngIf="registerForm.get('confirmPassword')?.hasError('passwordMismatch')">Your passwords do not match. Please try again.</span>
               </p>
@@ -167,24 +164,29 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
 
             <!-- Register Button -->
             <button type="submit" 
-                    class="w-full h-12 bg-[#b8924f] hover:bg-[#a6803b] disabled:opacity-50 text-white rounded-lg font-black tracking-wider transition-colors mt-6 uppercase text-xs flex items-center justify-center"
+                    class="btn-primary w-full text-base py-3 mt-2"
                     [disabled]="isLoading()">
               @if (isLoading()) {
-                <mat-spinner diameter="20" class="custom-spinner"></mat-spinner>
+                <mat-spinner diameter="20" color="warn"></mat-spinner>
               } @else {
-                Register
+                Create Account
               }
             </button>
           </form>
 
           <!-- Footer switch -->
-          <div class="mt-8 text-center border-t border-white/10 pt-6">
-            <p class="text-neutral-400 text-xs font-bold">
-              Already have an account? 
-              <a routerLink="/auth/login" class="text-[#b8924f] hover:text-[#a6803b] font-black transition-colors ml-1">Login here</a>
-            </p>
-          </div>
+          <p class="text-center text-neutral-400 text-sm mt-8">
+            Already have an account?
+            <a routerLink="/auth/login" class="text-gold-400 hover:text-gold-300 font-semibold ml-1">Login here</a>
+          </p>
         </div>
+
+        <p class="text-center text-neutral-600 text-xs mt-8">
+          By registering, you agree to our
+          <a routerLink="/privacy" class="text-neutral-900 underline font-medium hover:text-black">Privacy Policy</a>
+          and
+          <a routerLink="/terms-of-service" class="text-neutral-900 underline font-medium hover:text-black">Terms of Service</a>.
+        </p>
       </div>
     </div>
   `,

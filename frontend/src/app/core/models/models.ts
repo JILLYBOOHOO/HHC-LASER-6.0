@@ -83,15 +83,7 @@ export interface Service {
   price_jmd: number;
   duration_minutes: number;
   thumbnail_url?: string;
-  gallery_images?: string | Array<string | {
-    id?: number;
-    image_url?: string;
-    video_url?: string | null;
-    media_type?: string;
-    url?: string;
-    caption?: string | null;
-    sort_order?: number;
-  }>;
+  gallery_images?: string | string[];
   is_active?: boolean;
   is_featured?: boolean;
   sort_order?: number;

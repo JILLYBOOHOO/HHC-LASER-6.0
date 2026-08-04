@@ -36,16 +36,16 @@ interface PaymentResult {
 
             <!-- Details -->
             <div class="px-8 py-6 space-y-4">
-              @if (result().oid) {
-                <div class="flex justify-between items-center py-3 border-b border-gray-100">
-                  <span class="text-sm font-semibold text-gray-500">Order ID (share with bank)</span>
-                  <span class="text-xs font-mono text-gray-900 font-bold break-all select-all">{{ result().oid }}</span>
-                </div>
-              }
               @if (result().approvalCode) {
                 <div class="flex justify-between items-center py-3 border-b border-gray-100">
                   <span class="text-sm font-semibold text-gray-500">Approval Code</span>
                   <span class="text-sm font-bold text-gray-900 font-mono tracking-wider">{{ result().approvalCode }}</span>
+                </div>
+              }
+              @if (result().oid) {
+                <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                  <span class="text-sm font-semibold text-gray-500">Order Reference</span>
+                  <span class="text-xs font-mono text-gray-700 break-all">{{ result().oid }}</span>
                 </div>
               }
               @if (result().chargetotal) {
@@ -175,33 +175,21 @@ export class PaymentResultComponent implements OnInit {
   constructor(private route: ActivatedRoute, private router: Router) {}
 
   ngOnInit(): void {
-    // Backend redirects with camelCase; Fiserv may use snake_case
+    // Fiserv returns these query params on redirect to success/failure URL
     const params = this.route.snapshot.queryParams;
 
-    const oid = params['oid'] || params['order_id'] || '';
-    const approvalCode =
-      params['approvalCode'] || params['approval_code'] || '';
-    const responseCode =
-      params['responseCode'] ||
-      params['response_code'] ||
-      params['associationResponseCode'] ||
-      '';
-    const chargetotal = params['chargetotal'] || params['chargeTotal'] || '';
-    const currency = params['currency'] || '840';
-    const txndatetime = params['txndatetime'] || '';
-    const status = params['status'] || '';
-    this.serviceId.set(params['service'] || params['serviceId'] || '');
+    const oid           = params['oid'] || params['order_id'] || '';
+    const approvalCode  = params['approval_code'] || '';
+    const responseCode  = params['response_code'] || '';
+    const chargetotal   = params['chargetotal'] || '';
+    const currency      = params['currency'] || '840';
+    const txndatetime   = params['txndatetime'] || '';
+    const status        = params['status'] || '';
 
-    const url = this.router.url.split('?')[0];
-    // Our API already routes approved txs to /payment/success and declines to /failure.
-    // Fiserv approval codes start with "Y:" when approved.
-    const approvedByCode =
-      status.toUpperCase() === 'APPROVED' ||
-      approvalCode.toUpperCase().startsWith('Y:') ||
-      (!!approvalCode && !approvalCode.toUpperCase().startsWith('N:'));
-    const isSuccess =
-      url.includes('/payment/success') &&
-      (approvedByCode || !approvalCode);
+    // Determine the current route to know success vs failure
+    const url = this.router.url;
+    const isSuccess = url.includes('/payment/success') &&
+                      (status.toUpperCase() === 'APPROVED' || approvalCode !== '');
 
     this.result.set({
       status: isSuccess ? 'success' : 'failure',
