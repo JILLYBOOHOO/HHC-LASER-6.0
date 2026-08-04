@@ -272,7 +272,7 @@ export class AdminBookingsComponent implements OnInit {
         this.snackBar.open('No phone number available for this client.', 'Close', { duration: 3000, panelClass: ['bg-black', 'text-white'] });
       }
     } 
-    else if (action === 'Invoice') {
+    else if (action === 'Invoice' || action === 'Took Payment' || action === 'Take Payment') {
       this.showInvoiceModal.set(true);
     } 
     else if (action === 'Add Note') {
