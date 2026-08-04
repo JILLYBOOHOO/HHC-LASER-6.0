@@ -676,17 +676,17 @@ interface TreatmentGroup { category: string; treatments: Treatment[]; }
     <div *ngIf="showContextMenu" (click)="closeContextMenu()" class="fixed inset-0 z-[100]">
       <div class="absolute bg-white border border-slate-200 rounded-xl shadow-2xl py-2 w-48 text-left z-[101]"
            [style.left.px]="contextMenuX" [style.top.px]="contextMenuY" (click)="$event.stopPropagation()">
-        <button class="w-full px-4 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2">
+        <button (click)="handleContextAction('open')" class="w-full px-4 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2">
           <mat-icon class="!text-sm">open_in_new</mat-icon> Open
         </button>
-        <button class="w-full px-4 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2">
+        <button (click)="handleContextAction('check_in')" class="w-full px-4 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2">
           <mat-icon class="!text-sm">check_circle</mat-icon> Check In
         </button>
-        <button class="w-full px-4 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2">
+        <button (click)="handleContextAction('complete')" class="w-full px-4 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2">
           <mat-icon class="!text-sm">done_all</mat-icon> Complete
         </button>
         <div class="h-px bg-slate-100 my-1"></div>
-        <button class="w-full px-4 py-2 text-left text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-2">
+        <button (click)="handleContextAction('cancel')" class="w-full px-4 py-2 text-left text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-2">
           <mat-icon class="!text-sm">cancel</mat-icon> Cancel
         </button>
       </div>
@@ -775,6 +775,22 @@ export class AdminBookingsComponent implements OnInit, OnDestroy {
 
   closeContextMenu(): void {
     this.showContextMenu = false;
+  }
+
+  handleContextAction(action: string): void {
+    if (this.contextMenuAppointment) {
+      console.log(`Action [${action}] triggered for appointment ID:`, this.contextMenuAppointment.id);
+      if (action === 'check_in') {
+        alert('Appointment Checked In');
+      } else if (action === 'complete') {
+        alert('Appointment Completed');
+      } else if (action === 'cancel') {
+        alert('Appointment Cancelled');
+      } else if (action === 'open') {
+        alert('Opening Appointment Details...');
+      }
+    }
+    this.closeContextMenu();
   }
 
   onDragStart(event: DragEvent, appointment: any): void {

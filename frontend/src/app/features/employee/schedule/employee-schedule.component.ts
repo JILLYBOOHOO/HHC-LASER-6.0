@@ -23,10 +23,7 @@ import { InternalBookingModalComponent } from '../../../shared/components/intern
           <p class="text-slate-600 font-medium text-sm mt-1">Welcome, <span class="font-bold text-slate-900">{{ authState.user()?.first_name || 'Specialist' }}</span>. Here is your schedule for today.</p>
         </div>
         <div class="flex flex-wrap items-center gap-3">
-          <button (click)="showBookingModal = true" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-black font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center gap-2">
-            <mat-icon class="!text-base">add_circle</mat-icon>
-            <span class="uppercase tracking-wider">+ Make Appointment for Customer</span>
-          </button>
+
           <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200">
             <button mat-icon-button class="text-slate-600 hover:text-slate-900"><mat-icon>chevron_left</mat-icon></button>
             <div class="font-extrabold text-slate-900 text-sm whitespace-nowrap">Today, Aug 15</div>
@@ -191,17 +188,17 @@ import { InternalBookingModalComponent } from '../../../shared/components/intern
     <div *ngIf="showContextMenu" (click)="closeContextMenu()" class="fixed inset-0 z-[100]">
       <div class="absolute bg-white border border-slate-200 rounded-xl shadow-2xl py-2 w-48 text-left z-[101]"
            [style.left.px]="contextMenuX" [style.top.px]="contextMenuY" (click)="$event.stopPropagation()">
-        <button class="w-full px-4 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2">
+        <button (click)="handleContextAction('open')" class="w-full px-4 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2">
           <mat-icon class="!text-sm">open_in_new</mat-icon> Open
         </button>
-        <button class="w-full px-4 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2">
+        <button (click)="handleContextAction('check_in')" class="w-full px-4 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2">
           <mat-icon class="!text-sm">check_circle</mat-icon> Check In
         </button>
-        <button class="w-full px-4 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2">
+        <button (click)="handleContextAction('complete')" class="w-full px-4 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2">
           <mat-icon class="!text-sm">done_all</mat-icon> Complete
         </button>
         <div class="h-px bg-slate-100 my-1"></div>
-        <button class="w-full px-4 py-2 text-left text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-2">
+        <button (click)="handleContextAction('cancel')" class="w-full px-4 py-2 text-left text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-2">
           <mat-icon class="!text-sm">cancel</mat-icon> Cancel
         </button>
       </div>
@@ -238,6 +235,22 @@ export class EmployeeScheduleComponent implements OnInit, OnDestroy {
 
   closeContextMenu(): void {
     this.showContextMenu = false;
+  }
+
+  handleContextAction(action: string): void {
+    if (this.contextMenuAppointment) {
+      console.log(`Action [${action}] triggered for appointment ID:`, this.contextMenuAppointment.id);
+      if (action === 'check_in') {
+        alert('Appointment Checked In');
+      } else if (action === 'complete') {
+        alert('Appointment Completed');
+      } else if (action === 'cancel') {
+        alert('Appointment Cancelled');
+      } else if (action === 'open') {
+        alert('Opening Appointment Details...');
+      }
+    }
+    this.closeContextMenu();
   }
   
   hours = Array.from({ length: 41 }, (_, i) => {
