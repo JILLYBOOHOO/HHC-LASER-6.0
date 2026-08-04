@@ -7,11 +7,13 @@ const validation_middleware_1 = require("../middleware/validation.middleware");
 const express_validator_1 = require("express-validator");
 const booking_service_1 = require("../services/booking.service");
 const payment_flow_service_1 = require("../payments/fiserv/payment-flow.service");
-const notification_service_1 = require("../services/notification.service");
+const socket_service_1 = require("../services/socket.service");
 const types_1 = require("../models/types");
+const error_middleware_1 = require("../middleware/error.middleware");
+const database_1 = require("../config/database");
 const router = (0, express_1.Router)();
 // GET /api/bookings/available-slots
-router.get('/available-slots', auth_middleware_1.authenticate, [
+router.get('/available-slots', [
     (0, express_validator_1.query)('employee_id').isInt().withMessage('employee_id required'),
     (0, express_validator_1.query)('location_id').isInt().withMessage('location_id required'),
     (0, express_validator_1.query)('date').isISO8601().withMessage('date required (YYYY-MM-DD)'),
@@ -31,7 +33,7 @@ router.get('/available-slots', auth_middleware_1.authenticate, [
     }
 });
 // GET /api/bookings/available-dates
-router.get('/available-dates', auth_middleware_1.authenticate, [
+router.get('/available-dates', [
     (0, express_validator_1.query)('employee_id').isInt().withMessage('employee_id required'),
     (0, express_validator_1.query)('location_id').isInt().withMessage('location_id required'),
     (0, express_validator_1.query)('service_id').isInt().withMessage('service_id required'),
@@ -115,6 +117,140 @@ router.put('/admin/business-hours', auth_middleware_1.authenticate, (0, rbac_mid
         next(e);
     }
 });
+async function normalizeAdminBookingPayload(req, res, next) {
+    try {
+        // 1. Map camelCase to snake_case
+        if (req.body.customerId && !req.body.customer_user_id) {
+            req.body.customer_user_id = Number(req.body.customerId);
+        }
+        if (req.body.serviceIds && !req.body.service_ids) {
+            req.body.service_ids = req.body.serviceIds;
+        }
+        if (req.body.date && !req.body.scheduled_date) {
+            req.body.scheduled_date = req.body.date;
+        }
+        if (req.body.time && !req.body.start_time) {
+            req.body.start_time = req.body.time.slice(0, 5);
+        }
+        if (req.body.locationId && !req.body.location_id) {
+            req.body.location_id = Number(req.body.locationId);
+        }
+        if (req.body.employeeId && !req.body.employee_id) {
+            req.body.employee_id = Number(req.body.employeeId);
+        }
+        // Normalize booking_type, booking_source, and payment_option
+        if (!req.body.booking_type) {
+            req.body.booking_type = 'self';
+        }
+        if (!req.body.booking_source) {
+            req.body.booking_source = 'admin';
+        }
+        // Normalize payment option
+        if (req.body.payment_option) {
+            // already set
+        }
+        else if (req.body.paymentMethod) {
+            const pm = req.body.paymentMethod;
+            if (pm === 'pay_in_store' || pm === 'pay_at_appointment' || pm === 'manual_cash' || pm === 'manual' || pm === 'pay_at_clinic') {
+                req.body.payment_option = 'pay_at_appointment';
+            }
+            else if (pm === 'send_link' || pm === 'send_payment_link') {
+                req.body.payment_option = 'send_payment_link';
+            }
+            else if (pm === 'paid_in_store') {
+                req.body.payment_option = 'paid_in_store';
+            }
+            else {
+                req.body.payment_option = 'pay_at_appointment';
+            }
+        }
+        else {
+            req.body.payment_option = 'pay_at_appointment';
+        }
+        // 2. If customer_info is provided and we don't have customer_user_id
+        if (req.body.customer_info && !req.body.customer_user_id) {
+            const { first_name, last_name, phone, email } = req.body.customer_info;
+            if (!first_name || !last_name || !phone) {
+                res.status(422).json((0, types_1.errorResponse)('First name, last name, and phone are required for customer info.'));
+                return;
+            }
+            // Check if user already exists by phone or email
+            let user = null;
+            if (email) {
+                user = await (0, database_1.executeQueryOne)('SELECT id FROM users WHERE email = ?', [email.toLowerCase().trim()]);
+            }
+            if (!user && phone) {
+                user = await (0, database_1.executeQueryOne)('SELECT id FROM users WHERE phone = ?', [phone.trim()]);
+            }
+            if (user) {
+                req.body.customer_user_id = user.id;
+            }
+            else {
+                // Create new customer
+                const insertId = await (0, database_1.withTransaction)(async (conn) => {
+                    const finalEmail = email ? email.toLowerCase().trim() : `guest_${Date.now()}_${Math.floor(Math.random() * 1000)}@hhclaser.com`;
+                    const [userResult] = await conn.execute(`INSERT INTO users (email, password_hash, first_name, last_name, phone, token_version, is_active, email_verified)
+             VALUES (?, NULL, ?, ?, ?, 0, 1, 0)`, [
+                        finalEmail,
+                        first_name.trim(),
+                        last_name.trim(),
+                        phone.trim()
+                    ]);
+                    const uid = userResult.insertId;
+                    await conn.execute(`INSERT INTO user_roles (user_id, role) VALUES (?, 'customer')`, [uid]);
+                    return uid;
+                });
+                req.body.customer_user_id = insertId;
+            }
+        }
+        next();
+    }
+    catch (err) {
+        next(err);
+    }
+}
+// Admin can create bookings for customers
+router.post('/admin', auth_middleware_1.authenticate, (0, rbac_middleware_1.requireRole)('admin', 'manager', 'owner'), (req, res, next) => { normalizeAdminBookingPayload(req, res, next); }, [
+    (0, express_validator_1.body)('customer_user_id').isInt({ min: 1 }).withMessage('customer_user_id is required'),
+    (0, express_validator_1.body)('booking_type').isIn(['self', 'other', 'group']).withMessage('booking_type must be self, other, or group'),
+    (0, express_validator_1.body)('employee_id').isInt({ min: 1 }).withMessage('employee_id is required'),
+    (0, express_validator_1.body)('location_id').isInt({ min: 1 }).withMessage('location_id is required'),
+    (0, express_validator_1.body)('scheduled_date').isISO8601().withMessage('scheduled_date must be YYYY-MM-DD'),
+    (0, express_validator_1.body)('start_time').matches(/^\d{2}:\d{2}$/).withMessage('start_time must be HH:MM'),
+    (0, express_validator_1.body)('service_ids').isArray({ min: 1 }).withMessage('At least one service must be selected'),
+    (0, express_validator_1.body)('service_ids.*').isInt({ min: 1 }),
+    (0, express_validator_1.body)('booking_source').isIn(['phone', 'walk_in', 'admin', 'staff', 'whatsapp', 'social_media']).withMessage('Invalid booking_source'),
+    (0, express_validator_1.body)('payment_option').isIn(['pay_at_appointment', 'send_payment_link', 'paid_in_store']).withMessage('Invalid payment_option'),
+    (0, express_validator_1.body)('notes').optional().isString(),
+], validation_middleware_1.validateRequest, async (req, res, next) => {
+    try {
+        const dto = req.body;
+        let paymentStatus = 'pending_payment';
+        if (dto.payment_option === 'pay_at_appointment') {
+            paymentStatus = 'pay_at_appointment';
+        }
+        else if (dto.payment_option === 'paid_in_store') {
+            paymentStatus = 'paid_in_store';
+        }
+        dto.payment_status = paymentStatus;
+        const appointment = await booking_service_1.bookingService.createAdminAppointment(req.user.userId, dto.customer_user_id, dto);
+        socket_service_1.socketService.emitBookingEvent('booking_created', { appointment });
+        if (dto.payment_option === 'send_payment_link') {
+            const paymentSession = await payment_flow_service_1.paymentFlowService.initiatePayment({
+                appointmentId: appointment.id,
+                amountJmd: appointment.total_amount_jmd,
+                customerId: dto.customer_user_id,
+                description: `Appointment #${appointment.id}`,
+            });
+            return res.status(201).json((0, types_1.successResponse)({ appointment, payment: paymentSession }, 'Appointment created. Payment link generated.'));
+        }
+        // If paid_in_store, frontend is expected to follow up with a call to POST /api/payments/record-manual to provide the exact payment method.
+        res.status(201).json((0, types_1.successResponse)({ appointment }, 'Appointment created successfully.'));
+    }
+    catch (e) {
+        next(e);
+    }
+});
 // POST /api/bookings
 router.post('/', auth_middleware_1.authenticate, (0, rbac_middleware_1.requireRole)('customer', 'admin', 'manager'), [
     (0, express_validator_1.body)('booking_type').isIn(['self', 'other', 'group']).withMessage('booking_type must be self, other, or group'),
@@ -129,6 +265,7 @@ router.post('/', auth_middleware_1.authenticate, (0, rbac_middleware_1.requireRo
 ], validation_middleware_1.validateRequest, async (req, res, next) => {
     try {
         const appointment = await booking_service_1.bookingService.createAppointment(req.user.userId, req.body);
+        socket_service_1.socketService.emitBookingEvent('booking_created', { appointment });
         // Initiate payment session
         const paymentSession = await payment_flow_service_1.paymentFlowService.initiatePayment({
             appointmentId: appointment.id,
@@ -165,6 +302,37 @@ router.get('/employee/:employeeId', auth_middleware_1.authenticate, (0, rbac_mid
         next(e);
     }
 });
+// GET /api/bookings/:id
+router.get('/:id', auth_middleware_1.authenticate, async (req, res, next) => {
+    try {
+        const appointment = await booking_service_1.bookingService.getAppointmentById(parseInt(req.params['id']));
+        if (!appointment)
+            throw new error_middleware_1.AppError('Appointment not found.', 404);
+        const isOwner = appointment.customer_user_id === req.user.userId;
+        const isStaff = ['specialist', 'manager', 'admin', 'owner'].some(r => req.user.roles.includes(r));
+        if (!isOwner && !isStaff)
+            throw new error_middleware_1.AppError('Access denied.', 403);
+        res.json((0, types_1.successResponse)(appointment));
+    }
+    catch (e) {
+        next(e);
+    }
+});
+// PATCH /api/bookings/:id/reschedule
+router.patch('/:id/reschedule', auth_middleware_1.authenticate, (0, rbac_middleware_1.requireRole)('specialist', 'manager', 'admin', 'owner'), [
+    (0, express_validator_1.param)('id').isInt().withMessage('Appointment ID must be a number'),
+    (0, express_validator_1.body)('date').isISO8601().withMessage('date must be YYYY-MM-DD'),
+    (0, express_validator_1.body)('time').matches(/^\d{2}:\d{2}(:\d{2})?$/).withMessage('time must be HH:MM or HH:MM:SS'),
+], validation_middleware_1.validateRequest, async (req, res, next) => {
+    try {
+        await booking_service_1.bookingService.rescheduleAppointment(parseInt(req.params['id']), req.body.date, req.body.time, req.user.userId);
+        socket_service_1.socketService.emitBookingEvent('booking_rescheduled', { appointmentId: parseInt(req.params['id']), newDate: req.body.date, newTime: req.body.time });
+        res.json((0, types_1.successResponse)(undefined, 'Appointment rescheduled.'));
+    }
+    catch (e) {
+        next(e);
+    }
+});
 // PATCH /api/bookings/:id/status
 router.patch('/:id/status', auth_middleware_1.authenticate, (0, rbac_middleware_1.requireRole)('specialist', 'manager', 'admin', 'owner'), [
     (0, express_validator_1.param)('id').isInt().withMessage('Appointment ID must be a number'),
@@ -174,42 +342,8 @@ router.patch('/:id/status', auth_middleware_1.authenticate, (0, rbac_middleware_
 ], validation_middleware_1.validateRequest, async (req, res, next) => {
     try {
         await booking_service_1.bookingService.updateAppointmentStatus(parseInt(req.params['id']), req.body.status, req.user.userId, req.body.notes);
+        socket_service_1.socketService.emitBookingEvent('booking_updated', { appointmentId: parseInt(req.params['id']), status: req.body.status });
         res.json((0, types_1.successResponse)(undefined, 'Appointment status updated.'));
-    }
-    catch (e) {
-        next(e);
-    }
-});
-// POST /api/bookings/:id/mock-payment
-router.post('/:id/mock-payment', auth_middleware_1.authenticate, async (req, res, next) => {
-    try {
-        const appointmentId = parseInt(req.params['id']);
-        // Usually verify that the appointment belongs to the customer
-        // and verify payment via gateway. Here we mock it.
-        await booking_service_1.bookingService.updateAppointmentStatus(appointmentId, 'confirmed', req.user.userId, 'Mock Payment Successful');
-        // Get the appointment details for the email
-        const { executeQueryOne, executeQuery } = require('../config/database');
-        const appt = await executeQueryOne(`SELECT a.*, l.name as location_name, CONCAT(eu.first_name, ' ', eu.last_name) as employee_name
-         FROM appointments a 
-         JOIN locations l ON a.location_id = l.id
-         JOIN employees e ON a.employee_id = e.id
-         JOIN users eu ON e.user_id = eu.id
-         WHERE a.id = ?`, [appointmentId]);
-        if (appt) {
-            const servicesRows = await executeQuery(`SELECT s.name FROM appointment_services aps JOIN services s ON aps.service_id = s.id WHERE aps.appointment_id = ?`, [appointmentId]);
-            const servicesList = servicesRows.map((r) => r.name).join(', ');
-            await notification_service_1.notificationService.sendAppointmentConfirmation(appt.customer_user_id, {
-                date: appt.scheduled_date,
-                time: appt.start_time,
-                services: servicesList,
-                location: appt.location_name,
-                employeeName: appt.employee_name,
-                totalAmount: appt.total_amount_jmd,
-                appointmentId: appt.id,
-                confirmationCode: appt.confirmation_code
-            });
-        }
-        res.json((0, types_1.successResponse)(undefined, 'Payment mocked and booking confirmed.'));
     }
     catch (e) {
         next(e);

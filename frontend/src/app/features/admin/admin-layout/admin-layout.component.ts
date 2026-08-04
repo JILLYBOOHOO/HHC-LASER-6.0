@@ -10,7 +10,7 @@ import { InternalBookingModalComponent } from '../../../shared/components/intern
   standalone: true,
   imports: [RouterOutlet, RouterModule, CommonModule, MatIconModule, InternalBookingModalComponent],
   template: `
-    <div class="flex h-screen overflow-hidden bg-[#111312] font-sans text-slate-200 selection:bg-cyan-500 selection:text-black">
+    <div class="flex h-screen overflow-hidden bg-[#f8fafc] font-sans text-slate-800 selection:bg-cyan-500 selection:text-black">
       
       <!-- Sidebar Navigation (Dark Theme) -->
       <aside class="hidden md:flex flex-col w-64 flex-shrink-0 bg-[#141716] border-r border-[#1e2522] z-20">
@@ -20,13 +20,13 @@ import { InternalBookingModalComponent } from '../../../shared/components/intern
           <div class="font-bold text-2xl tracking-tight text-[#00f0ff]">HHC Laser</div>
           <div class="text-[10px] font-black tracking-[0.2em] text-slate-400 uppercase">ADMIN TERMINAL</div>
         </div>
-
+ 
         <!-- Navigation Links -->
         <nav class="flex-1 py-4 px-4 space-y-2 overflow-y-auto custom-scrollbar">
           @for (link of navLinks; track link.label) {
             <ng-container *ngIf="link.action === 'modal'; else routerLinkTpl">
               <button (click)="openBookingModal()"
-                 class="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-slate-400 hover:text-black hover:bg-[#1e2522] transition-all text-xs font-semibold group text-left">
+                 class="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-slate-400 hover:text-[#00f0ff] hover:bg-[#1e2522] transition-all text-xs font-semibold group text-left">
                 <mat-icon class="!text-lg transition-colors">{{ link.icon }}</mat-icon>
                 <span class="tracking-wide">{{ link.label }}</span>
               </button>
@@ -35,7 +35,7 @@ import { InternalBookingModalComponent } from '../../../shared/components/intern
               <a [routerLink]="link.path"
                  routerLinkActive="active-nav-link"
                  [routerLinkActiveOptions]="{exact: link.exact || false}"
-                 class="flex items-center gap-4 px-4 py-3 rounded-lg text-slate-400 hover:text-black hover:bg-[#1e2522] transition-all text-xs font-semibold group">
+                 class="flex items-center gap-4 px-4 py-3 rounded-lg text-slate-400 hover:text-[#00f0ff] hover:bg-[#1e2522] transition-all text-xs font-semibold group">
                  
                 <mat-icon class="!text-lg transition-colors">{{ link.icon }}</mat-icon>
                 <span class="tracking-wide">{{ link.label }}</span>
@@ -43,19 +43,24 @@ import { InternalBookingModalComponent } from '../../../shared/components/intern
             </ng-template>
           }
         </nav>
-
+ 
         <!-- Admin Profile Bottom (matching image) -->
-        <div class="p-4 mx-4 mb-4 border-t border-[#1e2522] flex items-center gap-3">
-          <img loading="lazy" src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&q=80" class="w-10 h-10 rounded-full object-cover border border-[#2c3632]">
-          <div>
-            <div class="text-xs font-bold text-black">Admin User</div>
-            <div class="text-[9px] font-medium text-slate-500 uppercase tracking-widest">TERMINAL 04</div>
+        <div class="p-4 mx-4 mb-4 border-t border-[#1e2522] flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <img loading="lazy" src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&q=80" class="w-10 h-10 rounded-full object-cover border border-[#2c3632]">
+            <div>
+              <div class="text-xs font-bold text-white">Admin User</div>
+              <div class="text-[9px] font-medium text-slate-500 uppercase tracking-widest">TERMINAL 04</div>
+            </div>
           </div>
+          <button (click)="logout()" title="Log Out" class="text-slate-500 hover:text-[#00f0ff] transition-colors p-1.5 rounded-lg hover:bg-[#1e2522] flex items-center justify-center">
+            <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">logout</mat-icon>
+          </button>
         </div>
       </aside>
-
+ 
       <!-- Main Body Area -->
-      <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#111312]">
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f8fafc]">
         
         <!-- Top Navigation Header Bar is REMOVED from layout, moved into components per the design -->
         
@@ -94,7 +99,7 @@ export class AdminLayoutComponent {
     { path: '/admin/check-in',              icon: 'how_to_reg',             label: 'Check-in Queue' },
     { path: '/admin/patients',              icon: 'people',                 label: 'Patients' },
     { path: '/admin/staff',                 icon: 'badge',                  label: 'Staff' },
-    { path: '/admin/media',                 icon: 'photo_library',          label: 'Media Library' },
+    { path: '/admin/services',              icon: 'spa',                    label: 'Services' },
     { path: '/admin/gallery',               icon: 'collections',            label: 'Gallery' },
     { path: '/admin/reports',               icon: 'bar_chart',              label: 'Reports' },
     { path: '/admin/settings',              icon: 'settings',               label: 'Settings' }

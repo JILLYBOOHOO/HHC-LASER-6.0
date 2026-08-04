@@ -28,10 +28,14 @@ export declare class BookingService {
      */
     private addMinutes;
     createAppointment(customerId: number, dto: CreateAppointmentDto): Promise<Appointment>;
+    createAdminAppointment(staffUserId: number, customerId: number, dto: CreateAppointmentDto & {
+        payment_status?: any;
+    }): Promise<Appointment>;
     getAppointmentsByCustomer(customerId: number, page: number, limit: number): Promise<{
         appointments: any[];
         total: number;
     }>;
+    getAppointmentById(appointmentId: number): Promise<any | null>;
     getAppointmentsByEmployee(employeeId: number, date?: string): Promise<any[]>;
     updateAppointmentStatus(appointmentId: number, newStatus: AppointmentStatus, updatedBy: number, notes?: string): Promise<void>;
     getAvailableSlots(params: {
@@ -47,6 +51,7 @@ export declare class BookingService {
         year: number;
         month: number;
     }): Promise<string[]>;
+    rescheduleAppointment(appointmentId: number, newDate: string, newTime: string, userId: number): Promise<void>;
     getBlockedDates(): Promise<any[]>;
     addBlockedDate(blockedDate: string, reason: string): Promise<void>;
     deleteBlockedDate(blockedDate: string): Promise<void>;

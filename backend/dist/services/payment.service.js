@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.paymentService = exports.PaymentService = void 0;
-const uuid_1 = require("uuid");
 const database_1 = require("../config/database");
 const hmac_1 = require("../utils/hmac");
 const error_middleware_1 = require("../middleware/error.middleware");
@@ -18,9 +17,13 @@ class PaymentService {
         const txnDatetime = (0, hmac_1.getFiservTimestamp)();
         const chargetotal = dto.amountJmd.toFixed(2);
         const currency = '388'; // JMD ISO 4217 code
+        const storeName = env_1.env.FISERV_STORE_NAME || env_1.env.FISERV_STORE_ID || '';
+        if (!storeName) {
+            throw new error_middleware_1.AppError('Fiserv store name is not configured.', 500);
+        }
         // Generate HMAC signature
         const hash = (0, hmac_1.generateFiservHmac)({
-            storeId: env_1.env.FISERV_STORE_NAME,
+            storeId: storeName,
             timestamp: txnDatetime,
             token: idempotencyKey,
             txnType: 'sale',
@@ -30,10 +33,13 @@ class PaymentService {
         // Store pending transaction record
         const result = await (0, database_1.executeUpdate)(`INSERT INTO transactions (appointment_id, customer_user_id, idempotency_key, amount_jmd, currency, status, notes)
        VALUES (?, ?, ?, ?, 'JMD', 'pending', ?)`, [dto.appointmentId || null, dto.customerId, idempotencyKey, dto.amountJmd, dto.description]);
+        if (result.insertId == null) {
+            throw new error_middleware_1.AppError('Failed to create payment transaction.', 500);
+        }
         const transactionId = result.insertId;
         // Build Fiserv form fields
         const formFields = {
-            storename: env_1.env.FISERV_STORE_NAME,
+            storename: storeName,
             txndatetime: txnDatetime,
             chargetotal,
             currency,
@@ -74,39 +80,30 @@ class PaymentService {
             logger_1.logger.error(`[Payment] INVALID HMAC on callback for oid: ${idempotencyKey}`);
             throw new error_middleware_1.AppError('Invalid payment callback signature.', 400);
         }
-        let transaction;
+        const transaction = await (0, database_1.executeQueryOne)('SELECT * FROM transactions WHERE idempotency_key = ?', [idempotencyKey]);
+        if (!transaction) {
+            logger_1.logger.warn(`[Payment] Callback received for unknown transaction: ${idempotencyKey}`);
+            return;
+        }
+        // Idempotency — ignore if already processed
+        if (transaction.status !== 'pending') {
+            logger_1.logger.info(`[Payment] Duplicate callback ignored for ${idempotencyKey}`);
+            return;
+        }
         const paymentStatus = status === 'APPROVED' ? 'completed' : 'failed';
         await (0, database_1.withTransaction)(async (conn) => {
-            // Select for update to prevent duplicate concurrent callbacks from processing
-            const [rows] = await conn.execute('SELECT * FROM transactions WHERE idempotency_key = ? FOR UPDATE', [idempotencyKey]);
-            transaction = rows[0];
-            if (!transaction) {
-                logger_1.logger.warn(`[Payment] Callback received for unknown transaction: ${idempotencyKey}`);
-                return;
-            }
-            // Idempotency — ignore if already processed
-            if (transaction.status !== 'pending') {
-                logger_1.logger.info(`[Payment] Duplicate callback ignored for ${idempotencyKey}`);
-                transaction = undefined; // Nullify to skip notification below
-                return;
-            }
             // Update transaction
             await conn.execute(`UPDATE transactions 
          SET status = ?, fiserv_txn_id = ?, fiserv_approval_code = ?, fiserv_response_code = ?, updated_at = NOW()
          WHERE idempotency_key = ?`, [paymentStatus, idempotencyKey, approval_code || null, response_code || null, idempotencyKey]);
             // If payment succeeded and linked to appointment, confirm it
             if (paymentStatus === 'completed' && transaction.appointment_id) {
-                const confirmationCode = 'HHC-' + (0, uuid_1.v4)().split('-')[0].toUpperCase();
-                await conn.execute(`UPDATE appointments 
-           SET status = 'confirmed', payment_status = 'paid', confirmation_code = ?, updated_at = NOW() 
-           WHERE id = ?`, [confirmationCode, transaction.appointment_id]);
+                await conn.execute(`UPDATE appointments SET status = 'confirmed', updated_at = NOW() WHERE id = ?`, [transaction.appointment_id]);
                 // Log status change
                 await conn.execute(`INSERT INTO appointment_status_log (appointment_id, old_status, new_status, changed_by_system, notes)
            VALUES (?, 'pending', 'confirmed', 1, 'Payment confirmed via Fiserv')`, [transaction.appointment_id]);
             }
         });
-        if (!transaction)
-            return;
         // Send confirmation notification
         if (paymentStatus === 'completed' && transaction.appointment_id) {
             const appointment = await (0, database_1.executeQueryOne)(`SELECT a.*, l.name as location_name, e.user_id as employee_user_id, u.first_name, u.last_name

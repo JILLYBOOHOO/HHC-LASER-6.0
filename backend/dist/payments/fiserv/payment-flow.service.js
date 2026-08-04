@@ -67,7 +67,7 @@ class PaymentFlowService {
                 const confirmationCode = 'HHC-' + (0, uuid_1.v4)().split('-')[0].toUpperCase();
                 await conn.execute(`UPDATE appointments 
            SET status = 'confirmed', 
-               payment_status = 'paid', 
+               payment_status = 'paid_online', 
                transaction_id = ?, 
                payment_reference = ?, 
                amount_paid = ?, 

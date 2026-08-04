@@ -6,7 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const crypto_1 = __importDefault(require("crypto"));
 const auth_middleware_1 = require("../middleware/auth.middleware");
+const rbac_middleware_1 = require("../middleware/rbac.middleware");
 const types_1 = require("../models/types");
+const express_validator_1 = require("express-validator");
+const validation_middleware_1 = require("../middleware/validation.middleware");
 const fiserv_webhook_1 = require("../payments/fiserv/fiserv.webhook");
 const transaction_service_1 = require("../services/transaction.service");
 const database_1 = require("../config/database");
@@ -90,6 +93,65 @@ router.get('/history', auth_middleware_1.authenticate, async (req, res, next) =>
         const limit = parseInt(req.query['limit']) || 10;
         const result = await transaction_service_1.transactionService.getCustomerTransactions(req.user.userId, page, limit);
         res.json((0, types_1.successResponse)(result));
+    }
+    catch (e) {
+        next(e);
+    }
+});
+// ─── GET /api/payments/all ──────────────────────────────────────────────────
+// Admin all transactions
+router.get('/all', auth_middleware_1.authenticate, (0, rbac_middleware_1.requireRole)('admin', 'manager', 'owner'), async (req, res, next) => {
+    try {
+        const page = parseInt(req.query['page']) || 1;
+        const limit = parseInt(req.query['limit']) || 50;
+        const result = await transaction_service_1.transactionService.getAllTransactions(page, limit);
+        res.json((0, types_1.successResponse)(result));
+    }
+    catch (e) {
+        next(e);
+    }
+});
+// ─── POST /api/payments/record-manual ─────────────────────────────────────────
+// Record a manual payment (e.g. cash, card terminal in store)
+router.post('/record-manual', auth_middleware_1.authenticate, (0, rbac_middleware_1.requireRole)('admin', 'manager', 'owner'), [
+    (0, express_validator_1.body)('appointment_id').isInt().withMessage('appointment_id is required'),
+    (0, express_validator_1.body)('customer_user_id').isInt().withMessage('customer_user_id is required'),
+    (0, express_validator_1.body)('amount_jmd').isNumeric().withMessage('amount_jmd is required'),
+    (0, express_validator_1.body)('payment_method').isIn(['cash', 'card_in_store', 'bank_transfer', 'other']).withMessage('Invalid payment method'),
+    (0, express_validator_1.body)('notes').optional().isString(),
+], validation_middleware_1.validateRequest, async (req, res, next) => {
+    try {
+        const txn = await transaction_service_1.transactionService.recordManualPayment({
+            appointmentId: req.body.appointment_id,
+            amountJmd: req.body.amount_jmd,
+            paymentMethod: req.body.payment_method,
+            notes: req.body.notes,
+            staffUserId: req.user.userId,
+            customerId: req.body.customer_user_id
+        });
+        res.status(201).json((0, types_1.successResponse)(txn, 'Manual payment recorded successfully.'));
+    }
+    catch (e) {
+        next(e);
+    }
+});
+// ─── GET /api/payments/link/:appointmentId ──────────────────────────────────
+// Returns a payment link for a specific appointment
+router.get('/link/:appointmentId', [
+    (0, express_validator_1.param)('appointmentId').isInt().withMessage('appointmentId is required'),
+], validation_middleware_1.validateRequest, async (req, res, next) => {
+    try {
+        const appointment = await (0, database_1.executeQueryOne)('SELECT * FROM appointments WHERE id = ?', [req.params['appointmentId']]);
+        if (!appointment) {
+            throw new error_middleware_1.AppError('Appointment not found', 404);
+        }
+        const session = await payment_flow_service_1.paymentFlowService.initiatePayment({
+            appointmentId: appointment.id,
+            amountJmd: Number(appointment.total_amount_jmd) || 0,
+            customerId: appointment.customer_user_id,
+            description: `Appointment #${appointment.id}`
+        });
+        res.json((0, types_1.successResponse)(session));
     }
     catch (e) {
         next(e);

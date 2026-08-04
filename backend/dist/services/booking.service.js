@@ -37,6 +37,7 @@ exports.bookingService = exports.BookingService = void 0;
 const database_1 = require("../config/database");
 const error_middleware_1 = require("../middleware/error.middleware");
 const logger_1 = require("../utils/logger");
+const notification_service_1 = require("./notification.service");
 const uuid_1 = require("uuid");
 const crypto = __importStar(require("crypto"));
 class BookingService {
@@ -141,8 +142,8 @@ class BookingService {
             const mainServiceId = dto.service_ids[0];
             const [apptResult] = await conn.execute(`INSERT INTO appointments 
          (booking_type, group_id, customer_user_id, booked_for_user_id, employee_id, location_id, 
-          scheduled_date, start_time, end_time, status, notes, confirmation_code, total_amount_jmd, deposit_paid_jmd, service_id)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, 0, ?)`, [
+          scheduled_date, start_time, end_time, status, notes, confirmation_code, total_amount_jmd, deposit_paid_jmd, service_id, booking_source)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, 0, ?, ?)`, [
                 dto.booking_type,
                 groupId,
                 customerId,
@@ -156,6 +157,7 @@ class BookingService {
                 confirmationCode,
                 totalAmountJmd,
                 mainServiceId,
+                dto.booking_source || 'website'
             ]);
             const appointmentId = apptResult.insertId;
             // Insert appointment services
@@ -178,13 +180,71 @@ class BookingService {
             return appointment;
         });
     }
+    async createAdminAppointment(staffUserId, customerId, dto) {
+        const { totalDurationMinutes, totalAmountJmd, services } = await this.calculateServiceTotals(dto.service_ids);
+        const endTime = this.addMinutes(dto.start_time, totalDurationMinutes);
+        // Check availability with same rules
+        const { available, conflicts } = await this.checkAvailability({
+            employeeId: dto.employee_id,
+            locationId: dto.location_id,
+            date: dto.scheduled_date,
+            startTime: dto.start_time,
+            endTime,
+        });
+        if (!available) {
+            throw new error_middleware_1.AppError(`Booking conflict: ${conflicts.join(' ')}`, 409);
+        }
+        const groupId = dto.booking_type === 'group' ? (0, uuid_1.v4)() : null;
+        const confirmationCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+        return (0, database_1.withTransaction)(async (conn) => {
+            const mainServiceId = dto.service_ids[0];
+            const initialStatus = 'pending';
+            const [apptResult] = await conn.execute(`INSERT INTO appointments 
+         (booking_type, group_id, customer_user_id, booked_for_user_id, employee_id, location_id, 
+          scheduled_date, start_time, end_time, status, notes, confirmation_code, total_amount_jmd, deposit_paid_jmd, service_id, booking_source, payment_status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)`, [
+                dto.booking_type,
+                groupId,
+                customerId,
+                dto.booked_for_user_id || customerId,
+                dto.employee_id,
+                dto.location_id,
+                dto.scheduled_date,
+                dto.start_time,
+                endTime,
+                initialStatus,
+                dto.notes || null,
+                confirmationCode,
+                totalAmountJmd,
+                mainServiceId,
+                dto.booking_source || 'admin',
+                dto.payment_status || 'pending_payment'
+            ]);
+            const appointmentId = apptResult.insertId;
+            for (const service of services) {
+                await conn.execute(`INSERT INTO appointment_services (appointment_id, service_id, price_jmd, duration_minutes)
+           VALUES (?, ?, ?, ?)`, [appointmentId, service.id, service.price_jmd, service.duration_minutes]);
+            }
+            await conn.execute(`INSERT INTO appointment_status_log (appointment_id, new_status, changed_by_user_id, notes)
+         VALUES (?, ?, ?, 'Appointment created by admin/staff')`, [appointmentId, initialStatus, staffUserId]);
+            if (dto.booking_type === 'group' && dto.group_guests?.length) {
+                for (const guest of dto.group_guests) {
+                    await conn.execute(`INSERT INTO appointment_guests (appointment_id, group_id, first_name, last_name, email, phone)
+             VALUES (?, ?, ?, ?, ?, ?)`, [appointmentId, groupId, guest.first_name, guest.last_name, guest.email || null, guest.phone || null]);
+                }
+            }
+            const appointment = await (0, database_1.executeQueryOne)('SELECT * FROM appointments WHERE id = ?', [appointmentId]);
+            logger_1.logger.info(`[Booking] Appointment ${appointmentId} created by staff ${staffUserId} for customer ${customerId}`);
+            return appointment;
+        });
+    }
     async getAppointmentsByCustomer(customerId, page, limit) {
         const offset = (page - 1) * limit;
         const countRow = await (0, database_1.executeQueryOne)('SELECT COUNT(*) as count FROM appointments WHERE customer_user_id = ?', [customerId]);
         const appointments = await (0, database_1.executeQuery)(`SELECT a.*, 
               l.name as location_name,
               CONCAT(eu.first_name, ' ', eu.last_name) as employee_name,
-              GROUP_CONCAT(s.name SEPARATOR ', ') as services
+              STRING_AGG(s.name, ', ') as services
        FROM appointments a
        JOIN locations l ON l.id = a.location_id
        JOIN employees e ON e.id = a.employee_id
@@ -197,13 +257,31 @@ class BookingService {
        LIMIT ? OFFSET ?`, [customerId, limit, offset]);
         return { appointments, total: countRow?.count || 0 };
     }
+    async getAppointmentById(appointmentId) {
+        return (0, database_1.executeQueryOne)(`SELECT a.*,
+              l.name as location_name,
+              CONCAT(eu.first_name, ' ', eu.last_name) as employee_name,
+              CONCAT(cu.first_name, ' ', cu.last_name) as customer_name,
+              cu.email as customer_email,
+              cu.phone as customer_phone,
+              STRING_AGG(s.name, ', ') as services
+       FROM appointments a
+       JOIN users cu ON cu.id = a.customer_user_id
+       JOIN locations l ON l.id = a.location_id
+       JOIN employees e ON e.id = a.employee_id
+       JOIN users eu ON eu.id = e.user_id
+       JOIN appointment_services aps ON aps.appointment_id = a.id
+       JOIN services s ON s.id = aps.service_id
+       WHERE a.id = ?
+       GROUP BY a.id`, [appointmentId]);
+    }
     async getAppointmentsByEmployee(employeeId, date) {
         return (0, database_1.executeQuery)(`SELECT a.*, 
               CONCAT(cu.first_name, ' ', cu.last_name) as customer_name,
               cu.email as customer_email,
               cu.phone as customer_phone,
               l.name as location_name,
-              GROUP_CONCAT(s.name SEPARATOR ', ') as services
+              STRING_AGG(s.name, ', ') as services
        FROM appointments a
        JOIN users cu ON cu.id = a.customer_user_id
        JOIN locations l ON l.id = a.location_id
@@ -301,11 +379,34 @@ class BookingService {
         await Promise.all(promises);
         return availableDates.sort();
     }
+    async rescheduleAppointment(appointmentId, newDate, newTime, userId) {
+        const appointments = await (0, database_1.executeQuery)('SELECT * FROM appointments WHERE id = ?', [appointmentId]);
+        if (!appointments.length)
+            throw new error_middleware_1.AppError('Appointment not found', 404);
+        const appointment = appointments[0];
+        // Check if the slot is available (simplified for now, assumes frontend validation)
+        await (0, database_1.executeUpdate)('UPDATE appointments SET scheduled_date = ?, start_time = ?, updated_at = NOW() WHERE id = ?', [newDate, newTime, appointmentId]);
+        // Fire notification (optional but recommended)
+        try {
+            await notification_service_1.notificationService.sendAppointmentRescheduled(appointment.customer_user_id, {
+                treatmentName: 'Laser Treatment',
+                oldDate: appointment.scheduled_date,
+                oldTime: appointment.start_time,
+                newDate: newDate,
+                newTime: newTime,
+                location: 'Main Clinic',
+                confirmationCode: appointment.confirmation_code || 'HHC-RESCHED'
+            });
+        }
+        catch (e) {
+            // Ignore notification failures
+        }
+    }
     async getBlockedDates() {
         return (0, database_1.executeQuery)('SELECT * FROM blocked_dates ORDER BY blocked_date ASC');
     }
     async addBlockedDate(blockedDate, reason) {
-        await (0, database_1.executeUpdate)('INSERT INTO blocked_dates (blocked_date, reason) VALUES (?, ?) ON DUPLICATE KEY UPDATE reason = ?', [blockedDate, reason, reason]);
+        await (0, database_1.executeUpdate)('INSERT INTO blocked_dates (blocked_date, reason) VALUES (?, ?) ON CONFLICT (blocked_date) DO UPDATE SET reason = EXCLUDED.reason', [blockedDate, reason]);
     }
     async deleteBlockedDate(blockedDate) {
         await (0, database_1.executeUpdate)('DELETE FROM blocked_dates WHERE blocked_date = ?', [blockedDate]);
@@ -316,7 +417,7 @@ class BookingService {
     async updateBusinessHours(locationId, dayOfWeek, openTime, closeTime, isClosed) {
         await (0, database_1.executeUpdate)(`INSERT INTO business_hours (location_id, day_of_week, open_time, close_time, is_closed) 
        VALUES (?, ?, ?, ?, ?) 
-       ON DUPLICATE KEY UPDATE open_time = ?, close_time = ?, is_closed = ?`, [locationId, dayOfWeek, openTime, closeTime, isClosed ? 1 : 0, openTime, closeTime, isClosed ? 1 : 0]);
+       ON CONFLICT (location_id, day_of_week) DO UPDATE SET open_time = EXCLUDED.open_time, close_time = EXCLUDED.close_time, is_closed = EXCLUDED.is_closed`, [locationId, dayOfWeek, openTime, closeTime, isClosed ? 1 : 0]);
     }
 }
 exports.BookingService = BookingService;

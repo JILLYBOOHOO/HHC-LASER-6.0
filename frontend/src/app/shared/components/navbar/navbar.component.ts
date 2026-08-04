@@ -17,21 +17,23 @@ import { AuthService } from '../../../core/services/auth.service';
     MatToolbarModule, MatButtonModule, MatIconModule, MatMenuModule, MatDividerModule,
   ],
   template: `
-    <nav class="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+    <nav class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 flex items-center py-2"
          [class.navbar-scrolled]="isScrolled() && isHome()"
          [class.navbar-top]="!isScrolled() && isHome()"
          [class.navbar-light]="!isHome()">
-      <div class="container-luxury flex items-center justify-between transition-all duration-300 px-6"
+      <div class="w-full max-w-[1600px] mx-auto flex items-center justify-between transition-all duration-300 px-4 md:px-6 lg:px-8 xl:px-12 py-2"
            [class.h-[66px]]="!isScrolled() && isHome()"
            [class.h-[54px]]="isScrolled() || !isHome()">
 
         <!-- Logo -->
-        <a routerLink="/" class="flex items-center group">
-          <img loading="lazy" src="/HCClogo.jpg" alt="HHC Laser Logo" class="h-8 md:h-9 w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
-        </a>
+        <div class="flex justify-start lg:flex-1 flex-shrink-0">
+          <a routerLink="/" class="flex items-center self-center group">
+            <img loading="lazy" src="/HCClogo.jpg" alt="HHC Laser Logo" class="h-8 md:h-9 w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
+          </a>
+        </div>
 
         <!-- Desktop Nav -->
-        <div class="hidden lg:flex items-center gap-6">
+        <div class="hidden lg:flex items-center justify-center gap-5 xl:gap-8 flex-none">
           @for (link of navLinks; track link.path) {
             <a [routerLink]="link.path"
                routerLinkActive="active"
@@ -44,20 +46,20 @@ import { AuthService } from '../../../core/services/auth.service';
         </div>
 
         <!-- Actions -->
-        <div class="flex items-center gap-4">
+        <div class="flex items-center justify-end gap-3 xl:gap-4 lg:flex-1">
           @if (!authState.isAuthenticated()) {
             <a routerLink="/auth/login"
-               class="hidden sm:inline-flex items-center justify-center gap-1.5 h-9 px-5 rounded-full bg-white text-black text-[10px] font-bold uppercase tracking-[0.15em] border border-black/10 hover:bg-neutral-100 transition-all shadow-sm">
+               class="hidden sm:inline-flex items-center justify-center gap-1.5 h-9 px-4 xl:px-5 rounded-full bg-white text-black text-[10px] font-bold uppercase tracking-[0.15em] border border-black/10 hover:bg-neutral-100 transition-all shadow-sm">
               <mat-icon class="!text-[14px] !w-[14px] !h-[14px]">person</mat-icon>
               Login
             </a>
             <a routerLink="/customer/book" 
-               class="inline-flex items-center justify-center h-9 px-5 rounded-full bg-gold-500 text-white text-[10px] font-bold uppercase tracking-[0.15em] hover:bg-gold-600 transition-all shadow-sm">
+               class="inline-flex items-center justify-center h-9 px-4 xl:px-5 rounded-full bg-gold-500 text-white text-[10px] font-bold uppercase tracking-[0.15em] hover:bg-gold-600 transition-all shadow-sm">
               Book Now
             </a>
           } @else {
             <!-- Authenticated user menu -->
-            <a routerLink="/customer/dashboard" class="hidden sm:inline-flex items-center justify-center h-9 px-5 rounded-full bg-white text-black text-[10px] font-bold uppercase tracking-[0.15em] border border-black/10 hover:bg-neutral-100 transition-all shadow-sm">
+            <a routerLink="/customer/dashboard" class="hidden sm:inline-flex items-center justify-center h-9 px-4 xl:px-5 rounded-full bg-white text-black text-[10px] font-bold uppercase tracking-[0.15em] border border-black/10 hover:bg-neutral-100 transition-all shadow-sm">
               Dashboard
             </a>
             <button mat-icon-button [matMenuTriggerFor]="userMenu"

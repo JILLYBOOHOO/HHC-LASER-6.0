@@ -1,10 +1,7 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const database_1 = __importDefault(require("../config/database"));
+const database_1 = require("../config/database");
 const auth_middleware_1 = require("../middleware/auth.middleware");
 const rbac_middleware_1 = require("../middleware/rbac.middleware");
 const router = (0, express_1.Router)();
@@ -13,29 +10,36 @@ router.use(auth_middleware_1.authenticate, (0, rbac_middleware_1.requireRole)('d
 // GET /api/developer/system-status
 router.get('/system-status', async (req, res) => {
     try {
-        const [[{ userCount }]] = await database_1.default.query('SELECT COUNT(*) as userCount FROM users');
-        const [[{ apptCount }]] = await database_1.default.query('SELECT COUNT(*) as apptCount FROM appointments');
-        const [[{ serviceCount }]] = await database_1.default.query('SELECT COUNT(*) as serviceCount FROM services');
-        const [[{ productCount }]] = await database_1.default.query('SELECT COUNT(*) as productCount FROM products');
-        const [[{ errorCount }]] = await database_1.default.query('SELECT COUNT(*) as errorCount FROM error_logs WHERE status = "open"');
+        const userRow = await (0, database_1.executeQueryOne)('SELECT COUNT(*) as userCount FROM users');
+        const apptRow = await (0, database_1.executeQueryOne)('SELECT COUNT(*) as apptCount FROM appointments');
+        const serviceRow = await (0, database_1.executeQueryOne)('SELECT COUNT(*) as serviceCount FROM services');
+        const productRow = await (0, database_1.executeQueryOne)('SELECT COUNT(*) as productCount FROM products');
+        const errorRow = await (0, database_1.executeQueryOne)(`SELECT COUNT(*) as errorCount FROM error_logs WHERE status = 'open'`);
         // DB Health check
         let dbStatus = 'Healthy';
         try {
-            await database_1.default.query('SELECT 1');
+            await (0, database_1.executeQuery)('SELECT 1');
         }
         catch {
             dbStatus = 'Unhealthy';
         }
+        // pg lowercases unquoted aliases unless quoted; support both casings
+        const countOf = (row, key) => {
+            if (!row)
+                return 0;
+            const found = row[key] ?? row[key.toLowerCase()];
+            return Number(found ?? 0);
+        };
         res.json({
             success: true,
             data: {
                 dbStatus,
                 apiStatus: 'Healthy',
-                users: userCount,
-                appointments: apptCount,
-                services: serviceCount,
-                products: productCount,
-                openErrors: errorCount,
+                users: countOf(userRow, 'userCount'),
+                appointments: countOf(apptRow, 'apptCount'),
+                services: countOf(serviceRow, 'serviceCount'),
+                products: countOf(productRow, 'productCount'),
+                openErrors: countOf(errorRow, 'errorCount'),
                 memoryUsage: process.memoryUsage().heapUsed,
                 uptime: process.uptime()
             }
@@ -49,7 +53,7 @@ router.get('/system-status', async (req, res) => {
 // GET /api/developer/error-logs
 router.get('/error-logs', async (req, res) => {
     try {
-        const [rows] = await database_1.default.query('SELECT id, error_type, message, stack_trace, user_id, endpoint, method, status, created_at, resolved_at FROM error_logs ORDER BY created_at DESC LIMIT 100');
+        const rows = await (0, database_1.executeQuery)('SELECT id, error_type, message, stack_trace, user_id, endpoint, method, status, created_at, resolved_at FROM error_logs ORDER BY created_at DESC LIMIT 100');
         res.json({ success: true, data: rows });
     }
     catch (error) {
@@ -62,7 +66,7 @@ router.put('/error-logs/:id', async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
     try {
-        await database_1.default.query('UPDATE error_logs SET status = ?, resolved_at = CURRENT_TIMESTAMP WHERE id = ?', [status, id]);
+        await (0, database_1.executeUpdate)('UPDATE error_logs SET status = ?, resolved_at = CURRENT_TIMESTAMP WHERE id = ?', [status, id]);
         res.json({ success: true, message: 'Error log updated successfully' });
     }
     catch (error) {

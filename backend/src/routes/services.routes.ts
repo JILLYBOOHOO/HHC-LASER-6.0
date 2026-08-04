@@ -602,12 +602,16 @@ router.get('/', async (req, res) => {
   try {
     const categoryId = req.query['category_id'];
     const isFeatured = req.query['is_featured'];
+    const includeInactive = req.query['include_inactive'] === 'true';
     let sql = `
       SELECT s.*, sc.name as category_name, sc.slug as category_slug
       FROM services s
       JOIN service_categories sc ON sc.id = s.category_id
-      WHERE s.is_active = true
+      WHERE 1=1
     `;
+    if (!includeInactive) {
+      sql += ' AND s.is_active = true';
+    }
     const params: any[] = [];
     
     if (categoryId) {
@@ -629,6 +633,16 @@ router.get('/', async (req, res) => {
   } catch (e) {
     res.json(successResponse(FALLBACK_SERVICES));
   }
+});
+
+// GET /api/services/categories  — list categories
+router.get('/categories', async (_req, res, next) => {
+  try {
+    const categories = await executeQuery(
+      'SELECT * FROM service_categories WHERE is_active = true ORDER BY sort_order ASC'
+    );
+    res.json(successResponse(categories));
+  } catch (e) { next(e); }
 });
 
 // GET /api/services/:slug - fetch a single service by slug
@@ -693,7 +707,7 @@ router.post('/', async (req, res, next) => {
     const insertId = await executeUpdate(
       `INSERT INTO services (category_id, name, slug, description, price_jmd, duration_minutes, thumbnail_url, is_featured, is_active, gallery_images)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [category_id, name, slug, description, price_jmd, duration_minutes, thumbnail_url, is_featured ? 1 : 0, is_active ? 1 : 0, gallery_images ? JSON.stringify(gallery_images) : null]
+      [category_id, name, slug, description, price_jmd, duration_minutes, thumbnail_url, is_featured ? true : false, is_active ? true : false, gallery_images ? JSON.stringify(gallery_images) : null]
     );
     res.json(successResponse({ id: insertId, message: 'Service created successfully' }));
   } catch(e) { next(e); }
@@ -705,7 +719,7 @@ router.put('/:id', async (req, res, next) => {
     await executeUpdate(
       `UPDATE services SET category_id=?, name=?, slug=?, description=?, price_jmd=?, duration_minutes=?, thumbnail_url=?, is_featured=?, is_active=?, gallery_images=?
        WHERE id=?`,
-      [category_id, name, slug, description, price_jmd, duration_minutes, thumbnail_url, is_featured ? 1 : 0, is_active ? 1 : 0, gallery_images ? JSON.stringify(gallery_images) : null, req.params['id']]
+      [category_id, name, slug, description, price_jmd, duration_minutes, thumbnail_url, is_featured ? true : false, is_active ? true : false, gallery_images ? JSON.stringify(gallery_images) : null, req.params['id']]
     );
     res.json(successResponse({ message: 'Service updated successfully' }));
   } catch(e) { next(e); }
@@ -716,34 +730,6 @@ router.delete('/:id', async (req, res, next) => {
     await executeUpdate(`DELETE FROM services WHERE id=?`, [req.params['id']]);
     res.json(successResponse({ message: 'Service deleted successfully' }));
   } catch(e) { next(e); }
-});
-
-// GET /api/services/categories  — list categories
-router.get('/categories', async (_req, res, next) => {
-  try {
-    const categories = await executeQuery(
-      'SELECT * FROM service_categories WHERE is_active = true ORDER BY sort_order ASC'
-    );
-    res.json(successResponse(categories));
-  } catch (e) { next(e); }
-});
-
-// GET /api/services/:slug  — service detail by slug
-router.get('/:slug', async (req, res, next) => {
-  try {
-    const service = await executeQueryOne(
-      `SELECT s.*, sc.name as category_name
-       FROM services s
-       JOIN service_categories sc ON sc.id = s.category_id
-       WHERE s.slug = ? AND s.is_active = true`,
-      [req.params['slug']]
-    );
-    if (!service) {
-      res.status(404).json({ success: false, message: 'Service not found.' });
-      return;
-    }
-    res.json(successResponse(service));
-  } catch (e) { next(e); }
 });
 
 export default router;

@@ -7,9 +7,9 @@ declare global {
         }
     }
 }
-export declare function authenticate(req: Request, res: Response, next: NextFunction): void;
+export declare function authenticate(req: Request, res: Response, next: NextFunction): Promise<void>;
 /**
  * Optional authentication — populates req.user if token present, does not block.
  */
-export declare function optionalAuth(req: Request, res: Response, next: NextFunction): void;
+export declare function optionalAuth(req: Request, res: Response, next: NextFunction): Promise<void>;
 //# sourceMappingURL=auth.middleware.d.ts.map

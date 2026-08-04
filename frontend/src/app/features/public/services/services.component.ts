@@ -4,6 +4,7 @@ import { RouterModule, Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { Service, ServiceCategory } from '../../../core/models/models';
 import { SeoService } from '../../../core/services/seo.service';
+import { ApiService } from '../../../core/services/api.service';
 import { treatments } from '../../../core/data/services.data';
 
 
@@ -139,6 +140,7 @@ import { FormsModule } from '@angular/forms';
 export class ServicesComponent implements OnInit {
   private router = inject(Router);
   private seo = inject(SeoService);
+  private api = inject(ApiService);
 
   services = signal<Service[]>([]);
   categories = signal<ServiceCategory[]>([
@@ -176,10 +178,22 @@ export class ServicesComponent implements OnInit {
   }
 
   loadData() {
-    
-
-    this.services.set(treatments as Service[]);
-    this.loading.set(false);
+    this.loading.set(true);
+    this.api.getServices().subscribe({
+      next: (res) => {
+        if (res.success && Array.isArray(res.data)) {
+          this.services.set(res.data);
+        } else {
+          this.services.set(treatments as Service[]);
+        }
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error('Failed to load services from backend, falling back to static catalog', err);
+        this.services.set(treatments as Service[]);
+        this.loading.set(false);
+      }
+    });
   }
 
   selectCategory(id: number | null) {

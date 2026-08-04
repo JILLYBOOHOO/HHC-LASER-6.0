@@ -26,6 +26,13 @@ export class AuthService {
   }
 
   async login(email: string, password: string): Promise<AuthResult> {
+    // ── Development shortcut: match plain-text .env credentials first ──────
+    if (process.env.NODE_ENV === 'development') {
+      const devResult = await this.tryDevLogin(email, password);
+      if (devResult) return devResult;
+    }
+    // ── End development shortcut ──────────────────────────────────────────
+
     if (isSupabaseAuthEnabled()) {
       return this.loginWithSupabase(email, password);
     }
@@ -229,8 +236,60 @@ export class AuthService {
     return { ...tokens, user: safeUser };
   }
 
+  // ── Development-only: bypass password hashing with .env credentials ──────
+  private async tryDevLogin(email: string, password: string): Promise<AuthResult | null> {
+    const normEmail = email.toLowerCase().trim();
+
+    logger.info(`[AuthDev] Login attempt for email: "${normEmail}"`);
+    logger.info(`[AuthDev] Env credentials: ADMIN_EMAIL="${process.env.ADMIN_EMAIL}", ADMIN_PASSWORD="${process.env.ADMIN_PASSWORD}"`);
+
+    const devAccounts: { email: string | undefined; password: string | undefined; fallbackRole: UserRole }[] = [
+      { email: process.env.ADMIN_EMAIL,     password: process.env.ADMIN_PASSWORD,     fallbackRole: 'admin' },
+      { email: process.env.DEVELOPER_EMAIL, password: process.env.DEVELOPER_PASSWORD, fallbackRole: 'developer' },
+      { email: process.env.STAFF_EMAIL,     password: process.env.STAFF_PASSWORD,     fallbackRole: 'specialist' },
+    ];
+
+    const match = devAccounts.find(
+      (a) => a.email && a.password && a.email.toLowerCase().trim() === normEmail && a.password === password
+    );
+
+    if (!match) {
+      logger.warn(`[AuthDev] No dev credential match found for email "${normEmail}". Match was: ${JSON.stringify(match)}`);
+      return null;
+    }
+
+    let user = await this.findUserWithRoles(undefined, normEmail);
+    if (!user) {
+      // Build a minimal in-memory user so token generation works even if
+      // the row doesn't exist in the DB yet.
+      user = {
+        id: 0,
+        email: normEmail,
+        password_hash: '',
+        first_name: match.fallbackRole === 'admin' ? 'Admin' : match.fallbackRole === 'developer' ? 'Developer' : 'Staff',
+        last_name: 'User',
+        phone: null,
+        date_of_birth: null,
+        profile_photo_url: null,
+        google_id: null,
+        token_version: 0,
+        is_active: true,
+        email_verified: true,
+        created_at: new Date(),
+        updated_at: new Date(),
+        roles: [match.fallbackRole],
+      } as any;
+    }
+    const resolvedUser = user!;
+    const tokens = this.generateTokens(resolvedUser);
+    logger.info(`[Auth] DEV login (env creds): ${resolvedUser.email} roles=${resolvedUser.roles}`);
+    const { password_hash: _ph, ...safeUser } = resolvedUser;
+    return { ...tokens, user: safeUser };
+  }
+
   private async loginLegacy(email: string, password: string): Promise<AuthResult> {
-    const user = await this.findUserWithRoles(undefined, email.toLowerCase().trim());
+    const normEmail = email.toLowerCase().trim();
+    const user = await this.findUserWithRoles(undefined, normEmail);
 
     if (!user) {
       throw new AppError('Invalid email or password.', 401);
