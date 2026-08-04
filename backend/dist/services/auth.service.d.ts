@@ -1,22 +1,22 @@
 import { CreateUserDto, UserWithRoles } from '../models/types';
+type AuthResult = {
+    accessToken: string;
+    refreshToken: string;
+    user: Omit<UserWithRoles, 'password_hash'>;
+};
 export declare class AuthService {
-    register(dto: CreateUserDto): Promise<{
-        accessToken: string;
-        refreshToken: string;
-        user: Omit<UserWithRoles, 'password_hash'>;
-    }>;
-    login(email: string, password: string): Promise<{
-        accessToken: string;
-        refreshToken: string;
-        user: Omit<UserWithRoles, 'password_hash'>;
-    }>;
+    register(dto: CreateUserDto): Promise<AuthResult>;
+    login(email: string, password: string): Promise<AuthResult>;
+    private registerWithSupabase;
+    private loginWithSupabase;
+    private signInSupabase;
+    private migrateLegacyUserToSupabase;
+    private registerLegacy;
+    private tryDevLogin;
+    private loginLegacy;
     private getOAuthClient;
     getGoogleAuthUrl(action?: string): Promise<string>;
-    handleGoogleCallback(code: string, action?: string): Promise<{
-        accessToken: string;
-        refreshToken: string;
-        user: Omit<UserWithRoles, 'password_hash'>;
-    }>;
+    handleGoogleCallback(code: string, action?: string): Promise<AuthResult>;
     refreshTokens(refreshToken: string): Promise<{
         accessToken: string;
         refreshToken: string;
@@ -27,4 +27,5 @@ export declare class AuthService {
     private generateTokens;
 }
 export declare const authService: AuthService;
+export {};
 //# sourceMappingURL=auth.service.d.ts.map

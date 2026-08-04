@@ -7,9 +7,11 @@ exports.signAccessToken = signAccessToken;
 exports.signRefreshToken = signRefreshToken;
 exports.verifyAccessToken = verifyAccessToken;
 exports.verifyRefreshToken = verifyRefreshToken;
+exports.verifySupabaseAccessToken = verifySupabaseAccessToken;
 exports.decodeToken = decodeToken;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const env_1 = require("../config/env");
+const supabase_1 = require("../config/supabase");
 function signAccessToken(payload) {
     return jsonwebtoken_1.default.sign(payload, env_1.env.JWT_SECRET, {
         expiresIn: env_1.env.JWT_EXPIRES_IN,
@@ -33,6 +35,13 @@ function verifyRefreshToken(token) {
     return jsonwebtoken_1.default.verify(token, env_1.env.JWT_REFRESH_SECRET, {
         issuer: 'hhc-laser-api',
     });
+}
+/** Verify a Supabase-issued access token (HS256 with project JWT secret). */
+function verifySupabaseAccessToken(token) {
+    if (!(0, supabase_1.isSupabaseAuthEnabled)() || !env_1.env.SUPABASE_JWT_SECRET) {
+        throw new jsonwebtoken_1.default.JsonWebTokenError('Supabase Auth is not configured');
+    }
+    return jsonwebtoken_1.default.verify(token, env_1.env.SUPABASE_JWT_SECRET);
 }
 function decodeToken(token) {
     try {

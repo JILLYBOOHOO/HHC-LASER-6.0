@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpEvent, HttpEventType } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
+import { treatments } from '../data/services.data';
 
 export interface TreatmentItem {
   id: number;
@@ -20,7 +22,7 @@ export class ServicesManagementService {
   private servicesSubject = new BehaviorSubject<TreatmentItem[]>([]);
   services$ = this.servicesSubject.asObservable();
 
-  private apiBase = '/api/services'; // adjust as needed
+  private apiBase = environment.apiUrl + '/services'; // adjust as needed
 
   constructor(private http: HttpClient) {
     this.loadAll();
@@ -28,9 +30,18 @@ export class ServicesManagementService {
 
   /** Load all services from backend */
   loadAll(): void {
-    this.http.get<TreatmentItem[]>(this.apiBase).subscribe({
-      next: data => this.servicesSubject.next(data),
-      error: err => console.error('Failed to load services', err)
+    this.http.get<any>(`${this.apiBase}?include_inactive=true`).subscribe({
+      next: res => {
+        let list = res && res.success && Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
+        if (list.length === 0) {
+          list = treatments as TreatmentItem[];
+        }
+        this.servicesSubject.next(list);
+      },
+      error: err => {
+        console.error('Failed to load services', err);
+        this.servicesSubject.next(treatments as TreatmentItem[]);
+      }
     });
   }
 
@@ -39,24 +50,14 @@ export class ServicesManagementService {
     this.loadAll();
   }
 
-  /** Add a new service, optionally with image file */
-  addService(service: Partial<TreatmentItem>, imageFile?: File): Observable<any> {
-    const form = new FormData();
-    form.append('data', JSON.stringify(service));
-    if (imageFile) {
-      form.append('image', imageFile);
-    }
-    return this.http.post(this.apiBase, form);
+  /** Add a new service */
+  addService(service: Partial<TreatmentItem>): Observable<any> {
+    return this.http.post(this.apiBase, service);
   }
 
   /** Update existing service */
-  updateService(id: number, service: Partial<TreatmentItem>, imageFile?: File): Observable<any> {
-    const form = new FormData();
-    form.append('data', JSON.stringify(service));
-    if (imageFile) {
-      form.append('image', imageFile);
-    }
-    return this.http.put(`${this.apiBase}/${id}`, form);
+  updateService(id: number, service: Partial<TreatmentItem>): Observable<any> {
+    return this.http.put(`${this.apiBase}/${id}`, service);
   }
 
   /** Delete a service */

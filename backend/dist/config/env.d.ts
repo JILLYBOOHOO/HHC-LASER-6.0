@@ -6,11 +6,7 @@ export declare const env: {
     JWT_EXPIRES_IN: string;
     JWT_REFRESH_SECRET: string;
     JWT_REFRESH_EXPIRES_IN: string;
-    DB_HOST: string;
-    DB_PORT: number;
-    DB_NAME: string;
-    DB_USER: string;
-    DB_PASSWORD: string;
+    DATABASE_URL: string;
     DB_CONNECTION_LIMIT: number;
     DB_SSL: boolean;
     AWS_REGION: string;
@@ -35,6 +31,15 @@ export declare const env: {
     RATE_LIMIT_MAX: number;
     AUTH_RATE_LIMIT_MAX: number;
     FRONTEND_URL: string;
+    SUPABASE_URL?: string | undefined;
+    SUPABASE_ANON_KEY?: string | undefined;
+    SUPABASE_SERVICE_ROLE_KEY?: string | undefined;
+    SUPABASE_JWT_SECRET?: string | undefined;
+    DB_HOST?: string | undefined;
+    DB_PORT?: number | undefined;
+    DB_NAME?: string | undefined;
+    DB_USER?: string | undefined;
+    DB_PASSWORD?: string | undefined;
     AWS_ACCESS_KEY_ID?: string | undefined;
     AWS_SECRET_ACCESS_KEY?: string | undefined;
     RESEND_API_KEY?: string | undefined;

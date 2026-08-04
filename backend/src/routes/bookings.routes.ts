@@ -7,8 +7,9 @@ import { bookingService } from '../services/booking.service';
 import { paymentFlowService } from '../payments/fiserv/payment-flow.service';
 import { notificationService } from '../services/notification.service';
 import { socketService } from '../services/socket.service';
-import { successResponse, paginatedResponse, CreateAppointmentDto, AppointmentStatus } from '../models/types';
+import { successResponse, errorResponse, paginatedResponse, CreateAppointmentDto, AppointmentStatus } from '../models/types';
 import { AppError } from '../middleware/error.middleware';
+import { executeQueryOne, withTransaction } from '../config/database';
 
 const router = Router();
 
@@ -147,10 +148,110 @@ router.put('/admin/business-hours',
   }
 );
 
+async function normalizeAdminBookingPayload(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    // 1. Map camelCase to snake_case
+    if (req.body.customerId && !req.body.customer_user_id) {
+      req.body.customer_user_id = Number(req.body.customerId);
+    }
+    if (req.body.serviceIds && !req.body.service_ids) {
+      req.body.service_ids = req.body.serviceIds;
+    }
+    if (req.body.date && !req.body.scheduled_date) {
+      req.body.scheduled_date = req.body.date;
+    }
+    if (req.body.time && !req.body.start_time) {
+      req.body.start_time = req.body.time.slice(0, 5);
+    }
+    if (req.body.locationId && !req.body.location_id) {
+      req.body.location_id = Number(req.body.locationId);
+    }
+    if (req.body.employeeId && !req.body.employee_id) {
+      req.body.employee_id = Number(req.body.employeeId);
+    }
+    
+    // Normalize booking_type, booking_source, and payment_option
+    if (!req.body.booking_type) {
+      req.body.booking_type = 'self';
+    }
+    if (!req.body.booking_source) {
+      req.body.booking_source = 'admin';
+    }
+    
+    // Normalize payment option
+    if (req.body.payment_option) {
+      // already set
+    } else if (req.body.paymentMethod) {
+      const pm = req.body.paymentMethod;
+      if (pm === 'pay_in_store' || pm === 'pay_at_appointment' || pm === 'manual_cash' || pm === 'manual' || pm === 'pay_at_clinic') {
+        req.body.payment_option = 'pay_at_appointment';
+      } else if (pm === 'send_link' || pm === 'send_payment_link') {
+        req.body.payment_option = 'send_payment_link';
+      } else if (pm === 'paid_in_store') {
+        req.body.payment_option = 'paid_in_store';
+      } else {
+        req.body.payment_option = 'pay_at_appointment';
+      }
+    } else {
+      req.body.payment_option = 'pay_at_appointment';
+    }
+
+    // 2. If customer_info is provided and we don't have customer_user_id
+    if (req.body.customer_info && !req.body.customer_user_id) {
+      const { first_name, last_name, phone, email } = req.body.customer_info;
+      
+      if (!first_name || !last_name || !phone) {
+        res.status(422).json(errorResponse('First name, last name, and phone are required for customer info.'));
+        return;
+      }
+
+      // Check if user already exists by phone or email
+      let user: any = null;
+      if (email) {
+        user = await executeQueryOne('SELECT id FROM users WHERE email = ?', [email.toLowerCase().trim()]);
+      }
+      if (!user && phone) {
+        user = await executeQueryOne('SELECT id FROM users WHERE phone = ?', [phone.trim()]);
+      }
+
+      if (user) {
+        req.body.customer_user_id = user.id;
+      } else {
+        // Create new customer
+        const insertId = await withTransaction(async (conn) => {
+          const finalEmail = email ? email.toLowerCase().trim() : `guest_${Date.now()}_${Math.floor(Math.random() * 1000)}@hhclaser.com`;
+          
+          const [userResult] = await conn.execute(
+            `INSERT INTO users (email, password_hash, first_name, last_name, phone, token_version, is_active, email_verified)
+             VALUES (?, NULL, ?, ?, ?, 0, 1, 0)`,
+            [
+              finalEmail,
+              first_name.trim(),
+              last_name.trim(),
+              phone.trim()
+            ]
+          ) as any;
+
+          const uid = userResult.insertId;
+          await conn.execute(`INSERT INTO user_roles (user_id, role) VALUES (?, 'customer')`, [uid]);
+          return uid;
+        });
+        
+        req.body.customer_user_id = insertId;
+      }
+    }
+
+    next();
+  } catch (err: any) {
+    next(err);
+  }
+}
+
 // Admin can create bookings for customers
 router.post('/admin',
   authenticate,
   requireRole('admin', 'manager', 'owner'),
+  (req: Request, res: Response, next: NextFunction) => { normalizeAdminBookingPayload(req, res, next); },
   [
     body('customer_user_id').isInt({ min: 1 }).withMessage('customer_user_id is required'),
     body('booking_type').isIn(['self', 'other', 'group']).withMessage('booking_type must be self, other, or group'),

@@ -5,6 +5,7 @@ const express_validator_1 = require("express-validator");
 const auth_service_1 = require("../services/auth.service");
 const types_1 = require("../models/types");
 const env_1 = require("../config/env");
+const database_1 = require("../config/database");
 exports.registerValidators = [
     (0, express_validator_1.body)('email').isEmail().normalizeEmail().withMessage('A valid email address is required.'),
     (0, express_validator_1.body)('password')
@@ -13,8 +14,15 @@ exports.registerValidators = [
         .withMessage('Password must contain uppercase, lowercase, and a number.'),
     (0, express_validator_1.body)('first_name').trim().notEmpty().isLength({ max: 50 }).withMessage('First name is required.'),
     (0, express_validator_1.body)('last_name').trim().notEmpty().isLength({ max: 50 }).withMessage('Last name is required.'),
-    (0, express_validator_1.body)('phone').optional().isMobilePhone('any').withMessage('Invalid phone number format.'),
-    (0, express_validator_1.body)('date_of_birth').optional().isISO8601().withMessage('Invalid date format (use YYYY-MM-DD).'),
+    (0, express_validator_1.body)('phone')
+        .optional({ values: 'falsy' })
+        .trim()
+        .matches(/^[+\d][\d\s().-]{6,20}$/)
+        .withMessage('Invalid phone number format.'),
+    (0, express_validator_1.body)('date_of_birth')
+        .optional({ values: 'falsy' })
+        .isISO8601({ strict: true })
+        .withMessage('Invalid date format (use YYYY-MM-DD).'),
 ];
 exports.loginValidators = [
     (0, express_validator_1.body)('email').isEmail().normalizeEmail().withMessage('A valid email is required.'),
@@ -96,13 +104,37 @@ class AuthController {
         res.json((0, types_1.successResponse)(undefined, 'Password changed successfully.'));
     }
     async me(req, res) {
-        res.json((0, types_1.successResponse)(req.user));
+        const rows = await (0, database_1.executeQuery)(`SELECT u.id, u.email, u.first_name, u.last_name, u.phone, u.date_of_birth,
+              u.profile_photo_url, u.is_active, u.email_verified, u.created_at, u.updated_at, ur.role
+       FROM users u
+       LEFT JOIN user_roles ur ON ur.user_id = u.id
+       WHERE u.id = ?`, [req.user.userId]);
+        if (!rows.length) {
+            res.status(404).json((0, types_1.errorResponse)('User not found.'));
+            return;
+        }
+        const base = rows[0];
+        const user = {
+            id: base.id,
+            email: base.email,
+            first_name: base.first_name,
+            last_name: base.last_name,
+            phone: base.phone,
+            date_of_birth: base.date_of_birth,
+            profile_photo_url: base.profile_photo_url,
+            is_active: base.is_active,
+            email_verified: base.email_verified,
+            created_at: base.created_at,
+            updated_at: base.updated_at,
+            roles: rows.map((r) => r.role).filter(Boolean),
+        };
+        res.json((0, types_1.successResponse)({ user }));
     }
     setRefreshTokenCookie(res, token) {
         res.cookie('refreshToken', token, {
             httpOnly: true,
             secure: env_1.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'lax',
             path: '/api/auth/refresh',
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });

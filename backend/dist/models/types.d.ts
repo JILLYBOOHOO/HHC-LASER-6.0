@@ -1,6 +1,8 @@
 export type UserRole = 'owner' | 'admin' | 'manager' | 'specialist' | 'customer' | 'developer';
 export type AppointmentStatus = 'pending' | 'confirmed' | 'checked_in' | 'in_treatment' | 'completed' | 'cancelled' | 'no_show';
-export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded' | 'partial';
+export type AppointmentPaymentStatus = 'pending_payment' | 'paid_online' | 'paid_in_store' | 'paid_by_phone' | 'deposit_paid' | 'pay_at_appointment' | 'refunded' | 'complimentary';
+export type TransactionPaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded' | 'partial';
+export type BookingSource = 'website' | 'phone' | 'walk_in' | 'whatsapp' | 'social_media' | 'admin' | 'staff';
 export type MembershipPlan = 'monthly' | 'annual';
 export type MembershipStatus = 'active' | 'paused' | 'cancelled' | 'expired';
 export type NotificationType = 'email' | 'sms' | 'push';
@@ -122,7 +124,9 @@ export interface Appointment {
     scheduled_date: string;
     start_time: string;
     end_time: string;
+    booking_source: BookingSource;
     status: AppointmentStatus;
+    payment_status: AppointmentPaymentStatus;
     notes: string | null;
     total_amount_jmd: number;
     deposit_paid_jmd: number;
@@ -143,6 +147,7 @@ export interface CreateAppointmentDto {
     scheduled_date: string;
     start_time: string;
     service_ids: number[];
+    booking_source?: BookingSource;
     notes?: string;
     booked_for_user_id?: number;
     group_size?: number;
@@ -157,11 +162,12 @@ export interface Transaction {
     id: number;
     appointment_id: number | null;
     customer_user_id: number;
+    recorded_by_user_id: number | null;
     fiserv_txn_id: string | null;
     idempotency_key: string;
     amount_jmd: number;
     currency: string;
-    status: PaymentStatus;
+    status: TransactionPaymentStatus;
     payment_method: string | null;
     fiserv_approval_code: string | null;
     fiserv_response_code: string | null;

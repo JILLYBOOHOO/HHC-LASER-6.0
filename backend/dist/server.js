@@ -1,4 +1,37 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -13,6 +46,7 @@ const compression_1 = __importDefault(require("compression"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const hpp_1 = __importDefault(require("hpp"));
 const env_1 = require("./config/env");
+const auth_middleware_1 = require("./middleware/auth.middleware");
 const database_1 = require("./config/database");
 const logger_1 = require("./utils/logger");
 const error_middleware_1 = require("./middleware/error.middleware");
@@ -22,6 +56,7 @@ const bookings_routes_1 = __importDefault(require("./routes/bookings.routes"));
 const services_routes_1 = __importDefault(require("./routes/services.routes"));
 const employees_routes_1 = __importDefault(require("./routes/employees.routes"));
 const payments_routes_1 = __importDefault(require("./routes/payments.routes"));
+const fiserv_payment_routes_1 = __importDefault(require("./routes/fiserv-payment.routes"));
 const memberships_routes_1 = __importDefault(require("./routes/memberships.routes"));
 const admin_routes_1 = __importDefault(require("./routes/admin.routes"));
 const medical_routes_1 = __importDefault(require("./routes/medical.routes"));
@@ -33,6 +68,7 @@ const developer_routes_1 = __importDefault(require("./routes/developer.routes"))
 const developer_auth_routes_1 = __importDefault(require("./routes/developer-auth.routes"));
 const drafts_routes_1 = __importDefault(require("./routes/drafts.routes"));
 const cleanup_drafts_job_1 = require("./jobs/cleanup-drafts.job");
+const socket_service_1 = require("./services/socket.service");
 const app = (0, express_1.default)();
 // ─── Trust Proxy (for AWS ALB / EB) ──────────────────────────────────────────
 app.set('trust proxy', 1);
@@ -104,6 +140,9 @@ app.use('/api/bookings', bookings_routes_1.default);
 app.use('/api/services', services_routes_1.default);
 app.use('/api/employees', employees_routes_1.default);
 app.use('/api/payments', payments_routes_1.default);
+app.use('/api/fiserv', fiserv_payment_routes_1.default);
+// Global authentication applies to all routes after this point
+app.use(auth_middleware_1.authenticate);
 app.use('/api/memberships', memberships_routes_1.default);
 app.use('/api/admin', admin_routes_1.default);
 app.use('/api/medical', medical_routes_1.default);
@@ -121,10 +160,19 @@ app.use(error_middleware_1.errorHandler);
 async function bootstrap() {
     try {
         await (0, database_1.testConnection)();
+        // Phase 3: ensure Supabase Storage buckets exist (no-op if not configured)
+        try {
+            const { storageService } = await Promise.resolve().then(() => __importStar(require('./services/storage.service')));
+            await storageService.ensureBuckets();
+        }
+        catch (err) {
+            logger_1.logger.warn('Storage bucket bootstrap skipped/failed:', err);
+        }
         (0, cleanup_drafts_job_1.startDraftCleanupJob)();
         const server = app.listen(env_1.env.PORT, () => {
             logger_1.logger.info(`🚀 HHC LASER API running on port ${env_1.env.PORT} [${env_1.env.NODE_ENV}]`);
         });
+        socket_service_1.socketService.initialize(server);
         // Graceful shutdown
         const shutdown = async (signal) => {
             logger_1.logger.info(`${signal} received — shutting down gracefully`);

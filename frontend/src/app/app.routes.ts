@@ -360,9 +360,8 @@ export const routes: Routes = [
       },
       {
         path: 'media',
-        loadComponent: () => import('./features/admin/media/admin-media.component')
-          .then(m => m.AdminMediaComponent),
-        title: 'Media Library — HHC LASER',
+        redirectTo: 'services',
+        pathMatch: 'full'
       },
       {
         path: 'settings',

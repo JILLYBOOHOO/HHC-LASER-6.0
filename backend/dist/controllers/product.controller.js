@@ -1,18 +1,15 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.productController = void 0;
-const database_1 = __importDefault(require("../config/database"));
+const database_1 = require("../config/database");
 exports.productController = {
     // Public - Get all products
     async getAllProducts(req, res) {
         try {
-            const [rows] = await database_1.default.query(`SELECT p.*, c.name as category_name, c.slug as category_slug 
+            const rows = await (0, database_1.executeQuery)(`SELECT p.*, c.name as category_name, c.slug as category_slug
          FROM products p
          JOIN product_categories c ON p.category_id = c.id
-         WHERE p.is_active = 1
+         WHERE p.is_active = TRUE
          ORDER BY p.created_at DESC`);
             res.json(rows);
         }
@@ -25,10 +22,10 @@ exports.productController = {
     async getProductBySlug(req, res) {
         try {
             const { slug } = req.params;
-            const [rows] = await database_1.default.query(`SELECT p.*, c.name as category_name 
+            const rows = await (0, database_1.executeQuery)(`SELECT p.*, c.name as category_name
          FROM products p
          JOIN product_categories c ON p.category_id = c.id
-         WHERE p.slug = ? AND p.is_active = 1`, [slug]);
+         WHERE p.slug = ? AND p.is_active = TRUE`, [slug]);
             if (rows.length === 0) {
                 return res.status(404).json({ message: 'Product not found' });
             }
@@ -42,7 +39,7 @@ exports.productController = {
     // Public - Get categories
     async getCategories(req, res) {
         try {
-            const [rows] = await database_1.default.query(`SELECT * FROM product_categories WHERE is_active = 1 ORDER BY sort_order ASC`);
+            const rows = await (0, database_1.executeQuery)(`SELECT * FROM product_categories WHERE is_active = TRUE ORDER BY sort_order ASC`);
             res.json(rows);
         }
         catch (error) {
@@ -54,7 +51,7 @@ exports.productController = {
     async createProduct(req, res) {
         try {
             const { category_id, name, slug, description, price_jmd, stock_quantity, image_url, is_featured } = req.body;
-            const [result] = await database_1.default.query(`INSERT INTO products (category_id, name, slug, description, price_jmd, stock_quantity, image_url, is_featured)
+            const result = await (0, database_1.executeUpdate)(`INSERT INTO products (category_id, name, slug, description, price_jmd, stock_quantity, image_url, is_featured)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, [category_id, name, slug, description, price_jmd, stock_quantity, image_url, is_featured]);
             res.status(201).json({ id: result.insertId, message: 'Product created successfully' });
         }
@@ -68,8 +65,8 @@ exports.productController = {
         try {
             const { id } = req.params;
             const { category_id, name, slug, description, price_jmd, stock_quantity, image_url, is_featured, is_active } = req.body;
-            await database_1.default.query(`UPDATE products SET 
-         category_id = ?, name = ?, slug = ?, description = ?, 
+            await (0, database_1.executeUpdate)(`UPDATE products SET
+         category_id = ?, name = ?, slug = ?, description = ?,
          price_jmd = ?, stock_quantity = ?, image_url = ?, is_featured = ?, is_active = ?
          WHERE id = ?`, [category_id, name, slug, description, price_jmd, stock_quantity, image_url, is_featured, is_active, id]);
             res.json({ message: 'Product updated successfully' });
@@ -83,7 +80,7 @@ exports.productController = {
     async deleteProduct(req, res) {
         try {
             const { id } = req.params;
-            await database_1.default.query(`UPDATE products SET is_active = 0 WHERE id = ?`, [id]);
+            await (0, database_1.executeUpdate)(`UPDATE products SET is_active = FALSE WHERE id = ?`, [id]);
             res.json({ message: 'Product deleted successfully' });
         }
         catch (error) {

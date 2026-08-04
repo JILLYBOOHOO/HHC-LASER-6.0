@@ -101,6 +101,35 @@ router.get('/reports/revenue', auth_middleware_1.authenticate, (0, rbac_middlewa
         next(e);
     }
 });
+// GET /api/admin/users  — all users with roles
+router.get('/users', auth_middleware_1.authenticate, (0, rbac_middleware_1.requireRole)('owner', 'admin'), async (req, res, next) => {
+    try {
+        const page = parseInt(req.query['page']) || 1;
+        const limit = parseInt(req.query['limit']) || 20;
+        const search = req.query['search'];
+        const offset = (page - 1) * limit;
+        let sql = `
+        SELECT u.id, u.email, u.first_name, u.last_name, u.phone, u.is_active, u.created_at,
+               STRING_AGG(ur.role::text, ',' ORDER BY ur.role::text) as roles
+        FROM users u
+        LEFT JOIN user_roles ur ON ur.user_id = u.id
+      `;
+        const params = [];
+        if (search) {
+            sql += ` WHERE (u.email LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ? OR u.phone LIKE ?)`;
+            const s = `%${search}%`;
+            params.push(s, s, s, s);
+        }
+        sql += ' GROUP BY u.id ORDER BY u.created_at DESC LIMIT ? OFFSET ?';
+        params.push(limit, offset);
+        const [countRow] = await (0, database_1.executeQuery)(`SELECT COUNT(*) as count FROM users u ${search ? 'WHERE u.email LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ?' : ''}`, search ? [`%${search}%`, `%${search}%`, `%${search}%`] : []);
+        const users = await (0, database_1.executeQuery)(sql, params);
+        res.json((0, types_1.paginatedResponse)(users, page, limit, countRow?.count || 0));
+    }
+    catch (e) {
+        next(e);
+    }
+});
 // PATCH /api/admin/users/:id/status  — activate/deactivate user
 router.patch('/users/:id/status', auth_middleware_1.authenticate, (0, rbac_middleware_1.requireRole)('owner', 'admin'), async (req, res, next) => {
     try {
@@ -119,7 +148,7 @@ router.post('/users/:id/roles', auth_middleware_1.authenticate, (0, rbac_middlew
         const validRoles = ['owner', 'admin', 'manager', 'specialist', 'customer'];
         if (!validRoles.includes(role))
             throw new error_middleware_1.AppError('Invalid role.', 400);
-        await (0, database_1.executeUpdate)('INSERT IGNORE INTO user_roles (user_id, role) VALUES (?, ?)', [req.params['id'], role]);
+        await (0, database_1.executeUpdate)('INSERT INTO user_roles (user_id, role) VALUES (?, ?) ON CONFLICT DO NOTHING', [req.params['id'], role]);
         res.json((0, types_1.successResponse)(undefined, 'Role assigned.'));
     }
     catch (e) {

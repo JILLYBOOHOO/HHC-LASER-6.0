@@ -21,8 +21,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
     <div class="min-h-screen flex items-center justify-center px-4 py-12 bg-white">
       <!-- Background Texture -->
       <div class="fixed inset-0 pointer-events-none opacity-40"
-           style="background-image: radial-gradient(circle, rgba(0,0,0,0.05) 1px, transparent 1px);
-                  background-size: 40px 40px;">
+           style="background-image: radial-gradient(circle, rgba(0,0,0,0.05) 1px, transparent 1px); background-size: 40px 40px;">
       </div>
 
       <div class="relative w-full max-w-md animate-fade-up">
@@ -59,7 +58,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
           </form>
 
           <div class="mt-8 text-center border-t border-white/10 pt-6">
-            <a routerLink="/auth/login" class="text-gold-400 hover:text-gold-300 font-medium transition-colors flex items-center justify-center gap-1">
+            <a routerLink="/auth/login" class="text-gold-400 hover:text-gold-300 font-semibold transition-colors flex items-center justify-center gap-1">
               <mat-icon class="!text-sm">arrow_back</mat-icon> Back to Login
             </a>
           </div>
