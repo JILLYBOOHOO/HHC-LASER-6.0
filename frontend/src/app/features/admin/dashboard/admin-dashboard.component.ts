@@ -49,7 +49,7 @@ import { InternalBookingModalComponent } from '../../../shared/components/intern
         <div class="flex items-center gap-2">
           <button type="button" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500"><mat-icon class="!text-lg">chevron_left</mat-icon></button>
           <span class="text-xs font-black tracking-wide text-slate-800 uppercase flex items-center gap-1.5">
-            <mat-icon class="!text-sm text-cyan-600">calendar_today</mat-icon>
+            <mat-icon class="!text-sm text-[#b8924f]">calendar_today</mat-icon>
             {{ todayDate | date:'mediumDate' }}
           </span>
           <button type="button" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500"><mat-icon class="!text-lg">chevron_right</mat-icon></button>
@@ -64,7 +64,7 @@ import { InternalBookingModalComponent } from '../../../shared/components/intern
                    class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:border-slate-800 text-slate-900 placeholder:text-slate-400">
           </div>
           
-          <button type="button" (click)="openBookingModal()" class="w-full sm:w-auto px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-extrabold text-xs rounded-lg shadow-md shadow-cyan-600/10 transition-all flex items-center justify-center gap-1.5 uppercase tracking-wider whitespace-nowrap">
+          <button type="button" (click)="openBookingModal()" class="w-full sm:w-auto px-4 py-2 bg-[#b8924f] hover:bg-[#a6803b] text-white font-extrabold text-xs rounded-lg shadow-md shadow-[#b8924f]/10 transition-all flex items-center justify-center gap-1.5 uppercase tracking-wider whitespace-nowrap">
             <mat-icon class="!text-base">add</mat-icon>
             <span>Quick Book</span>
           </button>

@@ -10,15 +10,15 @@ import { InternalBookingModalComponent } from '../../../shared/components/intern
   standalone: true,
   imports: [RouterOutlet, RouterModule, CommonModule, MatIconModule, InternalBookingModalComponent],
   template: `
-    <div class="flex h-screen overflow-hidden bg-[#f8fafc] font-sans text-slate-800 selection:bg-cyan-500 selection:text-black">
+    <div class="flex h-screen overflow-hidden bg-[#f8fafc] font-sans text-slate-800 selection:bg-[#b8924f] selection:text-white">
       
-      <!-- Sidebar Navigation (Dark Theme) -->
-      <aside class="hidden md:flex flex-col w-64 flex-shrink-0 bg-[#141716] border-r border-[#1e2522] z-20">
+      <!-- Sidebar Navigation (Light Theme) -->
+      <aside class="hidden md:flex flex-col w-64 flex-shrink-0 bg-white border-r border-slate-200 z-20 shadow-sm">
         
         <!-- Logo Header -->
         <div class="px-6 py-8 flex flex-col gap-1">
-          <div class="font-bold text-2xl tracking-tight text-[#00f0ff]">HHC Laser</div>
-          <div class="text-[10px] font-black tracking-[0.2em] text-slate-400 uppercase">ADMIN TERMINAL</div>
+          <div class="font-bold text-2xl tracking-tight text-slate-900">HHC Laser</div>
+          <div class="text-[10px] font-black tracking-[0.2em] text-[#b8924f] uppercase">ADMIN TERMINAL</div>
         </div>
  
         <!-- Navigation Links -->
@@ -26,7 +26,7 @@ import { InternalBookingModalComponent } from '../../../shared/components/intern
           @for (link of navLinks; track link.label) {
             <ng-container *ngIf="link.action === 'modal'; else routerLinkTpl">
               <button (click)="openBookingModal()"
-                 class="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-slate-400 hover:text-[#00f0ff] hover:bg-[#1e2522] transition-all text-xs font-semibold group text-left">
+                 class="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-slate-500 hover:text-[#b8924f] hover:bg-slate-50 transition-all text-xs font-semibold group text-left">
                 <mat-icon class="!text-lg transition-colors">{{ link.icon }}</mat-icon>
                 <span class="tracking-wide">{{ link.label }}</span>
               </button>
@@ -35,7 +35,7 @@ import { InternalBookingModalComponent } from '../../../shared/components/intern
               <a [routerLink]="link.path"
                  routerLinkActive="active-nav-link"
                  [routerLinkActiveOptions]="{exact: link.exact || false}"
-                 class="flex items-center gap-4 px-4 py-3 rounded-lg text-slate-400 hover:text-[#00f0ff] hover:bg-[#1e2522] transition-all text-xs font-semibold group">
+                 class="flex items-center gap-4 px-4 py-3 rounded-lg text-slate-500 hover:text-[#b8924f] hover:bg-slate-50 transition-all text-xs font-semibold group">
                  
                 <mat-icon class="!text-lg transition-colors">{{ link.icon }}</mat-icon>
                 <span class="tracking-wide">{{ link.label }}</span>
@@ -45,15 +45,15 @@ import { InternalBookingModalComponent } from '../../../shared/components/intern
         </nav>
  
         <!-- Admin Profile Bottom (matching image) -->
-        <div class="p-4 mx-4 mb-4 border-t border-[#1e2522] flex items-center justify-between">
+        <div class="p-4 mx-4 mb-4 border-t border-slate-100 flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <img loading="lazy" src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&q=80" class="w-10 h-10 rounded-full object-cover border border-[#2c3632]">
+            <img loading="lazy" src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&q=80" class="w-10 h-10 rounded-full object-cover border border-slate-200">
             <div>
-              <div class="text-xs font-bold text-white">Admin User</div>
+              <div class="text-xs font-bold text-slate-900">Admin User</div>
               <div class="text-[9px] font-medium text-slate-500 uppercase tracking-widest">TERMINAL 04</div>
             </div>
           </div>
-          <button (click)="logout()" title="Log Out" class="text-slate-500 hover:text-[#00f0ff] transition-colors p-1.5 rounded-lg hover:bg-[#1e2522] flex items-center justify-center">
+          <button (click)="logout()" title="Log Out" class="text-slate-400 hover:text-[#b8924f] transition-colors p-1.5 rounded-lg hover:bg-slate-50 flex items-center justify-center">
             <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">logout</mat-icon>
           </button>
         </div>
@@ -76,16 +76,16 @@ import { InternalBookingModalComponent } from '../../../shared/components/intern
   styles: [`
     .custom-scrollbar::-webkit-scrollbar { width: 4px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #2c3632; border-radius: 10px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #00f0ff; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #b8924f; }
     a.active-nav-link {
-      background-color: #00f0ff;
+      background-color: #b8924f;
       font-weight: 900;
-      color: #000000 !important;
-      box-shadow: 0 0 15px rgba(0,240,255,0.3);
+      color: #ffffff !important;
+      box-shadow: 0 4px 14px rgba(184,146,79,0.3);
     }
     a.active-nav-link mat-icon {
-      color: #000000 !important;
+      color: #ffffff !important;
     }
   `]
 })

@@ -1,4 +1,4 @@
-import { Component, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, signal, OnInit, OnDestroy, HostListener, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormControl, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,6 +8,7 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
 import { RealtimeService } from '../../../core/services/realtime.service';
 import { environment } from '../../../../environments/environment';
 import { Subscription, debounceTime, distinctUntilChanged } from 'rxjs';
+import { InternalBookingModalComponent } from '../../../shared/components/internal-booking-modal/internal-booking-modal.component';
 
 // ─── Treatment autocomplete types ───────────────────────────────────────────
 interface Treatment {
@@ -20,7 +21,7 @@ interface TreatmentGroup { category: string; treatments: Treatment[]; }
 @Component({
   selector: 'app-admin-bookings',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatIconModule, MatButtonModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatIconModule, MatButtonModule, InternalBookingModalComponent],
   template: `
     <!-- 1. RESCHEDULE APPOINTMENT VIEW (EXACT MATCH TO USER SCREENSHOT, WHITE BACKDROP RE-THEMED) -->
     <div *ngIf="isRescheduling()" class="bg-[#f8fafc] min-h-screen text-slate-800 p-4 md:p-8 font-sans selection:bg-[#b8924f] selection:text-white">
@@ -272,7 +273,8 @@ interface TreatmentGroup { category: string; treatments: Treatment[]; }
         © 2024 HHC Laser Admin Portal. <span class="text-[#b8924f] font-extrabold">Precise Care, Modern Excellence.</span>
       </div>
 
-    </div>    <!-- 2. SCHEDULE GRID VIEW (RE-THEMED WHITE APPOINTMENTS VIEW) -->
+    </div>
+    <!-- 2. SCHEDULE GRID VIEW (RE-THEMED WHITE APPOINTMENTS VIEW) -->
     <div *ngIf="!isRescheduling()" class="min-h-screen bg-[#f8fafc] text-slate-800 p-4 md:p-8 font-sans selection:bg-cyan-500 selection:text-black">
       
       <!-- Top Search & Actions Bar (from image) -->
@@ -324,140 +326,106 @@ interface TreatmentGroup { category: string; treatments: Treatment[]; }
         </div>
       </div>
 
-      <!-- Filters Header Row (Location and View) -->
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 text-left">
-        <!-- Location filter buttons matching HHC terminal styling -->
-        <div class="flex flex-col gap-2">
-          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block">LOCATION</span>
-          <div class="flex flex-wrap items-center gap-2">
-            <!-- All Clinics -->
-            <button (click)="selectedLocationFilter = 'all'"
-                    [class.bg-white]="selectedLocationFilter === 'all'"
-                    [class.border-slate-300]="selectedLocationFilter === 'all'"
-                    [class.text-slate-800]="selectedLocationFilter === 'all'"
-                    [class.bg-slate-50]="selectedLocationFilter !== 'all'"
-                    [class.border-slate-200]="selectedLocationFilter !== 'all'"
-                    [class.text-slate-500]="selectedLocationFilter !== 'all'"
-                    class="px-4 py-2 border rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-xs">
-              <mat-icon class="!text-sm">language</mat-icon>
-              <span>All Clinics</span>
-            </button>
-            
-            <!-- Constant Spring -->
-            <button (click)="selectedLocationFilter = 'cs'"
-                    [class.bg-blue-50]="selectedLocationFilter === 'cs'"
-                    [class.border-blue-300]="selectedLocationFilter === 'cs'"
-                    [class.text-blue-800]="selectedLocationFilter === 'cs'"
-                    [class.bg-slate-50]="selectedLocationFilter !== 'cs'"
-                    [class.border-slate-200]="selectedLocationFilter !== 'cs'"
-                    [class.text-slate-500]="selectedLocationFilter !== 'cs'"
-                    class="px-4 py-2 border rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-xs">
-              <span class="w-5 h-5 rounded-md bg-blue-600 text-white font-black text-[9px] flex items-center justify-center">CS</span>
-              <span>Constant Spring</span>
-            </button>
-            
-            <!-- Mannings Hill -->
-            <button (click)="selectedLocationFilter = 'mh'"
-                    [class.bg-orange-500]="selectedLocationFilter === 'mh'"
-                    [class.border-orange-600]="selectedLocationFilter === 'mh'"
-                    [class.text-white]="selectedLocationFilter === 'mh'"
-                    [class.bg-slate-50]="selectedLocationFilter !== 'mh'"
-                    [class.border-slate-200]="selectedLocationFilter !== 'mh'"
-                    [class.text-slate-500]="selectedLocationFilter !== 'mh'"
-                    class="px-4 py-2 border rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-xs">
-              <span class="w-5 h-5 rounded-md bg-white text-orange-600 font-black text-[9px] flex items-center justify-center border border-orange-200">MH</span>
-              <span>Mannings Hill</span>
-            </button>
-          </div>
-        </div>
+      <!-- Compact Filters Row -->
+      <div class="flex flex-wrap items-center justify-between gap-4 bg-white border border-slate-200 p-3 rounded-2xl mb-4 shadow-xs text-left">
+        <div class="flex flex-wrap items-center gap-4">
+          <!-- Location Filter -->
+          <select [(ngModel)]="selectedLocationFilter" class="px-3 py-1.5 border border-slate-200 bg-slate-50 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#007aff] transition-all">
+            <option value="all">All Clinics</option>
+            <option value="cs">Constant Spring</option>
+            <option value="mh">Mannings Hill</option>
+          </select>
 
-        <!-- View Controls (Day, Week, Month) -->
-        <div class="flex flex-col gap-2">
-          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block">VIEW</span>
-          <div class="bg-slate-100 border border-slate-200 p-1 rounded-2xl flex items-center shadow-xs">
-            <button (click)="viewMode = 'Day'" [ngClass]="{'bg-white': viewMode === 'Day', 'text-slate-900': viewMode === 'Day', 'text-slate-500': viewMode !== 'Day'}" class="px-5 py-2 rounded-xl text-xs font-extrabold hover:text-slate-850 transition-all shadow-xs">Day</button>
-            <button (click)="viewMode = 'Week'" [ngClass]="{'bg-white': viewMode === 'Week', 'text-slate-900': viewMode === 'Week', 'text-slate-500': viewMode !== 'Week'}" class="px-5 py-2 rounded-xl text-xs font-extrabold hover:text-slate-850 transition-all shadow-xs">Week</button>
-            <button (click)="viewMode = 'Month'" [ngClass]="{'bg-white': viewMode === 'Month', 'text-slate-900': viewMode === 'Month', 'text-slate-500': viewMode !== 'Month'}" class="px-5 py-2 rounded-xl text-xs font-extrabold hover:text-slate-850 transition-all shadow-xs">Month</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Dropdown selectors row (Staff, Service, Status) -->
-      <div class="flex flex-wrap items-center justify-between gap-4 bg-white border border-slate-200 p-4 rounded-3xl mb-6 shadow-xs text-left">
-        <div class="flex flex-wrap items-center gap-6">
           <!-- Staff filter -->
-          <div class="flex items-center gap-2">
-            <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Staff</span>
-            <select [(ngModel)]="staffFilter" (change)="filterAppointments()" class="px-3 py-1.5 border border-slate-200 bg-slate-50 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#007aff] transition-all">
-              <option value="all">All Staff</option>
-              <option value="sarah">Sarah Jenkins</option>
-              <option value="marcus">Marcus Wright</option>
-              <option value="james">James Cooper</option>
-            </select>
-          </div>
+          <select [(ngModel)]="staffFilter" (change)="filterAppointments()" class="px-3 py-1.5 border border-slate-200 bg-slate-50 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#007aff] transition-all">
+            <option value="all">All Staff</option>
+            <option value="sarah">Sarah Jenkins</option>
+            <option value="marcus">Marcus Wright</option>
+            <option value="james">James Cooper</option>
+          </select>
 
           <!-- Service filter – Smart Autocomplete -->
-          <div class="flex items-center gap-2 relative">
-            <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Service</span>
-            <div class="relative">
-              <mat-icon class="absolute left-2.5 top-1.5 !text-sm text-slate-400 pointer-events-none z-10">search</mat-icon>
-              <input type="text"
-                     [formControl]="serviceCtrl"
-                     (focus)="showServiceDropdown = true"
-                     (keydown)="onServiceKeydown($event)"
-                     (blur)="onServiceBlur()"
-                     placeholder="All Services"
-                     aria-label="Treatment search"
-                     aria-autocomplete="list"
-                     autocomplete="off"
-                     class="pl-8 pr-7 py-1.5 border border-slate-200 bg-slate-50 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#007aff] transition-all w-48">
-              <button *ngIf="serviceCtrl.value" (mousedown)="clearServiceFilter()" type="button"
-                      class="absolute right-2 top-1.5 text-slate-400 hover:text-slate-700 z-10">
-                <mat-icon class="!text-base leading-none">close</mat-icon>
-              </button>
+          <div class="relative">
+            <mat-icon class="absolute left-2.5 top-1.5 !text-sm text-slate-400 pointer-events-none z-10">search</mat-icon>
+            <input type="text"
+                   [formControl]="serviceCtrl"
+                   (focus)="showServiceDropdown = true"
+                   (keydown)="onServiceKeydown($event)"
+                   (blur)="onServiceBlur()"
+                   placeholder="All Services"
+                   aria-label="Treatment search"
+                   aria-autocomplete="list"
+                   autocomplete="off"
+                   class="pl-8 pr-7 py-1.5 border border-slate-200 bg-slate-50 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#007aff] transition-all w-48">
+            <button *ngIf="serviceCtrl.value" (mousedown)="clearServiceFilter()" type="button"
+                    class="absolute right-2 top-1.5 text-slate-400 hover:text-slate-700 z-10">
+              <mat-icon class="!text-base leading-none">close</mat-icon>
+            </button>
 
-              <!-- Autocomplete dropdown panel -->
-              <div *ngIf="showServiceDropdown"
-                   role="listbox" aria-label="Treatment suggestions"
-                   class="absolute top-full left-0 mt-1.5 w-[22rem] bg-white border border-slate-200 rounded-2xl shadow-2xl z-[999] max-h-96 overflow-y-auto">
+            <!-- Autocomplete dropdown panel -->
+            <div *ngIf="showServiceDropdown"
+                 role="listbox" aria-label="Treatment suggestions"
+                 class="absolute top-full left-0 mt-1.5 w-[22rem] bg-white border border-slate-200 rounded-2xl shadow-2xl z-[999] max-h-96 overflow-y-auto">
 
-                <!-- Empty state: Recent + Most Booked -->
-                <ng-container *ngIf="!serviceCtrl.value || serviceCtrl.value.length < 2">
-                  <div *ngIf="recentTreatments.length > 0">
-                    <div class="px-4 pt-3 pb-1.5 text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                      <mat-icon class="!text-xs !w-3 !h-3">history</mat-icon> Recent Treatments
+              <!-- Empty state: Recent + Most Booked -->
+              <ng-container *ngIf="!serviceCtrl.value || serviceCtrl.value.length < 2">
+                <div *ngIf="recentTreatments.length > 0">
+                  <div class="px-4 pt-3 pb-1.5 text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                    <mat-icon class="!text-xs !w-3 !h-3">history</mat-icon> Recent Treatments
+                  </div>
+                  <div *ngFor="let t of recentTreatments; let i = index"
+                       (mousedown)="selectTreatmentOption(t)"
+                       role="option"
+                       [class.bg-blue-50]="activeDropdownIndex === i"
+                       class="px-4 py-2.5 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors border-l-2 border-transparent hover:border-[#007aff]">
+                    <div class="text-left">
+                      <div class="text-xs font-bold text-slate-800">{{ t.name }}</div>
+                      <div class="text-[10px] text-slate-400 font-semibold">{{ t.category }}</div>
                     </div>
-                    <div *ngFor="let t of recentTreatments; let i = index"
-                         (mousedown)="selectTreatmentOption(t)"
-                         role="option"
-                         [class.bg-blue-50]="activeDropdownIndex === i"
-                         class="px-4 py-2.5 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors border-l-2 border-transparent hover:border-[#007aff]">
-                      <div class="text-left">
+                    <div class="text-right shrink-0">
+                      <div class="text-[10px] font-black text-slate-700">{{ t.duration }}m</div>
+                      <div class="text-[10px] font-bold text-[#b8924f]">J\${{ t.price | number:'1.0-0' }}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div [class.border-t]="recentTreatments.length > 0" class="border-slate-100">
+                  <div class="px-4 pt-3 pb-1.5 text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                    <mat-icon class="!text-xs !w-3 !h-3">trending_up</mat-icon> Most Booked
+                  </div>
+                  <div *ngFor="let t of mostBookedTreatments; let i = index"
+                       (mousedown)="selectTreatmentOption(t)"
+                       role="option"
+                       [class.bg-blue-50]="activeDropdownIndex === (recentTreatments.length + i)"
+                       class="px-4 py-2.5 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors border-l-2 border-transparent hover:border-[#b8924f]">
+                    <div class="flex items-center gap-2 text-left">
+                      <span class="w-5 h-5 rounded-full bg-[#b8924f]/10 text-[#b8924f] flex items-center justify-center text-[8px] font-black shrink-0">{{ i + 1 }}</span>
+                      <div>
                         <div class="text-xs font-bold text-slate-800">{{ t.name }}</div>
                         <div class="text-[10px] text-slate-400 font-semibold">{{ t.category }}</div>
                       </div>
-                      <div class="text-right shrink-0">
-                        <div class="text-[10px] font-black text-slate-700">{{ t.duration }}m</div>
-                        <div class="text-[10px] font-bold text-[#b8924f]">J\${{ t.price | number:'1.0-0' }}</div>
-                      </div>
+                    </div>
+                    <div class="text-right shrink-0">
+                      <div class="text-[10px] font-black text-slate-700">{{ t.duration }}m</div>
+                      <div class="text-[10px] font-bold text-[#b8924f]">J\${{ t.price | number:'1.0-0' }}</div>
                     </div>
                   </div>
+                </div>
+              </ng-container>
 
-                  <div [class.border-t]="recentTreatments.length > 0" class="border-slate-100">
-                    <div class="px-4 pt-3 pb-1.5 text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                      <mat-icon class="!text-xs !w-3 !h-3">trending_up</mat-icon> Most Booked
-                    </div>
-                    <div *ngFor="let t of mostBookedTreatments; let i = index"
+              <!-- Search results grouped by category -->
+              <ng-container *ngIf="serviceCtrl.value && serviceCtrl.value.length >= 2">
+                <ng-container *ngIf="groupedFilteredTreatments.length > 0; else noTreatmentResults">
+                  <div *ngFor="let group of groupedFilteredTreatments; let gi = index">
+                    <div class="px-4 pt-3 pb-1 text-[9px] font-black text-slate-400 uppercase tracking-widest"
+                         [class.border-t]="gi > 0" [class.border-slate-100]="gi > 0">{{ group.category }}</div>
+                    <div *ngFor="let t of group.treatments"
                          (mousedown)="selectTreatmentOption(t)"
                          role="option"
-                         [class.bg-blue-50]="activeDropdownIndex === (recentTreatments.length + i)"
-                         class="px-4 py-2.5 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors border-l-2 border-transparent hover:border-[#b8924f]">
-                      <div class="flex items-center gap-2 text-left">
-                        <span class="w-5 h-5 rounded-full bg-[#b8924f]/10 text-[#b8924f] flex items-center justify-center text-[8px] font-black shrink-0">{{ i + 1 }}</span>
-                        <div>
-                          <div class="text-xs font-bold text-slate-800">{{ t.name }}</div>
-                          <div class="text-[10px] text-slate-400 font-semibold">{{ t.category }}</div>
-                        </div>
+                         class="px-4 py-2.5 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors border-l-2 border-transparent hover:border-[#007aff]">
+                      <div class="text-left">
+                        <div class="text-xs font-bold text-slate-800" [innerHTML]="highlightMatch(t.name, serviceCtrl.value)"></div>
+                        <div class="text-[10px] text-slate-400 font-semibold">{{ t.bodyArea }} • <span [innerHTML]="highlightMatch(t.category, serviceCtrl.value)"></span></div>
                       </div>
                       <div class="text-right shrink-0">
                         <div class="text-[10px] font-black text-slate-700">{{ t.duration }}m</div>
@@ -466,118 +434,46 @@ interface TreatmentGroup { category: string; treatments: Treatment[]; }
                     </div>
                   </div>
                 </ng-container>
-
-                <!-- Search results grouped by category -->
-                <ng-container *ngIf="serviceCtrl.value && serviceCtrl.value.length >= 2">
-                  <ng-container *ngIf="groupedFilteredTreatments.length > 0; else noTreatmentResults">
-                    <div *ngFor="let group of groupedFilteredTreatments; let gi = index">
-                      <div class="px-4 pt-3 pb-1 text-[9px] font-black text-slate-400 uppercase tracking-widest"
-                           [class.border-t]="gi > 0" [class.border-slate-100]="gi > 0">{{ group.category }}</div>
-                      <div *ngFor="let t of group.treatments"
-                           (mousedown)="selectTreatmentOption(t)"
-                           role="option"
-                           class="px-4 py-2.5 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors border-l-2 border-transparent hover:border-[#007aff]">
-                        <div class="text-left">
-                          <div class="text-xs font-bold text-slate-800" [innerHTML]="highlightMatch(t.name, serviceCtrl.value!)"></div>
-                          <div class="text-[10px] text-slate-400 font-semibold">{{ t.bodyArea }}</div>
-                        </div>
-                        <div class="text-right shrink-0">
-                          <div class="text-[10px] font-black text-slate-700">{{ t.duration }}m</div>
-                          <div class="text-[10px] font-bold text-[#b8924f]">J\${{ t.price | number:'1.0-0' }}</div>
-                        </div>
-                      </div>
+                <ng-template #noTreatmentResults>
+                  <div class="px-6 py-8 text-center">
+                    <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <mat-icon class="!text-2xl text-slate-300">search_off</mat-icon>
                     </div>
-                  </ng-container>
-                  <ng-template #noTreatmentResults>
-                    <div class="px-4 py-8 text-center flex flex-col items-center gap-2">
-                      <mat-icon class="text-slate-300 !text-4xl">search_off</mat-icon>
-                      <div class="text-xs font-bold text-slate-400">No treatments match "{{ serviceCtrl.value }}"</div>
-                    </div>
-                  </ng-template>
-                </ng-container>
-
-              </div>
+                    <p class="text-xs font-bold text-slate-700">No treatments found</p>
+                    <p class="text-[10px] text-slate-400 mt-1">Try a different term or keyword</p>
+                  </div>
+                </ng-template>
+              </ng-container>
             </div>
           </div>
-
+          
           <!-- Status filter -->
-          <div class="flex items-center gap-2">
-            <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Status</span>
-            <select [(ngModel)]="statusFilter" (change)="filterAppointments()" class="px-3 py-1.5 border border-slate-200 bg-slate-50 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#007aff] transition-all">
-              <option value="all">All Status</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="checked-in">Checked In</option>
-              <option value="in-progress">In Progress</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
+          <select [(ngModel)]="statusFilter" (change)="filterAppointments()" class="px-3 py-1.5 border border-slate-200 bg-slate-50 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#007aff] transition-all">
+            <option value="all">All Status</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="checked-in">Checked In</option>
+            <option value="in-progress">In Progress</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
         </div>
 
-        <!-- More Filters -->
-        <button class="px-4 py-2 border border-slate-200 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-extrabold text-slate-700 flex items-center gap-1.5 transition-all shadow-xs">
-          <span>More Filters</span>
-          <mat-icon class="!text-base text-slate-500">filter_list</mat-icon>
-        </button>
-      </div>
-
-      <!-- Stats Metrics Cards Row -->
-      <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-        <!-- Today Appointments (Blue) -->
-        <div class="bg-[#007aff] text-white p-4 rounded-3xl shadow-xs flex items-center gap-4 text-left relative overflow-hidden">
-          <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0">
-            <mat-icon class="!text-xl">event_note</mat-icon>
+        <div class="flex flex-wrap items-center gap-4">
+          <!-- View Controls (Day, Week, Month) -->
+          <div class="bg-slate-100 border border-slate-200 p-1 rounded-2xl flex items-center shadow-xs">
+            <button (click)="viewMode = 'Day'" [ngClass]="{'bg-white': viewMode === 'Day', 'text-slate-900': viewMode === 'Day', 'text-slate-500': viewMode !== 'Day'}" class="px-5 py-1.5 rounded-xl text-[10px] font-extrabold hover:text-slate-850 transition-all shadow-xs">Day</button>
+            <button (click)="viewMode = 'Week'" [ngClass]="{'bg-white': viewMode === 'Week', 'text-slate-900': viewMode === 'Week', 'text-slate-500': viewMode !== 'Week'}" class="px-5 py-1.5 rounded-xl text-[10px] font-extrabold hover:text-slate-850 transition-all shadow-xs">Week</button>
+            <button (click)="viewMode = 'Month'" [ngClass]="{'bg-white': viewMode === 'Month', 'text-slate-900': viewMode === 'Month', 'text-slate-500': viewMode !== 'Month'}" class="px-5 py-1.5 rounded-xl text-[10px] font-extrabold hover:text-slate-850 transition-all shadow-xs">Month</button>
           </div>
-          <div>
-            <div class="text-3xl font-black leading-none">34</div>
-            <div class="text-[9px] font-black uppercase tracking-wider text-white/80 mt-1">TODAY Appointments</div>
-          </div>
-        </div>
-
-        <!-- Checked In (Green) -->
-        <div class="bg-[#34c759] text-white p-4 rounded-3xl shadow-xs flex items-center gap-4 text-left relative overflow-hidden">
-          <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0">
-            <mat-icon class="!text-xl">check_circle</mat-icon>
-          </div>
-          <div>
-            <div class="text-3xl font-black leading-none">12</div>
-            <div class="text-[9px] font-black uppercase tracking-wider text-white/80 mt-1">CHECKED IN <span class="font-extrabold opacity-60">(35%)</span></div>
-          </div>
-        </div>
-
-        <!-- Waiting (Orange) -->
-        <div class="bg-[#ff9500] text-white p-4 rounded-3xl shadow-xs flex items-center gap-4 text-left relative overflow-hidden">
-          <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0">
-            <mat-icon class="!text-xl">hourglass_empty</mat-icon>
-          </div>
-          <div>
-            <div class="text-3xl font-black leading-none">8</div>
-            <div class="text-[9px] font-black uppercase tracking-wider text-white/80 mt-1">WAITING <span class="font-extrabold opacity-60">(24%)</span></div>
-          </div>
-        </div>
-
-        <!-- Completed (Purple) -->
-        <div class="bg-[#af52de] text-white p-4 rounded-3xl shadow-xs flex items-center gap-4 text-left relative overflow-hidden">
-          <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0">
-            <mat-icon class="!text-xl">done_all</mat-icon>
-          </div>
-          <div>
-            <div class="text-3xl font-black leading-none">14</div>
-            <div class="text-[9px] font-black uppercase tracking-wider text-white/80 mt-1">COMPLETED <span class="font-extrabold opacity-60">(41%)</span></div>
-          </div>
-        </div>
-
-        <!-- Revenue (Teal) -->
-        <div class="bg-[#1f9397] text-white p-4 rounded-3xl shadow-xs col-span-2 md:col-span-1 flex items-center gap-4 text-left relative overflow-hidden">
-          <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0">
-            <mat-icon class="!text-xl">monetization_on</mat-icon>
-          </div>
-          <div>
-            <div class="text-lg font-black leading-none">J$ 245,000</div>
-            <div class="text-[9px] font-black uppercase tracking-wider text-white/80 mt-1">REVENUE Expected</div>
-          </div>
+          
+          <button class="px-4 py-1.5 border border-slate-200 bg-slate-50 hover:bg-slate-100 rounded-xl text-[10px] font-extrabold text-slate-700 flex items-center gap-1.5 transition-all shadow-xs">
+            <span>More Filters</span>
+            <mat-icon class="!text-sm text-slate-500">filter_list</mat-icon>
+          </button>
         </div>
       </div>
+
+
 
       <!-- Main Columns: Scheduler + Right Sidebar -->
       <div class="grid grid-cols-1 xl:grid-cols-4 gap-6 text-left">
@@ -605,23 +501,23 @@ interface TreatmentGroup { category: string; treatments: Treatment[]; }
                 </h2>
               </div>
               
+              
+              <!-- Zoom slider -->
+              <div class="flex items-center gap-2">
+                <mat-icon class="!text-sm text-slate-400">zoom_out</mat-icon>
+                <input type="range" min="0.5" max="3" step="0.1" [value]="zoomLevel()" (input)="updateZoom($event)" class="w-24 accent-[#b8924f]">
+                <mat-icon class="!text-sm text-slate-400">zoom_in</mat-icon>
+              </div>
+              
               <!-- Export button -->
+
               <button class="px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-extrabold text-xs rounded-xl flex items-center gap-1.5 shadow-xs">
                 <span>Export</span>
                 <mat-icon class="!text-sm text-slate-500">download</mat-icon>
               </button>
             </div>
 
-            <!-- Legend Dots -->
-            <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-bold text-slate-500 mb-6 bg-slate-50/50 p-3 rounded-2xl border border-slate-100">
-              <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-[#007aff]"></span><span>Confirmed</span></div>
-              <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-[#34c759]"></span><span>Checked In</span></div>
-              <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-[#ff9500]"></span><span>In Progress</span></div>
-              <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-[#af52de]"></span><span>Completed</span></div>
-              <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-red-500"></span><span>Cancelled</span></div>
-              <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span><span>No Show</span></div>
-              <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-slate-200 stripe-bg"></span><span>Blocked</span></div>
-            </div>
+
 
             <!-- Calendar Table Grid -->
             <div class="overflow-x-auto">
@@ -642,390 +538,162 @@ interface TreatmentGroup { category: string; treatments: Treatment[]; }
                 </div>
 
                 <!-- Grid rows -->
-                <div class="relative bg-white divide-y divide-slate-100 text-xs font-semibold text-slate-700 flex flex-col h-[calc(100vh-320px)] min-h-[500px]">
-                  <div *ngFor="let hour of hours" class="grid grid-cols-8 flex-1 min-h-[60px] divide-x divide-slate-150 relative">
+                <div class="relative bg-white divide-y divide-slate-100 text-xs font-semibold text-slate-700 flex flex-col h-[calc(100vh-210px)] min-h-[500px] overflow-y-auto custom-scrollbar">
+                  
+                  <!-- Current Time Line Indicator -->
+                  <div *ngIf="currentTimeTop() > 0" class="absolute left-0 right-0 z-50 border-t-2 border-red-500 pointer-events-none transition-all duration-1000" [style.top.px]="currentTimeTop()">
+                    <div class="absolute -left-1 -top-1.5 w-3 h-3 bg-red-500 rounded-full"></div>
+                  </div>
+
+                  <div *ngFor="let hour of hours" [style.min-height.px]="40 * zoomLevel()" class="grid grid-cols-8 flex-1 divide-x divide-slate-150 relative hover:bg-slate-50/30 transition-colors">
                     <!-- Hour label -->
-                    <div class="p-2 text-right bg-slate-50/30 text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-start justify-end pt-1.5 pr-3">{{ hour }}</div>
+                    <div class="p-1 text-right bg-slate-50/30 text-[10px] font-black text-slate-400 flex items-start justify-end pr-2">{{ hour }}</div>
 
-                    <!-- MON 12 Column -->
-                    <div class="p-1 relative group hover:bg-slate-50/50 transition-colors">
-                      <!-- sarah jenkins card at 09:00 AM -->
-                      <div *ngIf="hour === '09:00 AM'" (click)="openReschedule(1, 'Sarah Jenkins', 'Laser Hair Removal', 'May 12, 2024', '09:00 AM')"
-                           class="absolute inset-x-1.5 z-10 bg-blue-50 border-l-4 border-[#007aff] rounded-xl p-2.5 shadow-xs hover:shadow-md cursor-pointer hover:-translate-y-0.5 transition-all text-left" style="top: 4px; height: calc(150% - 8px);">
-                        <div class="text-[8px] font-black text-[#007aff] uppercase tracking-wider">09:00 AM</div>
-                        <h4 class="text-xs font-black text-slate-900 leading-tight mt-0.5">Sarah Jenkins</h4>
-                        <p class="text-[9px] font-semibold text-slate-500">Laser Hair Removal</p>
-                        <span class="absolute bottom-2 right-2 px-1.5 py-0.5 bg-blue-100 text-blue-800 text-[8px] font-black rounded border border-blue-200">CS</span>
-                      </div>
-                      <!-- marcus wright card at 11:30 AM -->
-                      <div *ngIf="hour === '11:00 AM'" (click)="openReschedule(2, 'Marcus Wright', 'Body / Skin Detox', 'May 12, 2024', '11:30 AM')"
-                           class="absolute inset-x-1.5 z-10 bg-purple-50 border-l-4 border-[#af52de] rounded-xl p-2.5 shadow-xs hover:shadow-md cursor-pointer hover:-translate-y-0.5 transition-all text-left" style="top: 50%; height: calc(125% - 8px);">
-                        <div class="text-[8px] font-black text-[#af52de] uppercase tracking-wider">11:30 AM</div>
-                        <h4 class="text-xs font-black text-slate-900 leading-tight mt-0.5">Marcus Wright</h4>
-                        <p class="text-[9px] font-semibold text-slate-500">Body / Skin Detox</p>
-                        <span class="absolute bottom-2 right-2 px-1.5 py-0.5 bg-purple-100 text-purple-800 text-[8px] font-black rounded border border-purple-200">MH</span>
-                      </div>
-                      <!-- quick check card at 02:30 PM -->
-                      <div *ngIf="hour === '02:00 PM'" (click)="openReschedule(3, 'Quick Consult', 'Quick Check', 'May 12, 2024', '02:30 PM')"
-                           class="absolute inset-x-1.5 z-10 bg-emerald-50 border-l-4 border-[#34c759] rounded-xl p-2.5 shadow-xs hover:shadow-md cursor-pointer hover:-translate-y-0.5 transition-all text-left" style="top: 50%; height: calc(75% - 8px);">
-                        <div class="flex items-center justify-between text-[8px] font-black text-[#34c759] uppercase tracking-wider">
-                          <span>02:30 PM</span>
-                          <span>15m</span>
-                        </div>
-                        <h4 class="text-xs font-black text-slate-900 leading-tight mt-0.5">Quick Consult</h4>
-                        <span class="absolute bottom-2 right-2 px-1.5 py-0.5 bg-emerald-100 text-emerald-805 text-[8px] font-black rounded border border-emerald-250">CS</span>
-                      </div>
-                    </div>
+                    <!-- Dynamic Day Columns -->
+                    <div *ngFor="let day of daysOfWeek" 
+                         class="p-1 relative border-transparent transition-colors"
+                         (dblclick)="onSlotDoubleClick(hour, day.name)"
+                         (dragover)="onDragOver($event)"
+                         (drop)="onDrop($event, hour, day.name)">
+                         
+                         <!-- Mock Appointments for Demonstration (Since actual data isn't provided here, we'll keep a few static ones for visual testing based on hour) -->
+                         <ng-container *ngIf="day.name === 'MON'">
+                           <div *ngIf="hour === '09:00 AM'" draggable="true" (dragstart)="onDragStart($event, {id: 1})" (contextmenu)="onAppointmentContextMenu($event, {id: 1})"
+                                class="absolute inset-x-1 z-10 bg-blue-50 border-l-4 border-[#007aff] rounded flex flex-col p-1.5 shadow-sm hover:shadow-md cursor-grab active:cursor-grabbing text-left group" [style.top.px]="2 * zoomLevel()" [style.height]="'calc(' + (400 * zoomLevel()) + '% - 4px)'">
+                             <div class="text-[8px] font-black text-[#007aff] uppercase tracking-wider flex justify-between">
+                               <span>09:00 AM</span>
+                               <mat-icon class="!text-[10px] !w-[10px] !h-[10px]">content_cut</mat-icon>
+                             </div>
+                             <h4 class="text-[10px] font-black text-slate-900 leading-tight">Sarah Jenkins</h4>
+                             <p class="text-[9px] font-semibold text-slate-500 line-clamp-1">Laser Hair Removal</p>
+                             
+                             <!-- Progress Bar -->
+                             <div class="w-full h-1 bg-blue-100 rounded-full mt-1 mb-1 overflow-hidden">
+                               <div class="h-full bg-[#007aff] w-1/2"></div>
+                             </div>
 
-                    <!-- TUE 13 Column -->
-                    <div class="p-1 relative group hover:bg-slate-50/50 transition-colors">
-                      <!-- eleanor rigby card at 10:15 AM -->
-                      <div *ngIf="hour === '10:00 AM'" (click)="openReschedule(4, 'Eleanor Rigby', 'Consultation', 'May 13, 2024', '10:15 AM')"
-                           class="absolute inset-x-1.5 z-10 bg-orange-50 border-l-4 border-[#ff9500] rounded-xl p-2.5 shadow-xs hover:shadow-md cursor-pointer hover:-translate-y-0.5 transition-all text-left" style="top: 25%; height: calc(150% - 8px);">
-                        <div class="text-[8px] font-black text-[#ff9500] uppercase tracking-wider">10:15 AM</div>
-                        <h4 class="text-xs font-black text-slate-900 leading-tight mt-0.5">Eleanor Rigby</h4>
-                        <p class="text-[9px] font-semibold text-slate-500">Consultation</p>
-                        <span class="absolute bottom-2 right-2 px-1.5 py-0.5 bg-orange-100 text-orange-850 text-[8px] font-black rounded border border-orange-200">CS</span>
-                      </div>
-                      <!-- staff meeting blocked slot at 01:00 PM - 02:00 PM -->
-                      <div *ngIf="hour === '01:00 PM'"
-                           class="absolute inset-x-1.5 z-10 bg-slate-50 hover:bg-slate-100 rounded-xl p-2 flex flex-col justify-center border border-slate-200 border-dashed text-left stripe-bg" style="top: 4px; height: calc(100% - 8px);">
-                        <div class="text-[8px] font-black text-slate-400 uppercase tracking-wider">01:00 PM – 02:00 PM</div>
-                        <h4 class="text-xs font-extrabold text-slate-650 mt-0.5 leading-tight">Staff Meeting</h4>
-                        <span class="absolute bottom-1.5 right-2 px-1.5 py-0.5 bg-slate-200 text-slate-700 text-[8px] font-black rounded">CS</span>
-                      </div>
-                    </div>
+                             <div class="mt-auto flex justify-between items-end">
+                               <span class="px-1 py-0.5 bg-blue-100 text-blue-800 text-[8px] font-black rounded border border-blue-200">60m</span>
+                               <span class="text-[8px] font-black text-emerald-600">Paid Online</span>
+                             </div>
 
-                    <!-- WED 14 Column (Highlighted column) -->
-                    <div class="p-1 relative group bg-blue-50/10 hover:bg-blue-50/20 transition-colors">
-                      <!-- eleanor shellstrop card at 10:30 AM -->
-                      <div *ngIf="hour === '10:00 AM'" (click)="openReschedule(5, 'Eleanor Shellstrop', 'Microdermabrasion', 'May 14, 2024', '10:30 AM')"
-                           class="absolute inset-x-1.5 z-10 bg-blue-50 border border-[#b8924f] border-l-4 border-l-[#007aff] rounded-xl p-2.5 shadow-xs hover:shadow-md cursor-pointer hover:-translate-y-0.5 transition-all text-left" style="top: 50%; height: calc(125% - 8px);">
-                        <div class="text-[8px] font-black text-[#007aff] uppercase tracking-wider">10:30 AM</div>
-                        <h4 class="text-xs font-black text-slate-900 leading-tight mt-0.5">Eleanor Shellstrop</h4>
-                        <p class="text-[9px] font-semibold text-slate-500">Microdermabrasion</p>
-                        <div class="absolute bottom-2 left-2.5 px-2 py-0.5 bg-[#b8924f] text-white text-[7px] font-black tracking-wider uppercase rounded">IN PROGRESS</div>
-                        <span class="absolute bottom-2 right-2 px-1.5 py-0.5 bg-blue-100 text-blue-800 text-[8px] font-black rounded border border-blue-200">CS</span>
-                      </div>
-                      <!-- amelia pond card at 11:00 AM -->
-                      <div *ngIf="hour === '11:00 AM'" (click)="openReschedule(6, 'Amelia Pond', 'Facial Resurfacing', 'May 14, 2024', '11:00 AM')"
-                           class="absolute inset-x-1.5 z-10 bg-purple-50 border-l-4 border-[#af52de] rounded-xl p-2.5 shadow-xs hover:shadow-md cursor-pointer hover:-translate-y-0.5 transition-all text-left" style="top: 4px; height: calc(100% - 8px);">
-                        <div class="text-[8px] font-black text-[#af52de] uppercase tracking-wider">11:00 AM</div>
-                        <h4 class="text-xs font-black text-slate-900 leading-tight mt-0.5">Amelia Pond</h4>
-                        <span class="absolute bottom-2 right-2 px-1.5 py-0.5 bg-purple-100 text-purple-800 text-[8px] font-black rounded border border-purple-200">CS</span>
-                      </div>
-                      <!-- martha jones card at 03:00 PM -->
-                      <div *ngIf="hour === '03:00 PM'" (click)="openReschedule(7, 'Martha Jones', 'Chemical Peel', 'May 14, 2024', '03:00 PM')"
-                           class="absolute inset-x-1.5 z-10 bg-orange-50 border-l-4 border-[#ff9500] rounded-xl p-2.5 shadow-xs hover:shadow-md cursor-pointer hover:-translate-y-0.5 transition-all text-left" style="top: 4px; height: calc(100% - 8px);">
-                        <div class="text-[8px] font-black text-[#ff9500] uppercase tracking-wider">03:00 PM</div>
-                        <h4 class="text-xs font-black text-slate-900 leading-tight mt-0.5">Martha Jones</h4>
-                        <span class="absolute bottom-2 right-2 px-1.5 py-0.5 bg-orange-100 text-orange-850 text-[8px] font-black rounded border border-orange-200">MH</span>
-                      </div>
-                    </div>
+                             <!-- Hover Tooltip -->
+                             <div class="hidden group-hover:flex absolute left-full ml-2 top-0 w-48 bg-slate-900 text-white p-3 rounded-xl shadow-xl flex-col z-50">
+                               <div class="font-bold text-xs">Sarah Jenkins</div>
+                               <div class="text-[10px] text-slate-300">History: 3 previous bookings</div>
+                               <div class="text-[10px] text-slate-300">Notes: Sensitive skin, avoid strong sun.</div>
+                               <div class="mt-2 text-[10px] font-black text-emerald-400">Balance: $0.00</div>
+                             </div>
+                           </div>
+                         </ng-container>
 
-                    <!-- THU 15 Column -->
-                    <div class="p-1 relative group hover:bg-slate-50/50 transition-colors">
-                      <!-- maintenance blocked slot at 08:00 AM - 09:00 AM -->
-                      <div *ngIf="hour === '08:00 AM'"
-                           class="absolute inset-x-1.5 z-10 bg-slate-50 rounded-xl p-2 flex flex-col justify-center border border-slate-200 border-dashed text-left stripe-bg" style="top: 4px; height: calc(100% - 8px);">
-                        <div class="text-[8px] font-black text-slate-400 uppercase tracking-wider">08:00 AM – 09:00 AM</div>
-                        <h4 class="text-xs font-extrabold text-slate-650 mt-0.5 leading-tight">Maintenance</h4>
-                        <div class="text-[8.5px] font-semibold text-slate-400">All Staff</div>
-                      </div>
-                      <!-- internal sync slot at 08:30 AM -->
-                      <div *ngIf="hour === '08:00 AM'"
-                           class="absolute inset-x-1.5 z-20 bg-blue-50 border-l-4 border-[#007aff] rounded-xl p-2 flex items-center justify-between text-left shadow-xs" style="top: 100%; height: calc(75% - 8px);">
-                        <div>
-                          <div class="text-[8px] font-black text-[#007aff] uppercase tracking-wider">08:30 AM</div>
-                          <h4 class="text-xs font-extrabold text-slate-900 leading-tight">Internal Sync</h4>
-                        </div>
-                        <mat-icon class="!text-xs text-[#007aff]/60">lock</mat-icon>
-                      </div>
-                      <!-- rose tyler at 12:00 PM -->
-                      <div *ngIf="hour === '12:00 PM'" (click)="openReschedule(8, 'Rose Tyler', 'Laser Hair Removal', 'May 15, 2024', '12:00 PM')"
-                           class="absolute inset-x-1.5 z-10 bg-blue-50 border-l-4 border-[#007aff] rounded-xl p-2.5 shadow-xs hover:shadow-md cursor-pointer hover:-translate-y-0.5 transition-all text-left" style="top: 4px; height: calc(100% - 8px);">
-                        <div class="text-[8px] font-black text-[#007aff] uppercase tracking-wider">12:00 PM</div>
-                        <h4 class="text-xs font-black text-slate-900 leading-tight mt-0.5">Rose Tyler</h4>
-                        <span class="absolute bottom-2 right-2 px-1.5 py-0.5 bg-blue-100 text-blue-800 text-[8px] font-black rounded border border-blue-200">CS</span>
-                      </div>
-                      <!-- staff break blocked slot at 04:00 PM - 04:30 PM -->
-                      <div *ngIf="hour === '04:00 PM'"
-                           class="absolute inset-x-1.5 z-10 bg-slate-50 rounded-xl p-2 flex flex-col justify-center border border-slate-200 border-dashed text-left stripe-bg" style="top: 4px; height: calc(50% - 8px);">
-                        <div class="text-[8px] font-black text-slate-400">04:00 PM – 04:30 PM</div>
-                        <h4 class="text-[10px] font-extrabold text-slate-600">Staff Break</h4>
-                      </div>
-                    </div>
-
-                    <!-- FRI 16 Column -->
-                    <div class="p-1 relative group hover:bg-slate-50/50 transition-colors">
-                      <!-- martha jones card at 10:00 AM -->
-                      <div *ngIf="hour === '10:00 AM'" (click)="openReschedule(9, 'Martha Jones', 'Chemical Peel', 'May 16, 2024', '10:00 AM')"
-                           class="absolute inset-x-1.5 z-10 bg-orange-50 border-l-4 border-[#ff9500] rounded-xl p-2.5 shadow-xs hover:shadow-md cursor-pointer hover:-translate-y-0.5 transition-all text-left" style="top: 4px; height: calc(100% - 8px);">
-                        <div class="text-[8px] font-black text-[#ff9500] uppercase tracking-wider">10:00 AM</div>
-                        <h4 class="text-xs font-black text-slate-900 leading-tight mt-0.5">Martha Jones</h4>
-                        <span class="absolute bottom-2 right-2 px-1.5 py-0.5 bg-orange-100 text-orange-850 text-[8px] font-black rounded border border-orange-200">CS</span>
-                      </div>
-                      <!-- donna noble card at 02:15 PM -->
-                      <div *ngIf="hour === '02:00 PM'" (click)="openReschedule(10, 'Donna Noble', 'Consultation', 'May 16, 2024', '02:15 PM')"
-                           class="absolute inset-x-1.5 z-10 bg-orange-50 border-l-4 border-[#ff9500] rounded-xl p-2.5 shadow-xs hover:shadow-md cursor-pointer hover:-translate-y-0.5 transition-all text-left" style="top: 25%; height: calc(100% - 8px);">
-                        <div class="text-[8px] font-black text-[#ff9500] uppercase tracking-wider">02:15 PM</div>
-                        <h4 class="text-xs font-black text-slate-900 leading-tight mt-0.5">Donna Noble</h4>
-                        <span class="absolute bottom-2 right-2 px-1.5 py-0.5 bg-orange-100 text-orange-850 text-[8px] font-black rounded border border-orange-200">MH</span>
-                      </div>
-                    </div>
-
-                    <!-- SAT 17 Column -->
-                    <div class="p-1 relative group hover:bg-slate-50/50 transition-colors">
-                      <!-- james wilson card at 09:00 AM -->
-                      <div *ngIf="hour === '09:00 AM'" (click)="openReschedule(11, 'James Wilson', 'Laser Hair Removal', 'May 17, 2024', '09:00 AM')"
-                           class="absolute inset-x-1.5 z-10 bg-blue-50 border-l-4 border-[#007aff] rounded-xl p-2.5 shadow-xs hover:shadow-md cursor-pointer hover:-translate-y-0.5 transition-all text-left" style="top: 4px; height: calc(100% - 8px);">
-                        <div class="text-[8px] font-black text-[#007aff] uppercase tracking-wider">09:00 AM</div>
-                        <h4 class="text-xs font-black text-slate-900 leading-tight mt-0.5">James Wilson</h4>
-                        <span class="absolute bottom-2 right-2 px-1.5 py-0.5 bg-blue-100 text-blue-800 text-[8px] font-black rounded border border-blue-200">CS</span>
-                      </div>
-                      <!-- michelle travis card at 01:30 PM -->
-                      <div *ngIf="hour === '01:00 PM'" (click)="openReschedule(12, 'Michelle Travis', 'Facial', 'May 17, 2024', '01:30 PM')"
-                           class="absolute inset-x-1.5 z-10 bg-green-50 border-l-4 border-[#34c759] rounded-xl p-2.5 shadow-xs hover:shadow-md cursor-pointer hover:-translate-y-0.5 transition-all text-left" style="top: 50%; height: calc(100% - 8px);">
-                        <div class="text-[8px] font-black text-[#34c759] uppercase tracking-wider">01:30 PM</div>
-                        <h4 class="text-xs font-black text-slate-900 leading-tight mt-0.5">Michelle Travis</h4>
-                        <span class="absolute bottom-2 right-2 px-1.5 py-0.5 bg-green-100 text-green-800 text-[8px] font-black rounded border border-emerald-250">MH</span>
-                      </div>
-                    </div>
-
-                    <!-- SUN 18 Column (CLOSED state) -->
-                    <div class="p-1 bg-slate-50/50 flex items-center justify-center relative">
-                      <div *ngIf="hour === '12:00 PM'" class="flex flex-col items-center justify-center p-3 text-center border border-orange-300 bg-white rounded-2xl shadow-xs">
-                        <mat-icon class="text-orange-500 !text-xl">event_busy</mat-icon>
-                        <span class="text-[9px] font-black text-orange-600 uppercase tracking-widest mt-1">CLOSED</span>
-                      </div>
+                         <ng-container *ngIf="day.name === 'WED'">
+                           <div *ngIf="hour === '10:30 AM'" draggable="true" (dragstart)="onDragStart($event, {id: 2})" (contextmenu)="onAppointmentContextMenu($event, {id: 2})"
+                                class="absolute inset-x-1 z-10 bg-purple-50 border-l-4 border-[#af52de] rounded flex flex-col p-1.5 shadow-sm hover:shadow-md cursor-grab active:cursor-grabbing text-left" style="top: 2px; height: calc(300% - 4px);">
+                             <div class="text-[8px] font-black text-[#af52de] uppercase tracking-wider">10:30 AM</div>
+                             <h4 class="text-[10px] font-black text-slate-900 leading-tight">Eleanor Shellstrop</h4>
+                             <p class="text-[9px] font-semibold text-slate-500">Microdermabrasion</p>
+                             <div class="mt-auto flex justify-between items-end">
+                               <span class="px-1 py-0.5 bg-purple-100 text-purple-800 text-[8px] font-black rounded border border-purple-200">45m</span>
+                               <span class="text-[8px] font-black text-emerald-600">Paid Online</span>
+                             </div>
+                           </div>
+                         </ng-container>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Timetable Footer -->
-            <div class="flex flex-col md:flex-row items-center justify-center gap-6 pt-4 border-t border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-wider">
-              <div class="flex items-center gap-1.5"><mat-icon class="!text-xs">sync_alt</mat-icon><span>Drag & drop to reschedule</span></div>
-              <div class="flex items-center gap-1.5"><mat-icon class="!text-xs">touch_app</mat-icon><span>Click appointment for details</span></div>
-              <div class="flex items-center gap-1.5"><mat-icon class="!text-xs">menu_open</mat-icon><span>Right click for more options</span></div>
-            </div>
+
 
           </div>
         </div>
 
-        <!-- Right 1 Column: Sidebar overview (Today Overview, Upcoming, Reminders) -->
+        <!-- Right 1 Column: Today's Queue & Utilities -->
         <div class="xl:col-span-1 space-y-6">
-          <!-- Today Overview Card -->
-          <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs text-left space-y-4">
-            <h3 class="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-              <mat-icon class="text-slate-400 !text-base">assessment</mat-icon>
-              <span>Today Overview</span>
-            </h3>
-            
-            <div class="space-y-2.5 text-xs font-bold text-slate-600">
-              <div class="flex items-center justify-between">
-                <span class="flex items-center gap-1.5"><mat-icon class="!text-sm text-blue-500">event_note</mat-icon>Appointments</span>
-                <span class="text-slate-900 font-black">34</span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="flex items-center gap-1.5"><mat-icon class="!text-sm text-green-500">check_circle</mat-icon>Checked In</span>
-                <span class="text-slate-900 font-black">12</span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="flex items-center gap-1.5"><mat-icon class="!text-sm text-orange-500">hourglass_empty</mat-icon>Waiting</span>
-                <span class="text-slate-900 font-black">8</span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="flex items-center gap-1.5"><mat-icon class="!text-sm text-cyan-500">directions_walk</mat-icon>Walk-ins</span>
-                <span class="text-slate-900 font-black">3</span>
-              </div>
-            </div>
-            
-            <div class="border-t border-slate-100 pt-3 text-left">
-              <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Expected Revenue</span>
-              <span class="text-2xl font-black text-[#007aff] block mt-0.5">J$ 245,000</span>
-            </div>
-          </div>
           
-          <!-- Upcoming Next 5 Panel -->
-          <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs text-left space-y-4">
-            <h3 class="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-              <mat-icon class="text-[#b8924f] !text-base">event_upcoming</mat-icon>
-              <span>Upcoming (Next 5)</span>
-            </h3>
+          <!-- Today's Queue Tracker -->
+          <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs text-left flex flex-col h-full max-h-[500px]">
+            <h3 class="text-sm font-black text-slate-900 tracking-tight mb-4">TODAY'S QUEUE</h3>
             
-            <div class="divide-y divide-slate-100">
-              <div *ngFor="let item of upcomingList" class="py-3 flex items-center justify-between gap-3 first:pt-0 last:pb-0">
-                <div class="flex items-center gap-2.5 min-w-0">
-                  <img [src]="item.photo" class="w-8 h-8 rounded-full object-cover border border-slate-100 flex-shrink-0">
-                  <div class="min-w-0">
-                    <div class="text-xs font-black text-slate-900 truncate leading-tight">{{ item.name }}</div>
-                    <div class="text-[10px] font-semibold text-slate-500 truncate mt-0.5">{{ item.treatment }}</div>
-                  </div>
+            <!-- Tabs -->
+            <div class="flex items-center gap-2 mb-4 bg-slate-50 p-1 rounded-xl">
+              <button class="flex-1 py-2 text-[10px] font-bold rounded-lg bg-white shadow-xs text-blue-600 flex flex-col items-center justify-center">
+                <span class="text-lg leading-none">2</span>
+                <span class="uppercase tracking-wider mt-0.5">Waiting</span>
+              </button>
+              <button class="flex-1 py-2 text-[10px] font-bold rounded-lg text-slate-500 hover:text-slate-800 flex flex-col items-center justify-center">
+                <span class="text-lg leading-none">1</span>
+                <span class="uppercase tracking-wider mt-0.5">Checked In</span>
+              </button>
+              <button class="flex-1 py-2 text-[10px] font-bold rounded-lg text-slate-500 hover:text-slate-800 flex flex-col items-center justify-center">
+                <span class="text-lg leading-none">1</span>
+                <span class="uppercase tracking-wider mt-0.5">Treatment</span>
+              </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto space-y-3">
+              <div class="p-3 border border-slate-100 rounded-xl bg-slate-50 flex justify-between items-center">
+                <div>
+                  <div class="text-xs font-black text-slate-900">Jessica Taylor</div>
+                  <div class="text-[10px] font-semibold text-slate-500">10:00 AM • Facial Room 1</div>
                 </div>
-                
-                <div class="text-right flex-shrink-0">
-                  <div class="text-[10px] font-black text-slate-800 leading-none">{{ item.time }}</div>
-                  <span class="inline-block px-1.5 py-0.5 mt-1 rounded text-[8px] font-black uppercase tracking-wider border"
-                        [ngClass]="item.loc === 'CS' ? 'bg-blue-50 text-blue-800 border-blue-100' : 'bg-orange-50 text-orange-855 border-orange-100'">
-                    {{ item.loc }}
-                  </span>
+                <div class="px-2 py-1 bg-green-100 text-green-800 text-[10px] font-black rounded">Checked In</div>
+              </div>
+              <div class="p-3 border border-slate-100 rounded-xl bg-slate-50 flex justify-between items-center">
+                <div>
+                  <div class="text-xs font-black text-slate-900">Liam Harris</div>
+                  <div class="text-[10px] font-semibold text-slate-500">11:00 AM • Laser Room 2</div>
                 </div>
+                <div class="px-2 py-1 bg-orange-100 text-orange-800 text-[10px] font-black rounded">In Treatment</div>
               </div>
             </div>
           </div>
-          
-          <!-- Today's Reminders Panel -->
-          <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs text-left space-y-4">
-            <h3 class="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-              <mat-icon class="text-rose-500 !text-base">notifications_active</mat-icon>
-              <span>Today's Reminders</span>
-            </h3>
-            
-            <div class="space-y-2">
-              <div class="flex items-center justify-between p-2.5 bg-rose-50/50 rounded-2xl border border-rose-100">
-                <span class="text-xs font-bold text-rose-800">Late Arrivals</span>
-                <span class="w-5 h-5 rounded-md bg-rose-600 text-white font-black text-[10px] flex items-center justify-center">2</span>
-              </div>
-              <div class="flex items-center justify-between p-2.5 bg-amber-50/50 rounded-2xl border border-amber-100">
-                <span class="text-xs font-bold text-amber-800">Payments Pending</span>
-                <span class="w-5 h-5 rounded-md bg-amber-600 text-white font-black text-[10px] flex items-center justify-center">3</span>
-              </div>
-              <div class="flex items-center justify-between p-2.5 bg-emerald-50/50 rounded-2xl border border-emerald-100">
-                <span class="text-xs font-bold text-emerald-805">Needs Confirmation</span>
-                <span class="w-5 h-5 rounded-md bg-emerald-600 text-white font-black text-[10px] flex items-center justify-center">1</span>
-              </div>
-              <div class="flex items-center justify-between p-2.5 bg-blue-50/50 rounded-2xl border border-blue-100">
-                <span class="text-xs font-bold text-blue-800">New Online Bookings</span>
-                <span class="w-5 h-5 rounded-md bg-blue-600 text-white font-black text-[10px] flex items-center justify-center">4</span>
-              </div>
-            </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- 3. ADD NEW BOOKING MODAL (MULTI-STEP RE-THEMED WHITE CARD) -->
-    <div *ngIf="showModal()" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div class="bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-2xl p-6 md:p-8 space-y-6 animate-fade-up max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-          <h2 class="text-2xl font-bold font-serif text-slate-900 tracking-tight flex items-center gap-2">
-            <mat-icon class="text-[#b8924f]">event_available</mat-icon>
-            <span>New Admin Appointment</span>
-          </h2>
-          <button (click)="closeModal()" class="p-2 hover:bg-slate-150 rounded-full text-slate-500 transition-all"><mat-icon>close</mat-icon></button>
-        </div>
-
-        <div class="flex items-center mb-6 gap-2 text-xs font-black text-slate-400">
-          <div [class.text-[#b8924f]]="creationStep() === 1">1. Customer</div>
-          <div>›</div>
-          <div [class.text-[#b8924f]]="creationStep() === 2">2. Details</div>
-          <div>›</div>
-          <div [class.text-[#b8924f]]="creationStep() === 3">3. Payment</div>
-        </div>
-
-        <div *ngIf="creationError()" class="bg-red-50 border border-red-200 p-3 rounded text-red-700 text-sm font-bold text-left">
-          {{ creationError() }}
-        </div>
-
-        <form [formGroup]="bookingForm" (ngSubmit)="saveBooking()" class="space-y-4">
-          <!-- STEP 1: Customer -->
-          <div *ngIf="creationStep() === 1" class="space-y-4 text-left">
-            <div>
-              <label class="text-xs font-black text-slate-500 uppercase tracking-widest block mb-1">Customer ID *</label>
-              <input type="number" formControlName="customerId" placeholder="1" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#b8924f]">
-              <p class="text-[10px] mt-1 text-slate-405">Enter a valid user ID (e.g. 1 or 2)</p>
-            </div>
-            <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
-              <button type="button" (click)="closeModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl">Cancel</button>
-              <button type="button" (click)="creationStep.set(2)" class="px-6 py-2.5 bg-[#b8924f] hover:bg-[#a6803b] text-white font-bold text-xs uppercase tracking-wider rounded-xl">Next ›</button>
-            </div>
-          </div>
-
-          <!-- STEP 2: Details -->
-          <div *ngIf="creationStep() === 2" class="space-y-4 text-left">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="text-xs font-black text-slate-505 uppercase tracking-widest block mb-1">Service ID *</label>
-                <input type="number" formControlName="serviceId" placeholder="1" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#b8924f]">
-              </div>
-              <div>
-                <label class="text-xs font-black text-slate-505 uppercase tracking-widest block mb-1">Employee ID *</label>
-                <input type="number" formControlName="employeeId" placeholder="1" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#b8924f]">
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="text-xs font-black text-slate-505 uppercase tracking-widest block mb-1">Location ID *</label>
-                <input type="number" formControlName="locationId" placeholder="1" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#b8924f]">
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="text-xs font-black text-slate-505 uppercase tracking-widest block mb-1">Date (YYYY-MM-DD) *</label>
-                <input type="text" formControlName="date" placeholder="2026-09-01" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#b8924f]">
-              </div>
-              <div>
-                <label class="text-xs font-black text-slate-550 uppercase tracking-widest block mb-1">Time (HH:MM:SS) *</label>
-                <input type="text" formControlName="time" placeholder="14:00:00" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#b8924f]">
-              </div>
-            </div>
-
-            <div class="flex justify-between gap-3 pt-4 border-t border-slate-100">
-              <button type="button" (click)="creationStep.set(1)" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl">‹ Back</button>
-              <button type="button" (click)="creationStep.set(3)" class="px-6 py-2.5 bg-[#b8924f] hover:bg-[#a6803b] text-white font-bold text-xs uppercase tracking-wider rounded-xl">Next ›</button>
-            </div>
-          </div>
-
-          <!-- STEP 3: Payment -->
-          <div *ngIf="creationStep() === 3" class="space-y-4 text-left">
-            
-            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl mb-4">
-              <label class="text-xs font-black text-slate-500 uppercase tracking-widest block mb-3">Payment Strategy *</label>
-              
-              <div class="space-y-2">
-                <label class="flex items-center gap-3 cursor-pointer">
-                  <input type="radio" formControlName="paymentMethod" value="send_link" class="text-[#b8924f] bg-slate-100 border-slate-200">
-                  <span class="text-sm font-bold text-slate-850">Generate Payment Link (Send to customer)</span>
-                </label>
-                <label class="flex items-center gap-3 cursor-pointer">
-                  <input type="radio" formControlName="paymentMethod" value="manual_cash" class="text-[#b8924f] bg-slate-100 border-slate-200">
-                  <span class="text-sm font-bold text-slate-850">Mark as Paid (Manual / Cash In-person)</span>
-                </label>
-              </div>
-            </div>
-
-            <div class="flex justify-between gap-3 pt-4 border-t border-slate-100">
-              <button type="button" (click)="creationStep.set(2)" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl">‹ Back</button>
-              <button type="submit" [disabled]="bookingForm.invalid || creatingBooking()" class="px-6 py-2.5 bg-[#b8924f] hover:bg-[#a6803b] text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md disabled:opacity-50 flex items-center gap-2">
-                <span *ngIf="creatingBooking()" class="animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4"></span>
-                <span>Confirm & Create</span>
+          <!-- Quick Block Time Utilities -->
+          <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs text-left">
+            <h3 class="text-sm font-black text-slate-900 tracking-tight mb-4">QUICK BLOCK TIME</h3>
+            <div class="grid grid-cols-2 gap-3">
+              <button (click)="quickBlockTime('Coffee')" class="p-2 border border-slate-200 rounded-xl flex items-center gap-2 hover:bg-slate-50 text-slate-700">
+                <mat-icon class="!text-sm">local_cafe</mat-icon><span class="text-xs font-semibold">Coffee</span>
+              </button>
+              <button (click)="quickBlockTime('Lunch')" class="p-2 border border-slate-200 rounded-xl flex items-center gap-2 hover:bg-slate-50 text-slate-700">
+                <mat-icon class="!text-sm">restaurant</mat-icon><span class="text-xs font-semibold">Lunch</span>
+              </button>
+              <button (click)="quickBlockTime('Meeting')" class="p-2 border border-slate-200 rounded-xl flex items-center gap-2 hover:bg-slate-50 text-slate-700">
+                <mat-icon class="!text-sm">group</mat-icon><span class="text-xs font-semibold">Meeting</span>
+              </button>
+              <button (click)="quickBlockTime('Maintenance')" class="p-2 border border-slate-200 rounded-xl flex items-center gap-2 hover:bg-slate-50 text-slate-700">
+                <mat-icon class="!text-sm">build</mat-icon><span class="text-xs font-semibold">Maintenance</span>
               </button>
             </div>
           </div>
-
-        </form>
-
-        <div *ngIf="createdBookingInfo()" class="mt-4 p-4 border border-emerald-250 bg-emerald-50 rounded-xl space-y-3 text-left">
-          <div class="text-emerald-850 font-black text-sm flex items-center gap-2">
-            <mat-icon>check_circle</mat-icon> Booking Created!
           </div>
-          <div *ngIf="createdBookingInfo()?.paymentUrl" class="text-slate-800 text-xs mt-2">
-            <p class="font-bold mb-1">Share this payment link with the customer:</p>
-            <div class="flex items-center gap-2">
-              <input type="text" readonly [value]="createdBookingInfo()?.paymentUrl" class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded text-slate-700 font-mono text-[10px]">
-              <a [href]="createdBookingInfo()?.paymentUrl" target="_blank" class="px-3 py-2 bg-emerald-600 text-white font-bold rounded">Open</a>
-            </div>
-          </div>
-          <div *ngIf="createdBookingInfo()?.paymentMethod === 'manual'" class="text-slate-800 text-xs mt-2">
-            <p class="font-bold text-[#b8924f]">Marked as manually paid.</p>
-          </div>
-          <button (click)="closeModal()" class="mt-4 w-full px-4 py-2 bg-slate-800 hover:bg-slate-750 text-white rounded font-bold text-xs">Close</button>
         </div>
       </div>
+    <!-- Context Menu overlay -->
+    <div *ngIf="showContextMenu" (click)="closeContextMenu()" class="fixed inset-0 z-[100]">
+      <div class="absolute bg-white border border-slate-200 rounded-xl shadow-2xl py-2 w-48 text-left z-[101]"
+           [style.left.px]="contextMenuX" [style.top.px]="contextMenuY" (click)="$event.stopPropagation()">
+        <button class="w-full px-4 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2">
+          <mat-icon class="!text-sm">open_in_new</mat-icon> Open
+        </button>
+        <button class="w-full px-4 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2">
+          <mat-icon class="!text-sm">check_circle</mat-icon> Check In
+        </button>
+        <button class="w-full px-4 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2">
+          <mat-icon class="!text-sm">done_all</mat-icon> Complete
+        </button>
+        <div class="h-px bg-slate-100 my-1"></div>
+        <button class="w-full px-4 py-2 text-left text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-2">
+          <mat-icon class="!text-sm">cancel</mat-icon> Cancel
+        </button>
+      </div>
     </div>
+
+    <!-- 3. ADD NEW BOOKING MODAL -->
+    <app-internal-booking-modal *ngIf="showModal()" [initialDate]="initialModalDate" [initialTime]="initialModalTime" (close)="closeModal()"></app-internal-booking-modal>
   `,
   styles: [`
     .stripe-bg {
@@ -1068,18 +736,76 @@ export class AdminBookingsComponent implements OnInit, OnDestroy {
     { id: '12', name: 'Dermal Fillers',             category: 'Injectables & Aesthetics', bodyArea: 'Face',       keywords: ['filler','dermal','lip','cheek','volume'],      duration: 45, price: 18000 },
   ];
 
-  hours = [
-    '08:00 AM',
-    '09:00 AM',
-    '10:00 AM',
-    '11:00 AM',
-    '12:00 PM',
-    '01:00 PM',
-    '02:00 PM',
-    '03:00 PM',
-    '04:00 PM',
-    '05:00 PM'
-  ];
+  hours = Array.from({ length: 41 }, (_, i) => {
+    const totalMinutes = (7 * 60) + (i * 15);
+    const h = Math.floor(totalMinutes / 60);
+    const m = totalMinutes % 60;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const hour12 = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+    return `${hour12.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${ampm}`;
+  });
+
+  // Context Menu State
+  showContextMenu = false;
+  contextMenuX = 0;
+  contextMenuY = 0;
+  contextMenuAppointment: any = null;
+
+  initialModalDate = '';
+  initialModalTime = '';
+
+  onSlotDoubleClick(hour: string, day: string): void {
+    console.log(`Double clicked on slot: ${day} at ${hour}`);
+    
+    // In a real app we'd convert day to YYYY-MM-DD
+    const today = new Date();
+    this.initialModalDate = today.toISOString().split('T')[0];
+    this.initialModalTime = hour;
+    
+    this.openCreateModal();
+  }
+
+  onAppointmentContextMenu(event: MouseEvent, appointment: any): void {
+    event.preventDefault();
+    this.contextMenuX = event.clientX;
+    this.contextMenuY = event.clientY;
+    this.contextMenuAppointment = appointment;
+    this.showContextMenu = true;
+  }
+
+  closeContextMenu(): void {
+    this.showContextMenu = false;
+  }
+
+  onDragStart(event: DragEvent, appointment: any): void {
+    if (event.dataTransfer) {
+      event.dataTransfer.setData('text/plain', JSON.stringify(appointment));
+      event.dataTransfer.effectAllowed = 'move';
+    }
+  }
+
+  onDrop(event: DragEvent, hour: string, day: string): void {
+    event.preventDefault();
+    if (event.dataTransfer) {
+      const data = event.dataTransfer.getData('text/plain');
+      if (data) {
+        const appointment = JSON.parse(data);
+        console.log(`Dropped appointment ${appointment.id} to ${day} at ${hour}`);
+        this.triggerUndoableAction(`Moved ${appointment.patient || 'appointment'} to ${day} ${hour}`, { previousPos: '...' });
+      }
+    }
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+  }
+
+  quickBlockTime(type: string): void {
+    console.log(`Quick blocking time for: ${type}`);
+  }
 
   upcomingList = [
     { photo: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&q=80', name: 'Sarah Jenkins', treatment: 'Laser Hair Removal', time: '09:00 AM', loc: 'CS' },
@@ -1099,6 +825,63 @@ export class AdminBookingsComponent implements OnInit, OnDestroy {
 
   selectedNewDay = 16;
   selectedSlot = '11:15 AM';
+  // ── Advanced Features State ────────────────────────────────────────────────
+  zoomLevel = signal<number>(1);
+  currentTimeTop = signal<number>(0);
+  showUndoToast = signal(false);
+  undoMessage = signal('');
+  undoState: any = null;
+  private timeInterval: any;
+
+  updateZoom(event: any): void {
+    this.zoomLevel.set(parseFloat(event.target.value));
+    this.updateCurrentTimeLine();
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    // Ignore if modal is open
+    if (this.showModal() || this.isRescheduling()) return;
+    
+    if (event.key === 't' || event.key === 'T') {
+      this.selectDay('WED'); // Mock jump to today
+      console.log('Shortcut: Jumped to Today');
+    } else if (event.key === 'n' || event.key === 'N') {
+      this.openCreateModal();
+      console.log('Shortcut: Opened New Booking Modal');
+    }
+  }
+
+  triggerUndoableAction(message: string, previousState: any): void {
+    this.undoState = previousState;
+    this.undoMessage.set(message);
+    this.showUndoToast.set(true);
+    setTimeout(() => {
+      this.showUndoToast.set(false);
+    }, 5000);
+  }
+
+  performUndo(): void {
+    console.log('Undoing action, restoring state:', this.undoState);
+    this.showUndoToast.set(false);
+    this.undoState = null;
+  }
+
+  updateCurrentTimeLine(): void {
+    // 7:00 AM is 420 minutes from midnight
+    const now = new Date();
+    const minutes = now.getHours() * 60 + now.getMinutes();
+    const minutesSince7AM = minutes - 420;
+    
+    if (minutesSince7AM >= 0 && minutesSince7AM < (41 * 15)) {
+      // 40px per 15 minutes by default, scaled by zoomLevel
+      const pxPerMinute = (40 * this.zoomLevel()) / 15;
+      this.currentTimeTop.set(minutesSince7AM * pxPerMinute);
+    } else {
+      this.currentTimeTop.set(-1); // Hide if out of bounds
+    }
+  }
+
 
   creationStep = signal<1|2|3>(1);
   creatingBooking = signal(false);
@@ -1154,6 +937,12 @@ export class AdminBookingsComponent implements OnInit, OnDestroy {
     this.mostBookedTreatments  = [this.treatments[0], this.treatments[4], this.treatments[3], this.treatments[5], this.treatments[9]];
 
     // ── Wire up autocomplete debounce ─────────────────────────────────────
+    
+    this.updateCurrentTimeLine();
+    this.timeInterval = setInterval(() => {
+      this.updateCurrentTimeLine();
+    }, 60000);
+
     this.serviceCtrl.valueChanges.pipe(
       debounceTime(200),
       distinctUntilChanged()
@@ -1163,6 +952,11 @@ export class AdminBookingsComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this.realtimeSub) {
       this.realtimeSub.unsubscribe();
+
+    if (this.timeInterval) {
+      clearInterval(this.timeInterval);
+    }
+
     }
   }
 
@@ -1171,18 +965,8 @@ export class AdminBookingsComponent implements OnInit, OnDestroy {
   }
 
   openCreateModal(): void {
-    this.bookingForm.reset({
-      customerId: 1,
-      serviceId: 1,
-      employeeId: 1,
-      locationId: 1,
-      date: '2026-09-01',
-      time: '14:00:00',
-      paymentMethod: 'send_link'
-    });
-    this.creationStep.set(1);
-    this.creationError.set(null);
-    this.createdBookingInfo.set(null);
+    this.initialModalDate = '';
+    this.initialModalTime = '';
     this.showModal.set(true);
   }
 
