@@ -105,7 +105,7 @@ class DraftService {
   // ─── Dismiss resume prompt ───────────────────────────────────────────────────
   async dismissPrompt(userId: number): Promise<void> {
     await executeUpdate(
-      `UPDATE booking_drafts SET resume_prompt_dismissed = TRUE WHERE user_id = ?`,
+      `UPDATE booking_drafts SET resume_prompt_dismissed = 1 WHERE user_id = ?`,
       [userId]
     );
   }

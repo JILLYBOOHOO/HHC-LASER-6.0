@@ -64,10 +64,7 @@ import { InternalBookingModalComponent } from '../../../shared/components/intern
                    class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:border-slate-800 text-slate-900 placeholder:text-slate-400">
           </div>
           
-          <button type="button" (click)="openBookingModal()" class="w-full sm:w-auto px-4 py-2 bg-[#b8924f] hover:bg-[#a6803b] text-white font-extrabold text-xs rounded-lg shadow-md shadow-[#b8924f]/10 transition-all flex items-center justify-center gap-1.5 uppercase tracking-wider whitespace-nowrap">
-            <mat-icon class="!text-base">add</mat-icon>
-            <span>Quick Book</span>
-          </button>
+
         </div>
       </div>
 

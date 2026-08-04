@@ -9,7 +9,7 @@ import { notificationService } from '../services/notification.service';
 import { socketService } from '../services/socket.service';
 import { successResponse, errorResponse, paginatedResponse, CreateAppointmentDto, AppointmentStatus } from '../models/types';
 import { AppError } from '../middleware/error.middleware';
-import { executeQueryOne, withTransaction } from '../config/database';
+import { executeQuery, executeQueryOne, withTransaction } from '../config/database';
 
 const router = Router();
 
@@ -223,7 +223,7 @@ async function normalizeAdminBookingPayload(req: Request, res: Response, next: N
           
           const [userResult] = await conn.execute(
             `INSERT INTO users (email, password_hash, first_name, last_name, phone, token_version, is_active, email_verified)
-             VALUES (?, NULL, ?, ?, ?, 0, 1, 0)`,
+             VALUES (?, NULL, ?, ?, ?, 0, true, false)`,
             [
               finalEmail,
               first_name.trim(),
@@ -250,7 +250,7 @@ async function normalizeAdminBookingPayload(req: Request, res: Response, next: N
 // Admin can create bookings for customers
 router.post('/admin',
   authenticate,
-  requireRole('admin', 'manager', 'owner'),
+  requireRole('admin', 'manager', 'owner', 'specialist'),
   (req: Request, res: Response, next: NextFunction) => { normalizeAdminBookingPayload(req, res, next); },
   [
     body('customer_user_id').isInt({ min: 1 }).withMessage('customer_user_id is required'),
@@ -281,6 +281,31 @@ router.post('/admin',
       const appointment = await bookingService.createAdminAppointment(req.user!.userId, dto.customer_user_id, dto);
 
       socketService.emitBookingEvent('booking_created', { appointment });
+
+      try {
+        const location = await executeQueryOne<any>('SELECT name FROM locations WHERE id = ?', [appointment.location_id]);
+        const employee = await executeQueryOne<any>(
+          'SELECT u.first_name, u.last_name FROM employees e JOIN users u ON e.user_id = u.id WHERE e.id = ?', 
+          [appointment.employee_id]
+        );
+        const servicesRows = await executeQuery<any>(
+          'SELECT s.name FROM appointment_services as_s JOIN services s ON as_s.service_id = s.id WHERE as_s.appointment_id = ?', 
+          [appointment.id]
+        );
+
+        await notificationService.sendAppointmentConfirmation(dto.customer_user_id, {
+          date: appointment.scheduled_date,
+          time: appointment.start_time,
+          services: servicesRows.map((s: any) => s.name).join(', '),
+          location: location?.name || 'HHC Laser Clinic',
+          employeeName: employee ? `${employee.first_name} ${employee.last_name}`.trim() : 'Staff',
+          totalAmount: parseFloat(appointment.total_amount_jmd.toString()),
+          appointmentId: appointment.id,
+          confirmationCode: (appointment as any).confirmation_code || 'N/A',
+        });
+      } catch (err) {
+        console.error('[Admin Booking] Failed to send confirmation email:', err);
+      }
 
       if (dto.payment_option === 'send_payment_link') {
         const paymentSession = await paymentFlowService.initiatePayment({

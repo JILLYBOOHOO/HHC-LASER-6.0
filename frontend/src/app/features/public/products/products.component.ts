@@ -20,10 +20,10 @@ import { Product } from '../../../core/models/models';
         <div class="text-center mb-16">
           <span class="section-label">Luxury Skincare</span>
           <div class="divider-gold"></div>
-          <h1 class="mt-4 font-heading text-4xl md:text-5xl text-charcoal-800">
+          <h1 class="mt-4 font-heading text-4xl md:text-5xl text-white">
             Professional <span class="text-gold-500">Products</span>
           </h1>
-          <p class="mt-4 max-w-2xl mx-auto text-charcoal-500 leading-relaxed">
+          <p class="mt-4 max-w-2xl mx-auto text-white leading-relaxed">
             Enhance and maintain your results at home with our curated selection of professional-grade skincare treatments.
           </p>
         </div>

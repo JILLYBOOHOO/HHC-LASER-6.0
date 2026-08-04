@@ -19,8 +19,9 @@ export class BookingService {
     startTime: string;
     endTime: string;
     excludeAppointmentId?: number;
+    isAdmin?: boolean;
   }): Promise<{ available: boolean; conflicts: string[] }> {
-    const { employeeId, locationId, date, startTime, endTime, excludeAppointmentId } = params;
+    const { employeeId, locationId, date, startTime, endTime, excludeAppointmentId, isAdmin } = params;
     const conflicts: string[] = [];
 
     // 1. Check if date is blocked globally
@@ -43,37 +44,39 @@ export class BookingService {
       return { available: false, conflicts };
     }
 
-    // 3. Check if business is closed on this day of week
-    const [year, month, day] = date.split('-').map(Number);
-    const dayOfWeek = new Date(year, month - 1, day).getDay();
-    const bizHours = await executeQueryOne<{ is_closed: boolean }>(
-      'SELECT is_closed FROM business_hours WHERE location_id = ? AND day_of_week = ?',
-      [locationId, dayOfWeek]
-    );
-    if (bizHours && bizHours.is_closed) {
-      conflicts.push('The business is closed on this day of the week.');
-      return { available: false, conflicts };
-    }
+    if (!isAdmin) {
+      // 3. Check if business is closed on this day of week
+      const [year, month, day] = date.split('-').map(Number);
+      const dayOfWeek = new Date(year, month - 1, day).getDay();
+      const bizHours = await executeQueryOne<{ is_closed: boolean }>(
+        'SELECT is_closed FROM business_hours WHERE location_id = ? AND day_of_week = ?',
+        [locationId, dayOfWeek]
+      );
+      if (bizHours && bizHours.is_closed) {
+        conflicts.push('The business is closed on this day of the week.');
+        return { available: false, conflicts };
+      }
 
-    // 4. Check if employee is scheduled/working on this day of week
-    const schedule = await executeQueryOne<{ start_time: string; end_time: string; is_available: boolean }>(
-      `SELECT start_time, end_time, is_available FROM employee_schedules
-       WHERE employee_id = ? AND location_id = ? AND day_of_week = ?`,
-      [employeeId, locationId, dayOfWeek]
-    );
-    if (!schedule || !schedule.is_available) {
-      conflicts.push('The specialist is not working on this day.');
-      return { available: false, conflicts };
-    }
+      // 4. Check if employee is scheduled/working on this day of week
+      const schedule = await executeQueryOne<{ start_time: string; end_time: string; is_available: boolean }>(
+        `SELECT start_time, end_time, is_available FROM employee_schedules
+         WHERE employee_id = ? AND location_id = ? AND day_of_week = ?`,
+        [employeeId, locationId, dayOfWeek]
+      );
+      if (!schedule || !schedule.is_available) {
+        conflicts.push('The specialist is not working on this day.');
+        return { available: false, conflicts };
+      }
 
-    // 5. Check if the start/end times fall within the specialist's working hours
-    const slotStartStr = startTime.slice(0, 5);
-    const slotEndStr = endTime.slice(0, 5);
-    const workStartStr = schedule.start_time.slice(0, 5);
-    const workEndStr = schedule.end_time.slice(0, 5);
-    if (slotStartStr < workStartStr || slotEndStr > workEndStr) {
-      conflicts.push('The selected time falls outside of the specialist\'s working hours.');
-      return { available: false, conflicts };
+      // 5. Check if the start/end times fall within the specialist's working hours
+      const slotStartStr = startTime.slice(0, 5);
+      const slotEndStr = endTime.slice(0, 5);
+      const workStartStr = schedule.start_time.slice(0, 5);
+      const workEndStr = schedule.end_time.slice(0, 5);
+      if (slotStartStr < workStartStr || slotEndStr > workEndStr) {
+        conflicts.push('The selected time falls outside of the specialist\'s working hours.');
+        return { available: false, conflicts };
+      }
     }
 
     // 6. Check employee conflicts with existing appointments
@@ -217,13 +220,14 @@ export class BookingService {
     const { totalDurationMinutes, totalAmountJmd, services } = await this.calculateServiceTotals(dto.service_ids);
     const endTime = this.addMinutes(dto.start_time, totalDurationMinutes);
 
-    // Check availability with same rules
+    // Check availability (admins bypass schedule constraints)
     const { available, conflicts } = await this.checkAvailability({
       employeeId: dto.employee_id,
       locationId: dto.location_id,
       date: dto.scheduled_date,
       startTime: dto.start_time,
       endTime,
+      isAdmin: true,
     });
 
     if (!available) {

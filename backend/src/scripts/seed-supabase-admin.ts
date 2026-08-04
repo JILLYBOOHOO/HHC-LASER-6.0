@@ -59,7 +59,7 @@ async function main() {
     userId = existing.rows[0].id;
     await pool.query(
       `UPDATE users
-       SET auth_uid = $1, first_name = $2, last_name = $3, is_active = TRUE, email_verified = TRUE
+       SET auth_uid = $1, first_name = $2, last_name = $3, is_active = 1, email_verified = 1
        WHERE id = $4`,
       [authUid, firstName, lastName, userId]
     );
