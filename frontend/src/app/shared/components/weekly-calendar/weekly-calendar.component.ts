@@ -249,18 +249,16 @@ export class WeeklyCalendarComponent implements OnInit, OnDestroy, OnChanges, Af
     const h12 = h % 12 || 12;
     this.currentTimeStr = h12 + ':' + m.toString().padStart(2, '0') + ' ' + ampm;
     
-    if (h >= 8 && h <= 17) {
-      this.currentTopPos = ((h * 60 + m) - (8 * 60));
+    if (h >= 8 && h < 18) {
+      this.currentTopPos = ((h * 60) + m) - (8 * 60);
     } else {
-      this.currentTopPos = -9999;
+      this.currentTopPos = -100;
     }
   }
 
   scrollToCurrentTime() {
     if (this.currentTopPos > 0 && this.scrollContainer) {
-      // Scroll so the current time is vertically centered
-      const el = this.scrollContainer.nativeElement;
-      el.scrollTop = Math.max(0, this.currentTopPos - (el.clientHeight / 2));
+      this.scrollContainer.nativeElement.scrollTop = this.currentTopPos - 100;
     }
   }
 }

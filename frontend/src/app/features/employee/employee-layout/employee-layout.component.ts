@@ -43,6 +43,7 @@ export class EmployeeLayoutComponent {
     { path: '/booking',             icon: 'add_circle',         label: 'Make Appointment' },
     { path: '/employee/clients',    icon: 'people',             label: 'My Clients' },
     { path: '/employee/photo-vault', icon: 'photo_library',     label: 'Photo Vault' },
+    { path: '/employee/transactions', icon: 'receipt_long',     label: 'Transactions' },
   ];
   constructor(private authService: AuthService) {}
   logout(): void { this.authService.logout().subscribe(); }

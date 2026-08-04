@@ -208,10 +208,11 @@ export class BookingService {
       }
 
       
-      const appointment = await executeQueryOne<Appointment>(
+      const [apptRows] = await conn.execute(
         'SELECT * FROM appointments WHERE id = ?',
         [appointmentId]
-      );
+      ) as any;
+      const appointment = apptRows[0];
 
       // --- Send Email Confirmation via Resend ---
       try {
@@ -318,10 +319,11 @@ export class BookingService {
       }
 
       
-      const appointment = await executeQueryOne<Appointment>(
+      const [apptRows] = await conn.execute(
         'SELECT * FROM appointments WHERE id = ?',
         [appointmentId]
-      );
+      ) as any;
+      const appointment = apptRows[0];
 
       // --- Send Email Confirmation via Resend ---
       try {
@@ -472,13 +474,13 @@ export class BookingService {
     // 3. Check if business is closed on this day of week
     const [year, month, day] = date.split('-').map(Number);
     const dayOfWeek = new Date(year, month - 1, day).getDay();
-    const bizHours = await executeQueryOne<{ is_closed: boolean }>(
-      'SELECT is_closed FROM business_hours WHERE location_id = ? AND day_of_week = ?',
+    const bizHours = await executeQueryOne<{ is_closed: boolean; open_time: string; close_time: string }>(
+      'SELECT is_closed, open_time, close_time FROM business_hours WHERE location_id = ? AND day_of_week = ?',
       [locationId, dayOfWeek]
     );
     if (bizHours && bizHours.is_closed) return [];
 
-    // Get employee schedule for this day
+    // 4. Get employee schedule for this day
     const schedule = await executeQueryOne<{ start_time: string; end_time: string; is_available: boolean }>(
       `SELECT start_time, end_time, is_available FROM employee_schedules
        WHERE employee_id = ? AND location_id = ? AND day_of_week = ?`,
@@ -487,20 +489,42 @@ export class BookingService {
 
     if (!schedule || !schedule.is_available) return [];
 
-    // Get existing appointments
+    // 5. Get dynamic interval setting
+    const intervalSetting = await executeQueryOne<{ setting_value: string }>(
+      `SELECT setting_value FROM business_settings WHERE setting_key = 'booking_slot_interval'`
+    );
+    let interval = 15; // default to 15 mins
+    if (intervalSetting) {
+      try {
+        const parsed = parseInt(intervalSetting.setting_value.replace(/['"]/g, ''), 10);
+        if (!isNaN(parsed) && parsed > 0) interval = parsed;
+      } catch (e) {
+        // Fallback to 15
+      }
+    }
+
+    // 6. Get existing appointments
     const booked = await executeQuery<{ start_time: string; end_time: string }>(
       `SELECT start_time, end_time FROM appointments
        WHERE employee_id = ? AND scheduled_date = ? AND status NOT IN ('cancelled', 'no_show')`,
       [employeeId, date]
     );
 
-    // Generate 30-min slot intervals
-    const slots: string[] = [];
-    let [sh, sm] = schedule.start_time.split(':').map(Number);
-    const [eh, em] = schedule.end_time.split(':').map(Number);
-    const endMinutes = eh * 60 + em;
+    // 7. Calculate bounds (intersect business hours with employee schedule)
+    const parseTime = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+    const bOpen = bizHours && bizHours.open_time ? parseTime(bizHours.open_time) : 9 * 60; // default 9 AM
+    const bClose = bizHours && bizHours.close_time ? parseTime(bizHours.close_time) : 17 * 60; // default 5 PM
+    const eStart = parseTime(schedule.start_time);
+    const eEnd = parseTime(schedule.end_time);
 
-    while (sh * 60 + sm + durationMinutes <= endMinutes) {
+    let startMinutes = Math.max(bOpen, eStart);
+    const endMinutes = Math.min(bClose, eEnd);
+
+    // 8. Generate slots dynamically
+    const slots: string[] = [];
+    while (startMinutes + durationMinutes <= endMinutes) {
+      const sh = Math.floor(startMinutes / 60);
+      const sm = startMinutes % 60;
       const slotStart = `${String(sh).padStart(2, '0')}:${String(sm).padStart(2, '0')}`;
       const slotEnd = this.addMinutes(slotStart, durationMinutes);
 
@@ -512,8 +536,7 @@ export class BookingService {
 
       if (!conflict) slots.push(slotStart);
 
-      sm += 30;
-      if (sm >= 60) { sh++; sm -= 60; }
+      startMinutes += interval;
     }
 
     return slots;

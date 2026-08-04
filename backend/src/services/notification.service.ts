@@ -2,6 +2,7 @@ import { executeQuery, executeQueryOne } from '../config/database';
 import { env } from '../config/env';
 import { logger } from '../utils/logger';
 import { User } from '../models/types';
+import * as nodemailer from 'nodemailer';
 import {
   getBookingConfirmationTemplate,
   getAppointmentReminderTemplate,
@@ -45,82 +46,71 @@ export class NotificationService {
     // 1. Idempotency Check (Prevent duplicate emails for the same event)
     const eventHash = idempotencyKey || `${to}:${subject}`;
     if (this.sentEmailHashes.has(eventHash)) {
-      logger.info(`[Resend Email] Duplicate email suppressed for key: ${eventHash}`);
+      logger.info(`[Email] Duplicate email suppressed for key: ${eventHash}`);
       return true;
     }
 
     try {
-      const apiKey = env.RESEND_API_KEY || process.env.RESEND_API_KEY;
-      if (!apiKey) {
-        logger.warn(`[Resend Email] RESEND_API_KEY not configured. Simulated send to ${to}: "${subject}"`);
+      const smtpUser = env.SMTP_USER || process.env.SMTP_USER;
+      const smtpPass = env.SMTP_PASS || process.env.SMTP_PASS;
+
+      if (!smtpUser || !smtpPass) {
+        logger.warn(`[Email] SMTP_USER or SMTP_PASS not configured. Simulated send to ${to}: "${subject}"`);
         await this.logNotification('email', to, subject, 'simulated');
         this.sentEmailHashes.add(eventHash);
         return true;
       }
 
       // 2. Sender email calculation based on production domain flag
-      let fromEmail = `HHC Laser & Co <${env.EMAIL_DEV_SENDER}>`; // Default sandbox sender during domain transfer
+      let fromEmail = `HHC Laser & Co <${env.EMAIL_DEV_SENDER || smtpUser}>`;
       if (env.EMAIL_ENABLE_PRODUCTION_DOMAIN) {
         switch (category) {
           case 'appointments':
-            fromEmail = `HHC Laser & Co <${env.EMAIL_FROM_APPOINTMENTS}>`;
+            fromEmail = `HHC Laser & Co <${env.EMAIL_FROM_APPOINTMENTS || smtpUser}>`;
             break;
           case 'support':
-            fromEmail = `HHC Laser & Co <${env.EMAIL_FROM_SUPPORT}>`;
+            fromEmail = `HHC Laser & Co <${env.EMAIL_FROM_SUPPORT || smtpUser}>`;
             break;
           case 'billing':
-            fromEmail = `HHC Laser & Co <${env.EMAIL_FROM_BILLING}>`;
+            fromEmail = `HHC Laser & Co <${env.EMAIL_FROM_BILLING || smtpUser}>`;
             break;
           case 'noreply':
           default:
-            fromEmail = `HHC Laser & Co <${env.EMAIL_FROM_NOREPLY}>`;
+            fromEmail = `HHC Laser & Co <${env.EMAIL_FROM_NOREPLY || smtpUser}>`;
             break;
         }
       }
 
-      // 3. Dispatch via Resend API
-      const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          from: fromEmail,
-          to: [to],
-          subject: subject,
-          html: html,
-          reply_to: env.EMAIL_FROM_SUPPORT
-        })
+      // 3. Dispatch via Nodemailer (Gmail SMTP)
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: smtpUser,
+          pass: smtpPass
+        }
       });
 
-      const resData: any = await response.json();
+      const info = await transporter.sendMail({
+        from: fromEmail,
+        to: to,
+        subject: subject,
+        html: html,
+        replyTo: env.EMAIL_FROM_SUPPORT || smtpUser
+      });
 
-      if (response.ok) {
-        this.sentEmailHashes.add(eventHash);
-        await this.logNotification('email', to, subject, 'sent');
-        logger.info(`[Resend Email] Sent successfully to ${to} (Resend ID: ${resData.id}): "${subject}"`);
-        return true;
-      } else {
-        // Retry logic for 5xx errors or network glitches (up to 2 retries)
-        if (response.status >= 500 && retryCount < 2) {
-          logger.warn(`[Resend Email] Provider status ${response.status}. Retrying attempt ${retryCount + 1}...`);
-          await new Promise(r => setTimeout(r, 1500 * (retryCount + 1)));
-          return this.sendEmail(params, retryCount + 1);
-        }
+      this.sentEmailHashes.add(eventHash);
+      await this.logNotification('email', to, subject, 'sent');
+      logger.info(`[Email] Sent successfully to ${to} (ID: ${info.messageId}): "${subject}"`);
+      return true;
 
-        await this.logNotification('email', to, subject, 'failed');
-        logger.warn(`[Resend Email] Provider status ${response.status} for ${to}: ${JSON.stringify(resData)}`);
-        return false;
-      }
     } catch (error) {
       if (retryCount < 2) {
-        logger.warn(`[Resend Email] Network exception. Retrying attempt ${retryCount + 1}...`);
+        logger.warn(`[Email] Exception occurred. Retrying attempt ${retryCount + 1}...`);
         await new Promise(r => setTimeout(r, 1500 * (retryCount + 1)));
         return this.sendEmail(params, retryCount + 1);
       }
       await this.logNotification('email', to, subject, 'failed');
-      logger.error(`[Resend Email] Failed to send email to ${to}:`, error);
+      logger.error(`[Email] Failed to send email to ${to}:`, error);
       return false;
     }
   }

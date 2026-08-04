@@ -252,6 +252,13 @@ export const routes: Routes = [
         loadComponent: () => import('./features/employee/treatment-notes/treatment-notes.component')
           .then(m => m.TreatmentNotesComponent),
       },
+      {
+        path: 'transactions',
+        loadComponent: () => import('./features/admin/transactions/admin-transactions.component')
+          .then(m => m.AdminTransactionsComponent),
+        title: 'Transactions — HHC LASER Staff',
+        data: { hideKPIs: true }
+      },
     ],
   },
 
