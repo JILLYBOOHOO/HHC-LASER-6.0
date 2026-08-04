@@ -1,10 +1,46 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
 import moment from 'moment-timezone';
+import { body } from 'express-validator';
 import { env } from '../config/env';
 import { generateFiservSignature } from '../payments/fiserv/fiserv.crypto';
+import { authenticate } from '../middleware/auth.middleware';
+import { requireRole } from '../middleware/rbac.middleware';
+import { validateRequest } from '../middleware/validation.middleware';
+import { transactionService } from '../services/transaction.service';
+import { successResponse } from '../models/types';
 
 const router = express.Router();
+
+// ─── POST /api/payments/record-manual ─────────────────────────────────────────
+// Record a manual in-person payment (cash / card terminal / bank transfer)
+router.post('/record-manual',
+  authenticate,
+  requireRole('admin', 'manager', 'owner'),
+  [
+    body('appointment_id').isInt().withMessage('appointment_id is required'),
+    body('customer_user_id').isInt().withMessage('customer_user_id is required'),
+    body('amount_jmd').isNumeric().withMessage('amount_jmd is required'),
+    body('payment_method').isIn(['cash', 'card_in_store', 'bank_transfer', 'other']).withMessage('Invalid payment method'),
+    body('notes').optional().isString(),
+  ],
+  validateRequest,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const txn = await transactionService.recordManualPayment({
+        appointmentId: req.body.appointment_id,
+        amountJmd: Number(req.body.amount_jmd),
+        paymentMethod: req.body.payment_method,
+        notes: req.body.notes,
+        staffUserId: req.user!.userId,
+        customerId: req.body.customer_user_id,
+      });
+      res.status(201).json(successResponse(txn, 'Manual payment recorded successfully.'));
+    } catch (e) {
+      next(e);
+    }
+  }
+);
 
 /**
  * Builds a complete Fiserv Connect form + correct hashExtended.
