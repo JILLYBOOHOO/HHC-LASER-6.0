@@ -116,6 +116,25 @@ import { treatments } from '../../../core/data/services.data';
               </div>
             </div>
           }
+
+          <div class="mb-8 rounded-3xl border border-black/10 bg-black text-white px-8 py-10 md:px-12 md:py-12 text-center">
+            <h3 class="font-heading text-2xl md:text-3xl mb-3">Having trouble choosing a treatment?</h3>
+            <p class="text-white/70 text-sm md:text-base max-w-xl mx-auto mb-8">
+              Give us a call — our team can help you find the right option for your goals.
+            </p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+              <a href="tel:+18763196241"
+                 class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#d4a359] hover:bg-[#c49348] text-black font-bold transition-colors">
+                <mat-icon class="!text-xl">phone</mat-icon>
+                (876) 319-6241
+              </a>
+              <a href="tel:+18766318134"
+                 class="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-white/30 hover:border-white/60 text-white font-bold transition-colors">
+                <mat-icon class="!text-xl">phone</mat-icon>
+                (876) 631-8134
+              </a>
+            </div>
+          </div>
         </div>
       } @else {
         <div class="text-center py-32">
