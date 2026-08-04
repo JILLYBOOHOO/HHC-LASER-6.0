@@ -356,17 +356,18 @@ import { AuthStateService } from '../../../core/store/auth-state.service';
                            
                            <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 max-h-[260px] overflow-y-auto custom-scrollbar pr-1.5 pb-2">
                              <button type="button" *ngFor="let slot of timeSlots" (click)="selectTimeSlot(slot); expandedStep = 6"
-                                     [class.bg-black]="form.value.time === convertTo24h(slot)" 
-                                     [class.text-[#B36A17]]="form.value.time === convertTo24h(slot)" 
-                                     [class.border-2]="form.value.time === convertTo24h(slot)"
-                                     [class.border-[#B36A17]]="form.value.time === convertTo24h(slot)"
-                                     [class.shadow-md]="form.value.time === convertTo24h(slot)"
-                                     [class.bg-white]="form.value.time !== convertTo24h(slot)" 
-                                     [class.border-neutral-200]="form.value.time !== convertTo24h(slot)" 
-                                     [class.text-neutral-700]="form.value.time !== convertTo24h(slot)"
-                                     class="py-2 px-1.5 border rounded-lg text-[11px] font-bold hover:border-[#B36A17]/60 transition-all text-center flex items-center justify-center gap-1 shadow-sm">
-                               {{ slot }}
-                               <mat-icon *ngIf="form.value.time === convertTo24h(slot)" class="!text-[10px] !w-[10px] !h-[10px] bg-[#B36A17] text-black rounded-full p-[1px]">check</mat-icon>
+                                     [class.bg-black]="isTimeSelected(slot)" 
+                                     [class.text-[#B36A17]]="isTimeSelected(slot)" 
+                                     [class.font-extrabold]="isTimeSelected(slot)"
+                                     [class.border-2]="isTimeSelected(slot)"
+                                     [class.border-[#B36A17]]="isTimeSelected(slot)"
+                                     [class.shadow-md]="isTimeSelected(slot)"
+                                     [class.bg-white]="!isTimeSelected(slot)" 
+                                     [class.border-neutral-200]="!isTimeSelected(slot)" 
+                                     [class.text-neutral-700]="!isTimeSelected(slot)"
+                                     class="py-2 px-1.5 border rounded-lg text-[11px] font-bold hover:border-[#B36A17] transition-all text-center flex items-center justify-center gap-1 shadow-sm">
+                               <span [class.text-[#B36A17]]="isTimeSelected(slot)">{{ slot }}</span>
+                               <mat-icon *ngIf="isTimeSelected(slot)" class="!text-[10px] !w-[10px] !h-[10px] bg-[#B36A17] text-black rounded-full p-[1px]">check</mat-icon>
                              </button>
                            </div>
                         </div>
@@ -712,6 +713,11 @@ export class InternalBookingModalComponent implements OnInit {
 
   selectTimeSlot(slot: string) {
     this.form.patchValue({ time: this.convertTo24h(slot) });
+  }
+
+  isTimeSelected(slot: string): boolean {
+    if (!this.form || !this.form.value || !this.form.value.time) return false;
+    return this.form.value.time === this.convertTo24h(slot);
   }
 
   convertTo24h(timeStr: string): string {
