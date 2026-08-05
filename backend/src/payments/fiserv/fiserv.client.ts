@@ -31,14 +31,9 @@ export class FiservClient {
     const chargetotal = Number(amountJmd || 0).toFixed(2);
 
     const storeId = env.FISERV_STORE_ID || env.FISERV_STORE_NAME || '';
-    // Always charge in Jamaican dollars (ISO 4217 numeric code 388).
+    // Use the currency configured in .env (e.g. 388 for JMD or 840 for USD)
     const rawCurrency = String(env.FISERV_CURRENCY || '388').trim();
-    const currency =
-      rawCurrency === '840' || rawCurrency.toUpperCase() === 'USD'
-        ? '388'
-        : rawCurrency.toUpperCase() === 'JMD'
-          ? '388'
-          : rawCurrency;
+    const currency = rawCurrency.toUpperCase() === 'JMD' ? '388' : rawCurrency.toUpperCase() === 'USD' ? '840' : rawCurrency;
 
     const gatewayUrl =
       env.FISERV_GATEWAY_URL ||
