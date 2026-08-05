@@ -173,31 +173,56 @@ export class AuthService {
     if (!valid) return false;
 
     const admin = getSupabaseAdmin();
-    const { data, error } = await admin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: {
-        first_name: user.first_name,
-        last_name: user.last_name,
-      },
-    });
+    try {
+      const { data, error } = await admin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          first_name: user.first_name,
+          last_name: user.last_name,
+        },
+      });
 
-    if (error || !data.user) {
-      // Already exists in Auth — try linking by email lookup
-      const listed = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-      const match = listed.data.users.find((u) => u.email?.toLowerCase() === email);
-      if (!match) {
-        logger.error('[Auth] Legacy migration failed:', error);
+      if (!error && data.user) {
+        await executeUpdate('UPDATE users SET auth_uid = ?, password_hash = NULL WHERE id = ?', [
+          data.user.id,
+          user.id,
+        ]);
+        logger.info(`[Auth] Migrated legacy user ${email} to Supabase Auth`);
+        return true;
+      }
+
+      // Account already in Supabase Auth — locate it, sync password, then link
+      const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
+        type: 'recovery',
+        email,
+      });
+      const existingAuthUser = linkData?.user;
+      if (linkError || !existingAuthUser) {
+        logger.error('[Auth] Legacy migration failed to resolve existing Auth user:', error || linkError);
         return false;
       }
-      await executeUpdate('UPDATE users SET auth_uid = ? WHERE id = ?', [match.id, user.id]);
-      return true;
-    }
 
-    await executeUpdate('UPDATE users SET auth_uid = ? WHERE id = ?', [data.user.id, user.id]);
-    logger.info(`[Auth] Migrated legacy user ${email} to Supabase Auth`);
-    return true;
+      const { error: updateError } = await admin.auth.admin.updateUserById(existingAuthUser.id, {
+        password,
+        email_confirm: true,
+      });
+      if (updateError) {
+        logger.error('[Auth] Legacy migration password sync failed:', updateError);
+        return false;
+      }
+
+      await executeUpdate('UPDATE users SET auth_uid = ?, password_hash = NULL WHERE id = ?', [
+        existingAuthUser.id,
+        user.id,
+      ]);
+      logger.info(`[Auth] Linked legacy user ${email} to existing Supabase Auth account`);
+      return true;
+    } catch (err) {
+      logger.error('[Auth] Legacy migration threw unexpectedly:', err);
+      return false;
+    }
   }
 
   // ─── Legacy local JWT auth ──────────────────────────────────────────────────
