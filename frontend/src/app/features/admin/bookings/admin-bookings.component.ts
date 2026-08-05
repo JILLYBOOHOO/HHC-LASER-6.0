@@ -13,6 +13,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatInputModule } from '@angular/material/input';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
 
+import { Router } from '@angular/router';
+
 @Component({
   selector: 'app-admin-bookings',
   standalone: true,
@@ -33,6 +35,7 @@ export class AdminBookingsComponent implements OnInit {
   private http = inject(HttpClient);
   private authState = inject(AuthStateService);
   private snackBar = inject(MatSnackBar);
+  private router = inject(Router);
 
   showModal = signal(false);
   showAddNoteModal = signal(false);
@@ -40,6 +43,9 @@ export class AdminBookingsComponent implements OnInit {
   selectedEvent: CalendarEvent | null = null;
   showCancelConfirmModal = signal<boolean>(false);
   appointmentToCancel = signal<CalendarEvent | null>(null);
+
+  showClientProfileModal = signal<boolean>(false);
+  clientProfileData = signal<any>(null);
 
   allBookings: any[] = [];
   calendarEvents: CalendarEvent[] = [];
@@ -299,9 +305,29 @@ export class AdminBookingsComponent implements OnInit {
       this.appointmentToCancel.set(event);
       this.showCancelConfirmModal.set(true);
     }
+    else if (action === 'View Client' || action === 'View Profile' || action === 'View Client Profile' || action === 'Open') {
+      this.clientProfileData.set({
+        id: event.data?.customer_user_id || event.id,
+        name: event.patient || 'Valued Client',
+        phone: event.data?.customer_phone || event.data?.phone || 'No phone number available',
+        email: event.data?.customer_email || event.data?.email || 'No email address available',
+        notes: event.data?.notes || event.data?.special_instructions || 'No active medical notes or warnings on file.',
+        service: event.title,
+        date: event.date,
+        time: event.startTime,
+        paymentStatus: event.paymentStatus
+      });
+      this.showClientProfileModal.set(true);
+    }
     else {
       this.snackBar.open(`${action} action triggered for ${event.patient}`, 'Close', { duration: 3000, panelClass: ['bg-black', 'text-white'] });
     }
+  }
+
+  viewFullClientProfile() {
+    const name = this.clientProfileData()?.name || '';
+    this.showClientProfileModal.set(false);
+    this.router.navigate(['/admin/patients'], { queryParams: { search: name } });
   }
 
   confirmCancelAppointment() {

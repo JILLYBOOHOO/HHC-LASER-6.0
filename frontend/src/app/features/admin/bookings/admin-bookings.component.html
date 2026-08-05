@@ -282,3 +282,97 @@
 
   </div>
 </div>
+
+<!-- Modern Client Quick Profile Popup Modal -->
+<div *ngIf="showClientProfileModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 font-sans animate-fade-in">
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden flex flex-col animate-scale-up">
+    
+    <!-- Top Dark Header Card -->
+    <div class="px-6 py-5 bg-slate-900 text-white flex items-center justify-between relative overflow-hidden">
+      <div class="flex items-center gap-3.5 z-10">
+        <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-[#B36A17] to-[#d4b982] text-white flex items-center justify-center font-black text-lg shadow-md border-2 border-white/20">
+          {{ (clientProfileData()?.name || 'C').slice(0,2).toUpperCase() }}
+        </div>
+        <div>
+          <h3 class="text-base font-black tracking-tight text-white">{{ clientProfileData()?.name }}</h3>
+          <div class="flex items-center gap-2 mt-0.5">
+            <span class="px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-[9px] font-black uppercase tracking-wider border border-amber-400/30">VIP Client</span>
+            <span class="text-[10px] text-slate-400 font-semibold">Ref #{{ clientProfileData()?.id }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <button (click)="showClientProfileModal.set(false)" class="text-slate-400 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-xl transition-colors z-10">
+        <mat-icon class="!text-lg">close</mat-icon>
+      </button>
+
+      <!-- Decorative subtle background circle -->
+      <div class="absolute -right-8 -bottom-8 w-28 h-28 bg-[#B36A17]/10 rounded-full blur-xl pointer-events-none"></div>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="p-6 space-y-4 bg-white">
+      
+      <!-- Contact Info Cards -->
+      <div class="grid grid-cols-1 gap-2.5">
+        
+        <!-- Phone Number -->
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
+              <mat-icon class="!text-base">phone</mat-icon>
+            </div>
+            <div>
+              <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider">Phone Number</p>
+              <p class="text-xs font-black text-slate-900">{{ clientProfileData()?.phone }}</p>
+            </div>
+          </div>
+          <a *ngIf="clientProfileData()?.phone && clientProfileData()?.phone !== 'No phone number available'" [href]="'tel:' + clientProfileData()?.phone" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors shadow-2xs">
+            Call
+          </a>
+        </div>
+
+        <!-- Email Address -->
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center">
+              <mat-icon class="!text-base">email</mat-icon>
+            </div>
+            <div>
+              <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider">Email Address</p>
+              <p class="text-xs font-black text-slate-900 truncate max-w-[180px]">{{ clientProfileData()?.email }}</p>
+            </div>
+          </div>
+          <a *ngIf="clientProfileData()?.email && clientProfileData()?.email !== 'No email address available'" [href]="'mailto:' + clientProfileData()?.email" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors shadow-2xs">
+            Email
+          </a>
+        </div>
+
+      </div>
+
+      <!-- Notes & Special Instructions Section -->
+      <div class="p-3.5 bg-amber-50/70 border border-amber-200/80 rounded-xl">
+        <div class="flex items-center gap-2 mb-1.5">
+          <mat-icon class="!text-base text-amber-700">notes</mat-icon>
+          <span class="text-[10px] font-black text-amber-900 uppercase tracking-wider">Client Notes & Medical History</span>
+        </div>
+        <p class="text-xs text-slate-700 leading-relaxed font-bold italic">
+          "{{ clientProfileData()?.notes }}"
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Footer Action -->
+    <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3">
+      <button (click)="showClientProfileModal.set(false)" class="px-4 py-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-xl transition-colors">
+        Close
+      </button>
+      <button (click)="viewFullClientProfile()" class="px-5 py-2.5 bg-[#B36A17] hover:bg-[#965713] text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2">
+        <mat-icon class="!text-base">account_box</mat-icon>
+        <span>View Full Profile</span>
+      </button>
+    </div>
+
+  </div>
+</div>
