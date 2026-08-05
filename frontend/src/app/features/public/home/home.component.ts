@@ -134,7 +134,7 @@ import { BeforeAfterSliderComponent } from '../../../shared/components/before-af
                 >favorite</mat-icon
               >
               <span class="text-white text-[11px] font-medium tracking-wide"
-                >1,000+ Happy Clients</span
+                >10,000+ Happy Clients</span
               >
             </div>
           </div>
