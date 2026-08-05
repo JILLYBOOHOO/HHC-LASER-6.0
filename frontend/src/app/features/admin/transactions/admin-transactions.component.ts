@@ -19,17 +19,17 @@ import { environment } from '../../../../environments/environment';
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-2">
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="text-3xl font-serif text-slate-900 tracking-tight">Transactions</h1>
+            <h1 class="text-3xl font-serif text-slate-900 tracking-tight">Transactions & Financial Log</h1>
             <span class="text-slate-400 font-light">|</span>
-            <span class="text-xs text-slate-500 uppercase tracking-widest font-semibold mt-1">Location: Constant Spring Road</span>
+            <span class="text-xs text-slate-500 uppercase tracking-widest font-semibold mt-1">Location: All Clinics</span>
           </div>
           <p class="text-xs text-slate-500 mt-1 max-w-md leading-relaxed">
-            Track and manage all payment transactions, refunds, and financial activities for the clinic.
+            Track all payments processed online through the website and paid at location in person.
           </p>
         </div>
-        <button (click)="exportReport()" class="px-5 py-2.5 bg-[#d4b982] hover:bg-[#c2a66b] text-white font-bold text-[10px] uppercase tracking-wider rounded shadow-sm transition-colors flex items-center gap-2 self-start sm:self-auto">
+        <button (click)="exportReport()" class="px-5 py-2.5 bg-[#B36A17] hover:bg-[#965713] text-white font-bold text-[10px] uppercase tracking-wider rounded shadow-sm transition-colors flex items-center gap-2 self-start sm:self-auto">
           <mat-icon class="!text-sm">download</mat-icon>
-          <span>Export Report</span>
+          <span>Export Financial Report</span>
         </button>
       </div>
 
@@ -37,69 +37,69 @@ import { environment } from '../../../../environments/environment';
       <div *ngIf="!hideKPIs" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         <!-- Total Revenue -->
-        <div class="p-4 bg-[#4CA771] text-white shadow-sm flex flex-col justify-between relative overflow-hidden ">
+        <div class="p-4 bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-sm rounded-xl flex flex-col justify-between relative overflow-hidden">
           <div class="flex justify-between items-start">
-            <div class="text-[10px] font-bold uppercase tracking-wider opacity-90">Total Revenue</div>
-            <div class="w-8 h-8 rounded bg-white/20 flex items-center justify-center">
-              <mat-icon class="!text-sm">account_balance_wallet</mat-icon>
+            <div class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-100">Total Revenue</div>
+            <div class="w-8 h-8 rounded-lg bg-black/20 flex items-center justify-center">
+              <mat-icon class="!text-base text-emerald-100">account_balance_wallet</mat-icon>
             </div>
           </div>
           <div>
-            <div class="text-3xl font-bold mt-2 tracking-tight">{{ kpis().total_revenue | currency:'JMD':'symbol':'1.0-0' }}</div>
-            <div class="text-[9px] font-bold uppercase tracking-wider opacity-80 flex items-center gap-1 mt-1">
+            <div class="text-2xl font-black mt-2 tracking-tight">{{ kpis().total_revenue | currency:'JMD':'symbol':'1.0-0' }}</div>
+            <div class="text-[9px] font-bold uppercase tracking-wider text-emerald-100/80 flex items-center gap-1 mt-1">
               <mat-icon class="!text-[12px] !w-3 !h-3">trending_up</mat-icon>
-              <span>Selected period</span>
+              <span>Verified completed payments</span>
             </div>
           </div>
         </div>
 
-        <!-- Pending Amount -->
-        <div class="p-4 bg-[#D8C7AB] text-slate-800 shadow-sm flex flex-col justify-between relative overflow-hidden ">
+        <!-- Paid Online (Website) -->
+        <div class="p-4 bg-gradient-to-br from-indigo-600 to-blue-700 text-white shadow-sm rounded-xl flex flex-col justify-between relative overflow-hidden">
           <div class="flex justify-between items-start">
-            <div class="text-[10px] font-bold uppercase tracking-wider opacity-90">Pending Amount</div>
-            <div class="w-8 h-8 rounded bg-white/40 flex items-center justify-center">
-              <mat-icon class="!text-sm">schedule</mat-icon>
+            <div class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-100">Paid Online (Website)</div>
+            <div class="w-8 h-8 rounded-lg bg-black/20 flex items-center justify-center">
+              <mat-icon class="!text-base text-indigo-100">language</mat-icon>
             </div>
           </div>
           <div>
-            <div class="text-3xl font-bold mt-2 tracking-tight">{{ kpis().pending_amount | currency:'JMD':'symbol':'1.0-0' }}</div>
-            <div class="text-[9px] font-bold uppercase tracking-wider opacity-80 flex items-center gap-1 mt-1">
-              <mat-icon class="!text-[12px] !w-3 !h-3">hourglass_empty</mat-icon>
-              <span>Awaiting payment</span>
+            <div class="text-2xl font-black mt-2 tracking-tight">{{ onlineTotal() | currency:'JMD':'symbol':'1.0-0' }}</div>
+            <div class="text-[9px] font-bold uppercase tracking-wider text-indigo-100/80 flex items-center gap-1 mt-1">
+              <mat-icon class="!text-[12px] !w-3 !h-3">credit_card</mat-icon>
+              <span>Website booking deposits</span>
             </div>
           </div>
         </div>
 
-        <!-- Failed Transactions -->
-        <div class="p-4 bg-[#E85C71] text-white shadow-sm flex flex-col justify-between relative overflow-hidden ">
+        <!-- Paid at Location (In-Person) -->
+        <div class="p-4 bg-gradient-to-br from-amber-600 to-orange-700 text-white shadow-sm rounded-xl flex flex-col justify-between relative overflow-hidden">
           <div class="flex justify-between items-start">
-            <div class="text-[10px] font-bold uppercase tracking-wider opacity-90">Failed Transactions</div>
-            <div class="w-8 h-8 rounded bg-white/20 flex items-center justify-center">
-              <mat-icon class="!text-sm">cancel</mat-icon>
+            <div class="text-[10px] font-extrabold uppercase tracking-wider text-amber-100">Paid at Location</div>
+            <div class="w-8 h-8 rounded-lg bg-black/20 flex items-center justify-center">
+              <mat-icon class="!text-base text-amber-100">storefront</mat-icon>
             </div>
           </div>
           <div>
-            <div class="text-3xl font-bold mt-2 tracking-tight">{{ kpis().failed_payments | currency:'JMD':'symbol':'1.0-0' }}</div>
-            <div class="text-[9px] font-bold uppercase tracking-wider opacity-80 flex items-center gap-1 mt-1">
-              <mat-icon class="!text-[12px] !w-3 !h-3">warning</mat-icon>
-              <span>Requires attention</span>
+            <div class="text-2xl font-black mt-2 tracking-tight">{{ inPersonTotal() | currency:'JMD':'symbol':'1.0-0' }}</div>
+            <div class="text-[9px] font-bold uppercase tracking-wider text-amber-100/80 flex items-center gap-1 mt-1">
+              <mat-icon class="!text-[12px] !w-3 !h-3">payments</mat-icon>
+              <span>In-store / took payment</span>
             </div>
           </div>
         </div>
 
         <!-- Total Transactions -->
-        <div class="p-4 bg-[#333333] text-white shadow-sm flex flex-col justify-between relative overflow-hidden ">
+        <div class="p-4 bg-slate-900 text-white shadow-sm rounded-xl flex flex-col justify-between relative overflow-hidden">
           <div class="flex justify-between items-start">
-            <div class="text-[10px] font-bold uppercase tracking-wider opacity-90">Total Transactions</div>
-            <div class="w-8 h-8 rounded bg-white/10 flex items-center justify-center">
-              <mat-icon class="!text-sm">receipt_long</mat-icon>
+            <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-300">Total Records</div>
+            <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+              <mat-icon class="!text-base text-slate-300">receipt_long</mat-icon>
             </div>
           </div>
           <div>
-            <div class="text-3xl font-bold mt-2 tracking-tight">{{ kpis().total_transactions | number }}</div>
-            <div class="text-[9px] font-bold uppercase tracking-wider opacity-80 flex items-center gap-1 mt-1">
+            <div class="text-2xl font-black mt-2 tracking-tight">{{ kpis().total_transactions | number }}</div>
+            <div class="text-[9px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1 mt-1">
               <mat-icon class="!text-[12px] !w-3 !h-3">fact_check</mat-icon>
-              <span>All payments</span>
+              <span>All payment channels</span>
             </div>
           </div>
         </div>
@@ -107,157 +107,143 @@ import { environment } from '../../../../environments/environment';
       </div>
 
       <!-- Filter Controls Bar -->
-      <div class="pt-1">
+      <div class="pt-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
         <div class="flex flex-row flex-wrap items-end gap-3">
           
           <div class="w-full sm:w-48">
-            <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Search</label>
+            <label class="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-1">Search Patient / Ref</label>
             <div class="relative">
               <input type="text"
                      [(ngModel)]="searchQuery"
-                     placeholder="Search transactions..."
-                     class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded text-xs focus:outline-none focus:border-slate-400 text-slate-700">
+                     (keyup.enter)="applyFilters()"
+                     placeholder="Name, Email, or Ref #..."
+                     class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:border-slate-800 text-slate-900">
             </div>
           </div>
 
-          <div class="w-32">
-            <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Status</label>
-            <select [(ngModel)]="selectedStatus" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-700 focus:outline-none">
-              <option value="all">All</option>
-              <option value="completed">Completed</option>
-              <option value="expired">Expired</option>
-              <option value="pending">Pending</option>
+          <div class="w-48">
+            <label class="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-1">Payment Method / Channel</label>
+            <select [(ngModel)]="selectedChannel" (change)="applyFilters()" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-black text-slate-900 focus:outline-none">
+              <option value="all">All Channels (Online + Location)</option>
+              <option value="online">🌐 Paid Online (Website)</option>
+              <option value="location">🏥 Paid at Location (In-Person)</option>
             </select>
           </div>
 
           <div class="w-32">
-            <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">From</label>
-            <div class="relative">
-              <input type="date" [(ngModel)]="fromDate" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-700 focus:outline-none">
-            </div>
+            <label class="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-1">Status</label>
+            <select [(ngModel)]="selectedStatus" (change)="applyFilters()" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-black text-slate-900 focus:outline-none">
+              <option value="all">All Statuses</option>
+              <option value="completed">Completed</option>
+              <option value="pending">Pending</option>
+              <option value="failed">Failed</option>
+            </select>
           </div>
 
           <div class="w-32">
-            <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">To</label>
-            <div class="relative">
-              <input type="date" [(ngModel)]="toDate" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-700 focus:outline-none">
-            </div>
+            <label class="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-1">From</label>
+            <input type="date" [(ngModel)]="fromDate" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 font-bold focus:outline-none">
+          </div>
+
+          <div class="w-32">
+            <label class="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-1">To</label>
+            <input type="date" [(ngModel)]="toDate" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 font-bold focus:outline-none">
           </div>
 
           <div class="flex items-center gap-2 mb-[1px]">
-            <button (click)="applyFilters()" class="px-4 py-1.5 bg-[#d4b982] hover:bg-[#c2a66b] text-white font-bold text-[10px] uppercase tracking-wider rounded transition-colors">
+            <button (click)="applyFilters()" class="px-4 py-2 bg-black hover:bg-slate-800 text-white font-black text-[10px] uppercase tracking-wider rounded-lg transition-colors shadow-xs">
               Apply
             </button>
-            <button (click)="clearFilters()" class="px-4 py-1.5 bg-white hover:bg-slate-50 text-slate-500 border border-slate-200 font-bold text-[10px] uppercase tracking-wider rounded transition-colors">
-              Clear
+            <button (click)="clearFilters()" class="px-4 py-2 bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 font-black text-[10px] uppercase tracking-wider rounded-lg transition-colors">
+              Reset
             </button>
           </div>
         </div>
       </div>
 
       <!-- Data Table Card -->
-      <div class="overflow-x-auto border-t border-slate-100 pt-2">
+      <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-xs">
         <table class="w-full text-left border-collapse min-w-[900px]">
           <thead>
-            <tr class="border-b-2 border-slate-100 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
-              <th class="py-2 px-2 font-bold">Transaction ID</th>
-              <th class="py-2 px-2 font-bold">Patient</th>
-              <th class="py-2 px-2 font-bold">Service</th>
-              <th class="py-2 px-2 font-bold">Amount</th>
-              <th class="py-2 px-2 font-bold">Status</th>
-              <th class="py-2 px-2 font-bold">Date</th>
-              <th class="py-2 px-2 font-bold text-center">Actions</th>
+            <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-wider">
+              <th class="py-3 px-4 font-black">Ref / Txn ID</th>
+              <th class="py-3 px-4 font-black">Patient Name</th>
+              <th class="py-3 px-4 font-black">Service Details</th>
+              <th class="py-3 px-4 font-black">Payment Channel</th>
+              <th class="py-3 px-4 font-black">Amount</th>
+              <th class="py-3 px-4 font-black">Status</th>
+              <th class="py-3 px-4 font-black">Date & Time</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="divide-y divide-slate-100 text-xs font-bold text-slate-800">
             
-            <tr *ngFor="let tx of transactions()" class="border-b border-slate-100 hover:bg-slate-50/50 transition-colors group">
-              <td class="py-2 px-2">
-                <span class="text-xs font-bold text-slate-700">#{{ tx.fiserv_txn_id || tx.id }}</span>
+            <tr *ngFor="let tx of filteredTransactions()" class="hover:bg-slate-50/80 transition-colors">
+              <td class="py-3 px-4 font-mono font-black text-slate-900">
+                #{{ tx.fiserv_txn_id || tx.idempotency_key?.slice(0,8) || tx.id }}
               </td>
-              <td class="py-2 px-2">
-                <div class="text-xs font-semibold text-slate-800">{{ tx.customer_first_name }} {{ tx.customer_last_name }}</div>
-                <div class="text-[10px] text-slate-400">{{ tx.customer_email || 'No email' }}</div>
+              <td class="py-3 px-4">
+                <div class="font-black text-slate-900 text-sm">{{ tx.customer_first_name }} {{ tx.customer_last_name }}</div>
+                <div class="text-[10px] text-slate-400 font-semibold">{{ tx.customer_email || 'Walk-in / In Clinic' }}</div>
               </td>
-              <td class="py-2 px-2">
-                <div class="text-xs text-slate-700">{{ tx.service_name || 'Generic Payment' }}</div>
-                <div class="mt-1 flex flex-wrap gap-1">
-                  <div class="text-[9px] font-bold text-slate-500 bg-slate-100 uppercase tracking-wider inline-block px-1.5 py-0.5 rounded">{{ tx.payment_method || 'Unknown' }}</div>
-                  <div class="text-[9px] font-bold text-white uppercase tracking-wider inline-block px-1.5 py-0.5 rounded shadow-sm" [ngClass]="getPaymentType(tx.payment_method) === 'Online (Website)' ? 'bg-indigo-400' : 'bg-emerald-500'">
-                    {{ getPaymentType(tx.payment_method) }}
-                  </div>
-                </div>
+              <td class="py-3 px-4">
+                <div class="font-extrabold text-slate-800">{{ tx.service_name || 'Clinic Treatment' }}</div>
+                <div *ngIf="tx.notes" class="text-[10px] text-slate-500 italic mt-0.5">{{ tx.notes }}</div>
               </td>
-              <td class="py-2 px-2">
-                <span class="text-xs font-bold text-slate-700">{{ tx.amount_jmd | currency:'JMD':'symbol':'1.0-0' }}</span>
-              </td>
-              <td class="py-2 px-2">
-                <span *ngIf="tx.status === 'completed'" class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#e8f6ef] text-[#4ca771] text-[9px] font-bold uppercase tracking-wider border border-[#bde4ce]">
-                  <mat-icon class="!text-[12px] !w-3 !h-3">check_circle_outline</mat-icon> Completed
+              <td class="py-3 px-4">
+                <span *ngIf="isOnlinePayment(tx.payment_method)" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-900 text-[10px] font-black uppercase tracking-wider shadow-2xs">
+                  🌐 Paid Online (Website)
                 </span>
-                <span *ngIf="tx.status === 'failed'" class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#ffebeb] text-[#e85c71] text-[9px] font-bold uppercase tracking-wider border border-[#fac8c8]">
+                <span *ngIf="!isOnlinePayment(tx.payment_method)" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-wider shadow-2xs">
+                  🏥 Paid at Location (In Person)
+                </span>
+              </td>
+              <td class="py-3 px-4">
+                <span class="font-black text-slate-900 text-sm">JMD {{ (tx.amount_jmd || 0) | number:'1.0-0' }}</span>
+              </td>
+              <td class="py-3 px-4">
+                <span *ngIf="tx.status === 'completed'" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase tracking-wider">
+                  <mat-icon class="!text-[12px] !w-3 !h-3">check_circle</mat-icon> Completed
+                </span>
+                <span *ngIf="tx.status === 'failed'" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-100 text-red-800 text-[10px] font-black uppercase tracking-wider">
                   <mat-icon class="!text-[12px] !w-3 !h-3">cancel</mat-icon> Failed
                 </span>
-                <span *ngIf="tx.status === 'pending'" class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-orange-50 text-orange-500 text-[9px] font-bold uppercase tracking-wider border border-orange-200">
+                <span *ngIf="tx.status === 'pending'" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-[10px] font-black uppercase tracking-wider">
                   <mat-icon class="!text-[12px] !w-3 !h-3">hourglass_empty</mat-icon> Pending
                 </span>
               </td>
-              <td class="py-2 px-2">
-                <span class="text-xs text-slate-500">{{ tx.created_at | date:'M/d/yyyy h:mm a' }}</span>
+              <td class="py-3 px-4 text-slate-500 whitespace-nowrap">
+                {{ tx.created_at | date:'MMM d, y, h:mm a' }}
               </td>
-              <td class="py-2 px-2 text-center">
-                <button class="text-[#d4b982] hover:text-[#b09660] transition-colors p-1 rounded-full hover:bg-[#d4b982]/10" title="View Details" (click)="viewDetails(tx)">
-                  <mat-icon class="!text-sm">visibility</mat-icon>
+            </tr>
+
+            <tr *ngIf="filteredTransactions().length === 0">
+              <td colspan="7" class="text-center py-12 text-slate-400">
+                <mat-icon class="!text-4xl text-slate-300 block mx-auto mb-2">receipt_long</mat-icon>
+                <p class="text-sm font-bold">No transactions found matching your selected filters.</p>
+                <button (click)="clearFilters()" class="mt-3 px-4 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
+                  Reset Filters
                 </button>
               </td>
             </tr>
 
           </tbody>
         </table>
-        
-        <!-- Empty State -->
-        <div *ngIf="transactions().length === 0" class="text-center py-12">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-50 mb-3">
-            <mat-icon class="text-slate-300">receipt_long</mat-icon>
-          </div>
-          <p class="text-slate-500 text-sm font-medium">No transactions found matching your criteria</p>
-          <button (click)="clearFilters()" class="mt-4 px-4 py-2 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
-            Clear Filters
-          </button>
-        </div>
-
-        <div class="py-4 flex justify-between items-center text-xs text-slate-400 font-medium border-t border-slate-100 mt-2">
-          <div>Showing {{ (currentPage - 1) * 20 + 1 }} - {{ (currentPage - 1) * 20 + transactions().length }} of {{ totalTransactions }}</div>
-          <div class="flex items-center gap-1">
-            <button [disabled]="currentPage === 1" (click)="prevPage()" class="w-7 h-7 rounded border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors disabled:opacity-50 text-slate-500">
-              <mat-icon class="!text-sm">chevron_left</mat-icon>
-            </button>
-            <button [disabled]="transactions().length < 20" (click)="nextPage()" class="w-7 h-7 rounded border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors disabled:opacity-50 text-slate-500">
-              <mat-icon class="!text-sm">chevron_right</mat-icon>
-            </button>
-          </div>
-        </div>
-
       </div>
+
     </div>
-  `,
-  styles: [`
-    input[type="date"]::-webkit-calendar-picker-indicator {
-      color: #94a3b8;
-      opacity: 0.5;
-      cursor: pointer;
-    }
-    input[type="date"]::-webkit-calendar-picker-indicator:hover {
-      opacity: 0.8;
-    }
-  `]
+  `
 })
 export class AdminTransactionsComponent implements OnInit {
   hideKPIs = false;
   transactions = signal<any[]>([]);
   kpis = signal<any>({ total_revenue: 0, failed_payments: 0, pending_amount: 0, total_transactions: 0 });
+  
+  onlineTotal = signal<number>(0);
+  inPersonTotal = signal<number>(0);
+
   searchQuery = '';
-  selectedStatus = ''; // empty means all
+  selectedChannel = 'all';
+  selectedStatus = 'all';
   fromDate = '';
   toDate = '';
 
@@ -277,17 +263,54 @@ export class AdminTransactionsComponent implements OnInit {
     const toQuery = this.toDate || undefined;
     const searchQuery = this.searchQuery || undefined;
 
-    this.apiService.getAdminTransactions(this.currentPage, 20, searchQuery, statusQuery, fromQuery, toQuery).subscribe({
+    this.apiService.getAdminTransactions(this.currentPage, 50, searchQuery, statusQuery, fromQuery, toQuery).subscribe({
       next: (res) => {
         if (res.success && res.data) {
           this.transactions.set(res.data);
-          this.totalTransactions = res.meta?.total || 0;
-          if (res.meta?.kpi) {
-            this.kpis.set(res.meta.kpi);
+          this.totalTransactions = res.meta?.total || res.data.length;
+          
+          if (res.meta?.kpis) {
+            this.kpis.set(res.meta.kpis);
+          } else {
+            const rev = res.data.filter((t: any) => t.status === 'completed').reduce((sum: number, t: any) => sum + Number(t.amount_jmd || 0), 0);
+            this.kpis.set({
+              total_revenue: rev,
+              total_transactions: res.data.length
+            });
           }
+
+          // Calculate Online vs In-Person breakdown totals
+          let onlineSum = 0;
+          let inPersonSum = 0;
+          res.data.forEach((t: any) => {
+            if (t.status === 'completed') {
+              if (this.isOnlinePayment(t.payment_method)) {
+                onlineSum += Number(t.amount_jmd || 0);
+              } else {
+                inPersonSum += Number(t.amount_jmd || 0);
+              }
+            }
+          });
+          this.onlineTotal.set(onlineSum);
+          this.inPersonTotal.set(inPersonSum);
         }
       }
     });
+  }
+
+  filteredTransactions(): any[] {
+    return this.transactions().filter(tx => {
+      const isOnline = this.isOnlinePayment(tx.payment_method);
+      if (this.selectedChannel === 'online' && !isOnline) return false;
+      if (this.selectedChannel === 'location' && isOnline) return false;
+      return true;
+    });
+  }
+
+  isOnlinePayment(method: string | null): boolean {
+    if (!method) return false;
+    const m = method.toLowerCase();
+    return m.includes('online') || m.includes('fiserv') || m.includes('card') || m.includes('website') || m.includes('hpp') || m.includes('stripe');
   }
 
   applyFilters() {
@@ -297,57 +320,31 @@ export class AdminTransactionsComponent implements OnInit {
 
   clearFilters() {
     this.searchQuery = '';
-    this.selectedStatus = '';
+    this.selectedChannel = 'all';
+    this.selectedStatus = 'all';
     this.fromDate = '';
     this.toDate = '';
     this.currentPage = 1;
     this.loadTransactions();
   }
 
-  prevPage() {
-    if (this.currentPage > 1) {
-      this.currentPage--;
-      this.loadTransactions();
-    }
-  }
-
-  nextPage() {
-    this.currentPage++;
-    this.loadTransactions();
-  }
-
-  viewDetails(tx: any) {
-    if (tx.notes || tx.idempotency_key) {
-      alert(`Transaction #${tx.id}\nNotes: ${tx.notes || 'None'}\nIdempotency Key: ${tx.idempotency_key || 'None'}`);
-    }
-  }
-
   exportReport() {
-    // Generate simple CSV
-    let csv = 'Transaction ID,Patient,Service,Amount,Status,Date\n';
-    this.transactions().forEach(tx => {
-      const pName = '"' + tx.customer_first_name + ' ' + tx.customer_last_name + '"';
-      const sName = '"' + (tx.service_name || 'Generic Payment') + '"';
-      const date = new Date(tx.created_at).toLocaleDateString();
-      csv += (tx.fiserv_txn_id || tx.id) + ',' + pName + ',' + sName + ',' + tx.amount_jmd + ',' + tx.status + ',' + date + '\n';
+    let csv = 'Transaction ID,Patient,Service,Channel,Amount JMD,Status,Date\n';
+    this.filteredTransactions().forEach(tx => {
+      const pName = '"' + (tx.customer_first_name || '') + ' ' + (tx.customer_last_name || '') + '"';
+      const sName = '"' + (tx.service_name || 'Clinic Service') + '"';
+      const channel = this.isOnlinePayment(tx.payment_method) ? 'Paid Online (Website)' : 'Paid at Location (In Person)';
+      const date = new Date(tx.created_at).toLocaleString();
+      csv += (tx.fiserv_txn_id || tx.id) + ',' + pName + ',' + sName + ',' + channel + ',' + tx.amount_jmd + ',' + tx.status + ',' + date + '\n';
     });
     
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'transactions.csv';
+    a.download = 'hhc_laser_transactions.csv';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-  }
-
-  getPaymentType(method: string | null): string {
-    if (!method) return 'Unknown';
-    const m = method.toLowerCase();
-    if (m === 'fiserv' || m === 'card' || m === 'online' || m.includes('stripe')) {
-      return 'Online (Website)';
-    }
-    return 'In-Person';
   }
 }
