@@ -47,6 +47,13 @@ module.exports = {
         body:    ['Inter', 'system-ui', 'sans-serif'],
         accent:  ['"Playfair Display"', 'Georgia', 'serif'],
       },
+      fontSize: {
+        // Slightly larger scale for body/UI readability (still rem-based)
+        xs: ['0.8125rem', { lineHeight: '1.25rem' }],   // ~13px at 16 root, ~14.6 at 18
+        sm: ['0.9375rem', { lineHeight: '1.4rem' }],    // ~15px / ~16.9
+        base: ['1.0625rem', { lineHeight: '1.75rem' }], // ~17px / ~19.1
+        lg: ['1.1875rem', { lineHeight: '1.85rem' }],
+      },
       backgroundImage: {
         'gold-gradient':   'linear-gradient(135deg, #c9a96e 0%, #ddb04a 50%, #c9a96e 100%)',
         'dark-gradient':   'linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%)',
