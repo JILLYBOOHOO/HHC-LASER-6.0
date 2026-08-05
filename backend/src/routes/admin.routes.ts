@@ -402,6 +402,97 @@ router.get('/users',
   }
 );
 
+// GET /api/admin/customers — list all registered patients/customers with stats
+router.get('/customers',
+  authenticate,
+  requireRole('owner', 'admin', 'manager', 'specialist'),
+  async (req, res, next) => {
+    try {
+      const page = parseInt(req.query['page'] as string) || 1;
+      const limit = parseInt(req.query['limit'] as string) || 50;
+      const search = req.query['search'] as string;
+      const offset = (page - 1) * limit;
+
+      let sql = `
+        SELECT u.id, u.email, u.first_name, u.last_name, u.phone, u.created_at, u.is_active,
+               COUNT(DISTINCT a.id) as total_appointments,
+               COALESCE(SUM(CASE WHEN t.status = 'completed' THEN t.amount_jmd ELSE 0 END), 0) as lifetime_value
+        FROM users u
+        LEFT JOIN user_roles ur ON ur.user_id = u.id
+        LEFT JOIN appointments a ON a.customer_user_id = u.id
+        LEFT JOIN transactions t ON t.appointment_id = a.id
+      `;
+      const params: any[] = [];
+      const conditions: string[] = [];
+
+      conditions.push(`(ur.role = 'customer' OR ur.role IS NULL OR a.id IS NOT NULL)`);
+
+      if (search) {
+        conditions.push(`(u.email LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ? OR u.phone LIKE ?)`);
+        const s = `%${search}%`;
+        params.push(s, s, s, s);
+      }
+
+      if (conditions.length > 0) {
+        sql += ` WHERE ` + conditions.join(' AND ');
+      }
+
+      sql += ` GROUP BY u.id ORDER BY u.created_at DESC LIMIT ? OFFSET ?`;
+      params.push(limit, offset);
+
+      const customers = await executeQuery(sql, params);
+      res.json(successResponse(customers));
+    } catch (e) { next(e); }
+  }
+);
+
+// GET /api/admin/customers/:id — patient profile detail, history, treatment notes
+router.get('/customers/:id',
+  authenticate,
+  requireRole('owner', 'admin', 'manager', 'specialist'),
+  async (req, res, next) => {
+    try {
+      const customerId = parseInt(req.params['id'], 10);
+      if (Number.isNaN(customerId)) throw new AppError('Invalid customer ID.', 400);
+
+      const [profile, appointments, treatmentNotes] = await Promise.all([
+        executeQueryOne(
+          `SELECT u.id, u.email, u.first_name, u.last_name, u.phone, u.created_at, u.is_active, u.email_verified
+           FROM users u WHERE u.id = ?`,
+          [customerId]
+        ),
+        executeQuery(
+          `SELECT a.id, a.scheduled_date, a.start_time, a.status, a.notes,
+                  a.confirmation_code, a.payment_status, a.total_amount_jmd,
+                  s.name as service_name,
+                  CONCAT(eu.first_name, ' ', eu.last_name) as employee_name
+           FROM appointments a
+           LEFT JOIN services s ON a.service_id = s.id
+           LEFT JOIN employees e ON e.id = a.employee_id
+           LEFT JOIN users eu ON eu.id = e.user_id
+           WHERE a.customer_user_id = ?
+           ORDER BY a.scheduled_date DESC`,
+          [customerId]
+        ),
+        executeQuery(
+          `SELECT tn.*, s.name as service_name
+           FROM treatment_notes tn
+           LEFT JOIN services s ON s.id = tn.service_id
+           WHERE tn.customer_user_id = ?
+           ORDER BY tn.created_at DESC`,
+          [customerId]
+        )
+      ]);
+
+      res.json(successResponse({
+        profile,
+        appointments,
+        treatment_notes: treatmentNotes
+      }));
+    } catch (e) { next(e); }
+  }
+);
+
 // PATCH /api/admin/users/:id/status  — activate/deactivate user
 router.patch('/users/:id/status',
   authenticate,
