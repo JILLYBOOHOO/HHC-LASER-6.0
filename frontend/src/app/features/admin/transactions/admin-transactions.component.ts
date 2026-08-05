@@ -27,7 +27,7 @@ import { environment } from '../../../../environments/environment';
             Track all payments processed online through the website and paid at location in person.
           </p>
         </div>
-        <button (click)="exportReport()" class="px-5 py-2.5 bg-[#B36A17] hover:bg-[#965713] text-white font-bold text-[10px] uppercase tracking-wider rounded shadow-sm transition-colors flex items-center gap-2 self-start sm:self-auto">
+        <button *ngIf="!hideKPIs" (click)="exportReport()" class="px-5 py-2.5 bg-[#B36A17] hover:bg-[#965713] text-white font-bold text-[10px] uppercase tracking-wider rounded shadow-sm transition-colors flex items-center gap-2 self-start sm:self-auto">
           <mat-icon class="!text-sm">download</mat-icon>
           <span>Export Financial Report</span>
         </button>
