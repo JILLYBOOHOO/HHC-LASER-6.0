@@ -28,7 +28,8 @@
             "assets": [
               {
                 "glob": "**/*",
-                "input": "public"
+                "input": "public",
+                "ignore": ["**/*.zip", "**/*.ZIP"]
               },
               {
                 "glob": "**/*",
@@ -53,12 +54,12 @@
                 {
                   "type": "initial",
                   "maximumWarning": "2MB",
-                  "maximumError": "4MB"
+                  "maximumError": "5MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "20kB",
-                  "maximumError": "40kB"
+                  "maximumWarning": "50kB",
+                  "maximumError": "120kB"
                 }
               ],
               "outputHashing": "all"

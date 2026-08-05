@@ -1,0 +1,3 @@
+# Keep Vercel deploy under size limits — archives are not needed at runtime
+**/*.zip
+**/*.ZIP
