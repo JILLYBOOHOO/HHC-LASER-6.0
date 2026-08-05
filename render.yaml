@@ -1,0 +1,77 @@
+# HHC LASER API — Render Blueprint
+# Dashboard: New → Blueprint → connect this repo
+# Or create a Web Service manually using the settings below.
+
+services:
+  - type: web
+    name: hhc-laser-api
+    runtime: node
+    rootDir: backend
+    plan: starter
+    region: oregon
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"
+      - key: API_BASE_URL
+        value: https://api.hhclaser.com
+      - key: FRONTEND_URL
+        value: https://hhclaser.com
+      - key: ALLOWED_ORIGINS
+        value: https://hhclaser.com,https://www.hhclaser.com
+      - key: FISERV_CURRENCY
+        value: "388"
+      - key: FISERV_BASE_URL
+        value: https://www2.ipg-online.com
+      - key: FISERV_GATEWAY_URL
+        value: https://www2.ipg-online.com/connect/gateway/processing
+      - key: FISERV_SUCCESS_URL
+        value: https://api.hhclaser.com/api/payments/success
+      - key: FISERV_FAILURE_URL
+        value: https://api.hhclaser.com/api/payments/error
+      - key: FISERV_CALLBACK_URL
+        value: https://api.hhclaser.com/api/payments/callback
+      - key: DB_SSL
+        value: "true"
+      - key: DB_CONNECTION_LIMIT
+        value: "20"
+      - key: JWT_EXPIRES_IN
+        value: 15m
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 7d
+      # Secrets — set these in the Render dashboard (Do not commit real values)
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: FISERV_STORE_ID
+        sync: false
+      - key: FISERV_STORE_NAME
+        sync: false
+      - key: FISERV_MERCHANT_ID
+        sync: false
+      - key: FISERV_SHARED_SECRET
+        sync: false
+      - key: FISERV_API_KEY
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false

@@ -10,7 +10,6 @@ frontend/.angular/
 
 # Environment / secrets — NEVER commit these
 backend/.env
-frontend/src/environments/environment.prod.ts
 
 # TypeScript build cache
 *.tsbuildinfo
