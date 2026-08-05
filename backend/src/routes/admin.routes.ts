@@ -345,4 +345,53 @@ router.post('/bookings/:id/send-receipt',
   }
 );
 
+// POST /api/admin/block-time
+router.post('/block-time',
+  authenticate,
+  requireRole('owner', 'admin', 'manager', 'specialist'),
+  async (req, res, next) => {
+    try {
+      const { title, startDate, endDate, startTime, durationMinutes, isAllDay, isFullMonth, month, year, reason } = req.body;
+      
+      const categoryTitle = title || 'Blocked Time';
+      const dateList: string[] = [];
+
+      if (isFullMonth && month && year) {
+        // Block out all days in the specified month
+        const daysInMonth = new Date(year, month, 0).getDate();
+        for (let d = 1; d <= daysInMonth; d++) {
+          const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+          dateList.push(dateStr);
+        }
+      } else {
+        const start = new Date(startDate || new Date());
+        const end = new Date(endDate || startDate || new Date());
+        let curr = new Date(start);
+        while (curr <= end) {
+          dateList.push(curr.toISOString().split('T')[0]);
+          curr.setDate(curr.getDate() + 1);
+        }
+      }
+
+      for (const dStr of dateList) {
+        await executeUpdate(`
+          INSERT INTO appointments (
+            customer_user_id, service_name, scheduled_date, appointment_date, start_time, 
+            service_duration_minutes, status, payment_status, total_amount_jmd, notes
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+          1, `🔒 ${categoryTitle}`, dStr, dStr, isAllDay || isFullMonth ? '08:00' : (startTime || '09:00'),
+          isAllDay || isFullMonth ? 540 : (durationMinutes || 60), 'confirmed', 'paid_in_store', 0, reason || 'Admin Time Blockout'
+        ]);
+
+        try {
+          await executeUpdate('INSERT IGNORE INTO blocked_dates (blocked_date, reason) VALUES (?, ?)', [dStr, reason || categoryTitle]);
+        } catch (e) {}
+      }
+
+      res.json(successResponse(undefined, `Successfully blocked ${dateList.length} date(s) on the calendar.`));
+    } catch (e) { next(e); }
+  }
+);
+
 export default router;

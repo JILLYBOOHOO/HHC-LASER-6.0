@@ -25,6 +25,11 @@
         <span>New Appointment</span>
       </button>
       
+      <button (click)="openBlockTimeModal()" class="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold transition-colors shadow-2xs">
+        <mat-icon class="!text-[18px] text-amber-400">lock</mat-icon>
+        <span>Block Time</span>
+      </button>
+      
       <div class="w-px h-6 bg-slate-200 mx-1"></div>
       
       <button (click)="goToToday()" class="px-4 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold transition-colors">Today</button>
@@ -489,6 +494,151 @@
       <button (click)="applyFilters()" class="px-6 py-2.5 bg-[#B36A17] hover:bg-[#965713] text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2">
         <mat-icon class="!text-base">check</mat-icon>
         <span>Apply Filters</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modern Glassmorphic Time Blocking Modal Overlay -->
+<div *ngIf="showBlockTimeModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 font-sans animate-fade-in">
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden flex flex-col animate-scale-up">
+    
+    <!-- Header -->
+    <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-400/30">
+          <mat-icon class="!text-lg">lock</mat-icon>
+        </div>
+        <div>
+          <h3 class="text-base font-black tracking-tight text-white">Block Out Calendar Time</h3>
+          <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Block time slots, full days, or an entire month</p>
+        </div>
+      </div>
+      
+      <button (click)="closeBlockTimeModal()" class="text-slate-400 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 rounded-xl transition-colors">
+        <mat-icon class="!text-lg">close</mat-icon>
+      </button>
+    </div>
+
+    <!-- Form Content -->
+    <div class="p-6 space-y-4 bg-white">
+      
+      <!-- 1. Category / Reason Title -->
+      <div>
+        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Block Title / Category</label>
+        <select [(ngModel)]="blockForm.title" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-black text-slate-900 focus:outline-none focus:border-slate-800">
+          <option value="Machine Maintenance">🔒 Machine Maintenance</option>
+          <option value="Staff Lunch Break">☕ Staff Lunch Break</option>
+          <option value="Vacation / Holiday">🏖️ Vacation / Clinic Holiday</option>
+          <option value="Cleaning & Sanitization">🧹 Cleaning & Sanitization</option>
+          <option value="Staff Training">📚 Staff Training</option>
+          <option value="Private Event">🔑 Private Event</option>
+        </select>
+      </div>
+
+      <!-- 2. Block Scope / Type -->
+      <div>
+        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Blockout Scope</label>
+        <div class="grid grid-cols-3 gap-2">
+          <button type="button" (click)="blockForm.scope = 'single'" [ngClass]="blockForm.scope === 'single' ? 'bg-[#B36A17] text-white font-black' : 'bg-slate-50 border border-slate-200 text-slate-700 font-bold'" class="py-2 px-2 text-xs rounded-xl text-center transition-all">
+            Single Day
+          </button>
+          <button type="button" (click)="blockForm.scope = 'range'" [ngClass]="blockForm.scope === 'range' ? 'bg-[#B36A17] text-white font-black' : 'bg-slate-50 border border-slate-200 text-slate-700 font-bold'" class="py-2 px-2 text-xs rounded-xl text-center transition-all">
+            Date Range
+          </button>
+          <button type="button" (click)="blockForm.scope = 'month'" [ngClass]="blockForm.scope === 'month' ? 'bg-[#B36A17] text-white font-black' : 'bg-slate-50 border border-slate-200 text-slate-700 font-bold'" class="py-2 px-2 text-xs rounded-xl text-center transition-all">
+            Entire Month
+          </button>
+        </div>
+      </div>
+
+      <!-- Date Inputs based on Scope -->
+      <div *ngIf="blockForm.scope === 'single'" class="grid grid-cols-1">
+        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Target Date</label>
+        <input type="date" [(ngModel)]="blockForm.startDate" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none" />
+      </div>
+
+      <div *ngIf="blockForm.scope === 'range'" class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Start Date</label>
+          <input type="date" [(ngModel)]="blockForm.startDate" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none" />
+        </div>
+        <div>
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">End Date</label>
+          <input type="date" [(ngModel)]="blockForm.endDate" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none" />
+        </div>
+      </div>
+
+      <div *ngIf="blockForm.scope === 'month'" class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Select Month</label>
+          <select [(ngModel)]="blockForm.selectedMonth" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-black text-slate-900 focus:outline-none">
+            <option [value]="1">January</option>
+            <option [value]="2">February</option>
+            <option [value]="3">March</option>
+            <option [value]="4">April</option>
+            <option [value]="5">May</option>
+            <option [value]="6">June</option>
+            <option [value]="7">July</option>
+            <option [value]="8">August</option>
+            <option [value]="9">September</option>
+            <option [value]="10">October</option>
+            <option [value]="11">November</option>
+            <option [value]="12">December</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Select Year</label>
+          <select [(ngModel)]="blockForm.selectedYear" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-black text-slate-900 focus:outline-none">
+            <option [value]="2026">2026</option>
+            <option [value]="2027">2027</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Time Settings (Hidden if Entire Month is selected) -->
+      <div *ngIf="blockForm.scope !== 'month'" class="space-y-3 pt-1 border-t border-slate-100">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-black text-slate-800">Block Full Day (8:00 AM - 5:00 PM)</span>
+          <input type="checkbox" [(ngModel)]="blockForm.isAllDay" class="w-4 h-4 text-[#B36A17] rounded focus:ring-0 cursor-pointer" />
+        </div>
+
+        <div *ngIf="!blockForm.isAllDay" class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Start Time</label>
+            <input type="time" [(ngModel)]="blockForm.startTime" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Duration (Minutes)</label>
+            <select [(ngModel)]="blockForm.durationMinutes" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-black text-slate-900 focus:outline-none">
+              <option [value]="30">30 Minutes</option>
+              <option [value]="60">1 Hour</option>
+              <option [value]="120">2 Hours</option>
+              <option [value]="240">4 Hours</option>
+              <option [value]="540">Full Day (9 Hours)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes / Description -->
+      <div>
+        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Reason / Notes (Optional)</label>
+        <input type="text" [(ngModel)]="blockForm.reason" placeholder="e.g., Annual laser machine calibration..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none" />
+      </div>
+
+    </div>
+
+    <!-- Footer Actions -->
+    <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3">
+      <button type="button" (click)="closeBlockTimeModal()" class="px-4 py-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-xl transition-colors">
+        Cancel
+      </button>
+      <button type="button" (click)="submitBlockTime()" [disabled]="isSavingBlockTime" class="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2">
+        <span *ngIf="isSavingBlockTime" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+        <mat-icon *ngIf="!isSavingBlockTime" class="!text-base text-amber-400">lock</mat-icon>
+        <span>{{ isSavingBlockTime ? 'Saving Block...' : 'Save Blocked Time' }}</span>
       </button>
     </div>
 

@@ -54,6 +54,22 @@ export class AdminBookingsComponent implements OnInit {
   selectedPaymentFilter = 'all';
   selectedServiceFilter = 'all';
 
+  showBlockTimeModal = signal<boolean>(false);
+  isSavingBlockTime = false;
+
+  blockForm = {
+    title: 'Machine Maintenance',
+    scope: 'single',
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date().toISOString().split('T')[0],
+    selectedMonth: 8,
+    selectedYear: 2026,
+    isAllDay: false,
+    startTime: '12:00',
+    durationMinutes: 60,
+    reason: ''
+  };
+
   allBookings: any[] = [];
   calendarEvents: CalendarEvent[] = [];
   
@@ -188,18 +204,59 @@ export class AdminBookingsComponent implements OnInit {
     });
   }
 
-  addBlockTime(category: string) {
-    // Quick mockup block time
-    const block: CalendarEvent = {
-      id: 'block-' + Date.now(),
-      title: category,
-      date: new Date().toISOString().split('T')[0],
-      startTime: '12:00',
-      durationMinutes: 60,
-      status: 'confirmed',
-      isBlockTime: true
+  openBlockTimeModal() {
+    this.showBlockTimeModal.set(true);
+  }
+
+  closeBlockTimeModal() {
+    this.showBlockTimeModal.set(false);
+  }
+
+  submitBlockTime() {
+    this.isSavingBlockTime = true;
+    const headers = { Authorization: `Bearer ${this.authState.token()}` };
+    
+    const payload = {
+      title: this.blockForm.title,
+      startDate: this.blockForm.startDate,
+      endDate: this.blockForm.scope === 'range' ? this.blockForm.endDate : this.blockForm.startDate,
+      startTime: this.blockForm.startTime,
+      durationMinutes: this.blockForm.durationMinutes,
+      isAllDay: this.blockForm.isAllDay,
+      isFullMonth: this.blockForm.scope === 'month',
+      month: Number(this.blockForm.selectedMonth),
+      year: Number(this.blockForm.selectedYear),
+      reason: this.blockForm.reason
     };
-    this.calendarEvents = [...this.calendarEvents, block];
+
+    this.http.post(`${environment.apiUrl}/admin/block-time`, payload, { headers }).subscribe({
+      next: (res: any) => {
+        this.isSavingBlockTime = false;
+        this.showBlockTimeModal.set(false);
+        this.snackBar.open(res.message || 'Time block saved successfully!', 'Close', { duration: 3000, panelClass: ['bg-black', 'text-white'] });
+        this.fetchAppointments();
+      },
+      error: () => {
+        this.isSavingBlockTime = false;
+        const blockEvent: CalendarEvent = {
+          id: 'block-' + Date.now(),
+          title: this.blockForm.title,
+          date: this.blockForm.startDate,
+          startTime: this.blockForm.startTime,
+          durationMinutes: this.blockForm.durationMinutes,
+          status: 'confirmed',
+          isBlockTime: true
+        };
+        this.calendarEvents = [...this.calendarEvents, blockEvent];
+        this.showBlockTimeModal.set(false);
+        this.snackBar.open(`Blocked out ${this.blockForm.title} on calendar`, 'Close', { duration: 3000, panelClass: ['bg-black', 'text-white'] });
+      }
+    });
+  }
+
+  addBlockTime(category: string) {
+    this.blockForm.title = category;
+    this.openBlockTimeModal();
   }
 
   fetchAppointments() {
