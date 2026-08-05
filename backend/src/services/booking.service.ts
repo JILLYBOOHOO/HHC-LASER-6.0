@@ -25,51 +25,58 @@ export class BookingService {
     const { employeeId, locationId, date, startTime, endTime, excludeAppointmentId, isAdmin } = params;
     const conflicts: string[] = [];
 
-    // 1. Check if date is blocked globally
-    const isBlocked = await executeQueryOne(
-      'SELECT id FROM blocked_dates WHERE blocked_date = ?',
-      [date]
-    );
+    const [year, month, day] = date.split('-').map(Number);
+    const dayOfWeek = new Date(year, month - 1, day).getDay();
+
+    // Run independent lookups in parallel to cut redirect latency
+    const [isBlocked, isHoliday, bizHours, schedule, employeeConflict] = await Promise.all([
+      executeQueryOne('SELECT id FROM blocked_dates WHERE blocked_date = ?', [date]),
+      executeQueryOne(
+        'SELECT id FROM location_holidays WHERE location_id = ? AND holiday_date = ?',
+        [locationId, date]
+      ),
+      isAdmin
+        ? Promise.resolve(null)
+        : executeQueryOne<{ is_closed: boolean }>(
+            'SELECT is_closed FROM business_hours WHERE location_id = ? AND day_of_week = ?',
+            [locationId, dayOfWeek]
+          ),
+      isAdmin
+        ? Promise.resolve(null)
+        : executeQueryOne<{ start_time: string; end_time: string; is_available: boolean }>(
+            `SELECT start_time, end_time, is_available FROM employee_schedules
+             WHERE employee_id = ? AND location_id = ? AND day_of_week = ?`,
+            [employeeId, locationId, dayOfWeek]
+          ),
+      executeQueryOne<Appointment>(
+        `SELECT id FROM appointments 
+         WHERE employee_id = ? AND scheduled_date = ? 
+         AND status NOT IN ('cancelled', 'no_show', 'pending')
+         AND start_time < ? AND end_time > ?
+         ${excludeAppointmentId ? 'AND id != ?' : ''}`,
+        excludeAppointmentId
+          ? [employeeId, date, endTime, startTime, excludeAppointmentId]
+          : [employeeId, date, endTime, startTime]
+      ),
+    ]);
+
     if (isBlocked) {
       conflicts.push('The selected date is blocked/unavailable.');
       return { available: false, conflicts };
     }
-
-    // 2. Check if date is a holiday for this location
-    const isHoliday = await executeQueryOne(
-      'SELECT id FROM location_holidays WHERE location_id = ? AND holiday_date = ?',
-      [locationId, date]
-    );
     if (isHoliday) {
       conflicts.push('The selected date is a holiday.');
       return { available: false, conflicts };
     }
-
+    if (!isAdmin && bizHours && bizHours.is_closed) {
+      conflicts.push('The business is closed on this day of the week.');
+      return { available: false, conflicts };
+    }
     if (!isAdmin) {
-      // 3. Check if business is closed on this day of week
-      const [year, month, day] = date.split('-').map(Number);
-      const dayOfWeek = new Date(year, month - 1, day).getDay();
-      const bizHours = await executeQueryOne<{ is_closed: boolean }>(
-        'SELECT is_closed FROM business_hours WHERE location_id = ? AND day_of_week = ?',
-        [locationId, dayOfWeek]
-      );
-      if (bizHours && bizHours.is_closed) {
-        conflicts.push('The business is closed on this day of the week.');
-        return { available: false, conflicts };
-      }
-
-      // 4. Check if employee is scheduled/working on this day of week
-      const schedule = await executeQueryOne<{ start_time: string; end_time: string; is_available: boolean }>(
-        `SELECT start_time, end_time, is_available FROM employee_schedules
-         WHERE employee_id = ? AND location_id = ? AND day_of_week = ?`,
-        [employeeId, locationId, dayOfWeek]
-      );
       if (!schedule || !schedule.is_available) {
         conflicts.push('The specialist is not working on this day.');
         return { available: false, conflicts };
       }
-
-      // 5. Check if the start/end times fall within the specialist's working hours
       const slotStartStr = startTime.slice(0, 5);
       const slotEndStr = endTime.slice(0, 5);
       const workStartStr = schedule.start_time.slice(0, 5);
@@ -79,19 +86,6 @@ export class BookingService {
         return { available: false, conflicts };
       }
     }
-
-    // 6. Check employee conflicts with existing appointments
-    const employeeConflict = await executeQueryOne<Appointment>(
-      `SELECT id FROM appointments 
-       WHERE employee_id = ? AND scheduled_date = ? 
-       AND status NOT IN ('cancelled', 'no_show', 'pending')
-       AND start_time < ? AND end_time > ?
-       ${excludeAppointmentId ? 'AND id != ?' : ''}`,
-      excludeAppointmentId
-        ? [employeeId, date, endTime, startTime, excludeAppointmentId]
-        : [employeeId, date, endTime, startTime]
-    );
-
     if (employeeConflict) {
       conflicts.push('The selected specialist is not available at this time.');
     }
@@ -214,29 +208,7 @@ export class BookingService {
       ) as any;
       const appointment = apptRows[0];
 
-      // --- Send Email Confirmation via Resend ---
-      try {
-        const user = await executeQueryOne<any>('SELECT first_name, email FROM users WHERE id = ?', [customerId]);
-        if (user && user.email) {
-          const serviceNames = services.map(s => s.name || (s as any).title || `Service ID: ${s.id}`);
-          // Send asynchronously
-          EmailService.sendBookingConfirmation(
-            user.email,
-            user.first_name || 'Valued Customer',
-            {
-              date: dto.scheduled_date,
-              time: dto.start_time,
-              serviceNames,
-              totalPrice: totalAmountJmd
-            },
-            confirmationCode
-          ).catch(err => logger.error('Async email error:', err));
-        }
-      } catch (e) {
-        logger.error('Failed to send confirmation email', e);
-      }
-      // ------------------------------------------
-
+      // Confirmation email is sent after successful Fiserv payment (keeps checkout redirect fast).
       logger.info(`[Booking] Appointment ${appointmentId} created for customer ${customerId}`);
 
       return appointment!;
