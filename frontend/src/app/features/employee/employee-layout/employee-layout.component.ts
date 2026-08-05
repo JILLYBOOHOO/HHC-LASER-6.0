@@ -10,40 +10,49 @@ import { AuthService } from '../../../core/services/auth.service';
   standalone: true,
   imports: [RouterOutlet, RouterModule, CommonModule, MatIconModule],
   template: `
-    <div class="flex h-screen overflow-hidden bg-cream-100">
-      <aside class="hidden md:flex flex-col w-60 flex-shrink-0 border-r border-charcoal-100"
-             style="background: #1a1a1a">
-        <div class="px-5 py-4 border-b border-black/10">
-          <div class="font-heading text-lg text-black">HHC LASER</div>
-          <div class="text-gold-400 text-xs tracking-widest">Specialist Portal</div>
+    <div class="flex h-screen overflow-hidden bg-slate-100 font-sans">
+      <aside class="hidden md:flex flex-col w-64 flex-shrink-0 border-r border-slate-800 bg-slate-950 text-white shadow-xl">
+        <!-- Header -->
+        <div class="px-6 py-5 border-b border-slate-800 flex flex-col gap-1">
+          <div class="font-serif font-black text-xl text-white tracking-tight flex items-center gap-2">
+            <span class="text-amber-400">⚡</span>
+            <span>HHC LASER</span>
+          </div>
+          <div class="text-amber-400 text-[10px] font-extrabold uppercase tracking-widest">Specialist Portal</div>
         </div>
-        <nav class="flex-1 py-4 space-y-1 px-3">
+
+        <!-- Navigation Links -->
+        <nav class="flex-1 py-6 space-y-1.5 px-4">
           @for (link of navLinks; track link.path) {
-            <a [routerLink]="link.path" routerLinkActive="bg-gold-500/15 text-gold-400"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-neutral-700
-                      hover:text-gold-400 hover:bg-black/5 transition-all text-sm">
-              <mat-icon class="!text-base">{{ link.icon }}</mat-icon> {{ link.label }}
+            <a [routerLink]="link.path" 
+               routerLinkActive="bg-amber-500/20 text-amber-400 border-l-4 border-amber-400 font-black"
+               class="flex items-center gap-3.5 px-4 py-3 rounded-xl text-white hover:text-amber-300 hover:bg-white/10 transition-all text-sm font-bold">
+              <mat-icon class="!text-lg text-amber-400">{{ link.icon }}</mat-icon> 
+              <span class="text-white">{{ link.label }}</span>
             </a>
           }
         </nav>
-        <div class="px-3 pb-4 border-t border-black/10 pt-4">
+
+        <!-- Sign Out Button -->
+        <div class="px-4 pb-6 border-t border-slate-800 pt-4">
           <button (click)="logout()"
-                  class="flex items-center gap-2 px-3 py-2 text-neutral-600 hover:text-red-400 transition-colors text-sm w-full">
-            <mat-icon class="!text-base">logout</mat-icon> Sign Out
+                  class="flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-rose-500/20 rounded-xl transition-all text-sm font-bold w-full">
+            <mat-icon class="!text-lg text-rose-400">logout</mat-icon> 
+            <span class="text-white">Sign Out</span>
           </button>
         </div>
       </aside>
-      <main class="flex-1 overflow-y-auto"><router-outlet></router-outlet></main>
+
+      <main class="flex-1 overflow-y-auto bg-slate-50"><router-outlet></router-outlet></main>
     </div>
   `,
 })
 export class EmployeeLayoutComponent {
   navLinks = [
-    { path: '/employee/schedule',   icon: 'calendar_today',     label: 'My Schedule' },
-    { path: '/booking',             icon: 'add_circle',         label: 'Make Appointment' },
-    { path: '/employee/clients',    icon: 'people',             label: 'My Clients' },
-    { path: '/employee/photo-vault', icon: 'photo_library',     label: 'Photo Vault' },
-    { path: '/employee/transactions', icon: 'receipt_long',     label: 'Transactions' },
+    { path: '/employee/schedule',     icon: 'calendar_today', label: 'My Schedule' },
+    { path: '/employee/book',         icon: 'add_circle',     label: 'Make Appointment' },
+    { path: '/employee/patients',     icon: 'people',         label: 'Patients' },
+    { path: '/employee/transactions', icon: 'receipt_long',   label: 'Transactions' },
   ];
   constructor(private authService: AuthService) {}
   logout(): void { this.authService.logout().subscribe(); }

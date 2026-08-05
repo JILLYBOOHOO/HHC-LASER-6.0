@@ -231,21 +231,27 @@ export const routes: Routes = [
         title: 'My Schedule — HHC LASER',
       },
       {
+        path: 'book',
+        loadComponent: () => import('./features/employee/book/employee-book.component')
+          .then(m => m.EmployeeBookComponent),
+        title: 'Make Appointment — HHC LASER Staff',
+      },
+      {
+        path: 'patients',
+        loadComponent: () => import('./features/admin/patients/admin-patients.component')
+          .then(m => m.AdminPatientsComponent),
+        title: 'Patients — HHC LASER',
+      },
+      {
         path: 'clients',
-        loadComponent: () => import('./features/employee/clients/employee-clients.component')
-          .then(m => m.EmployeeClientsComponent),
-        title: 'My Clients — HHC LASER',
+        loadComponent: () => import('./features/admin/patients/admin-patients.component')
+          .then(m => m.AdminPatientsComponent),
+        title: 'Patients — HHC LASER',
       },
       {
         path: 'clients/:id',
         loadComponent: () => import('./features/employee/clients/employee-client-detail.component')
           .then(m => m.EmployeeClientDetailComponent),
-      },
-      {
-        path: 'photo-vault',
-        loadComponent: () => import('./features/employee/photo-vault/employee-photo-vault.component')
-          .then(m => m.EmployeePhotoVaultComponent),
-        title: 'Photo Vault — HHC LASER',
       },
       {
         path: 'treatment-notes/:appointmentId',

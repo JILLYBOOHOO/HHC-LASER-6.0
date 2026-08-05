@@ -508,6 +508,7 @@ export class InternalBookingModalComponent implements OnInit {
   @Input() initialDate: string = '';
   @Input() initialTime: string = '';
   @Output() close = new EventEmitter<void>();
+  @Output() bookingCreated = new EventEmitter<void>();
   
   form: FormGroup;
   loading = false;
