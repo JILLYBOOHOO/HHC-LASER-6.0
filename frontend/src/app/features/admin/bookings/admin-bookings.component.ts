@@ -11,7 +11,7 @@ import { AddNoteModalComponent } from '../../../shared/components/add-note-modal
 import { InvoiceModalComponent } from '../../../shared/components/invoice-modal/invoice-modal.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatInputModule } from '@angular/material/input';
-import { ReactiveFormsModule, FormControl } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormControl } from '@angular/forms';
 
 import { Router } from '@angular/router';
 
@@ -20,6 +20,7 @@ import { Router } from '@angular/router';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatIconModule,
     WeeklyCalendarComponent,
     InternalBookingModalComponent,
@@ -57,6 +58,8 @@ export class AdminBookingsComponent implements OnInit {
   waitingList: CalendarEvent[] = [];
   checkedInList: CalendarEvent[] = [];
   inTreatmentList: CalendarEvent[] = [];
+  cancelledList: CalendarEvent[] = [];
+  cancelledCount = 0;
   arrivalsIn30Mins: CalendarEvent[] = [];
 
   currentDate: Date = new Date();
@@ -115,13 +118,44 @@ export class AdminBookingsComponent implements OnInit {
     return this.locations[this.currentLocationIdx];
   }
 
-  goToToday() { this.currentDate = new Date(); }
-  previousWeek() { const d = new Date(this.currentDate); d.setDate(d.getDate() - 7); this.currentDate = d; }
-  nextWeek() { const d = new Date(this.currentDate); d.setDate(d.getDate() + 7); this.currentDate = d; }
+  goToToday() {
+    this.currentDate = new Date();
+    this.snackBar.open('Jumped to Today', 'Close', { duration: 2000, panelClass: ['bg-black', 'text-white'] });
+  }
+
+  previousWeek() {
+    const d = new Date(this.currentDate);
+    const step = this.activeView === 'day' ? 1 : (this.activeView === 'month' ? 30 : 7);
+    d.setDate(d.getDate() - step);
+    this.currentDate = d;
+  }
+
+  nextWeek() {
+    const d = new Date(this.currentDate);
+    const step = this.activeView === 'day' ? 1 : (this.activeView === 'month' ? 30 : 7);
+    d.setDate(d.getDate() + step);
+    this.currentDate = d;
+  }
+
+  onDatePicked(event: any) {
+    const newDateStr = typeof event === 'string' ? event : event?.target?.value;
+    if (newDateStr) {
+      this.currentDate = new Date(newDateStr + 'T00:00:00');
+      this.snackBar.open(`Calendar set to ${this.dateRangeText}`, 'Close', { duration: 2500, panelClass: ['bg-black', 'text-white'] });
+    }
+  }
+
   toggleLocation() { this.currentLocationIdx = (this.currentLocationIdx + 1) % this.locations.length; }
   zoomIn() { if (this.zoomLevel < 200) this.zoomLevel += 10; }
   zoomOut() { if (this.zoomLevel > 50) this.zoomLevel -= 10; }
-  setView(view: string) { this.activeView = view; }
+  setView(view: string) {
+    this.activeView = view;
+    this.snackBar.open(`Switched view to ${view.toUpperCase()}`, 'Close', { duration: 2000, panelClass: ['bg-black', 'text-white'] });
+  }
+
+  openFilterMenu() {
+    this.snackBar.open('Showing all clinic specialists & locations', 'Close', { duration: 3000, panelClass: ['bg-black', 'text-white'] });
+  }
 
   addBlockTime(category: string) {
     // Quick mockup block time
@@ -256,10 +290,12 @@ export class AdminBookingsComponent implements OnInit {
     this.waitingList = todays.filter(b => b.status === 'confirmed');
     this.checkedInList = todays.filter(b => b.status === 'checked_in');
     this.inTreatmentList = todays.filter(b => b.status === 'in_treatment');
+    this.cancelledList = todays.filter(b => b.status === 'cancelled');
     
     this.waitingCount = this.waitingList.length;
     this.checkedInCount = this.checkedInList.length;
     this.inTreatmentCount = this.inTreatmentList.length;
+    this.cancelledCount = this.cancelledList.length;
     
     const now = new Date();
     const nowMins = now.getHours() * 60 + now.getMinutes();
