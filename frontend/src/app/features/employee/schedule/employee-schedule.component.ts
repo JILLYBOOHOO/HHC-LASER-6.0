@@ -47,10 +47,12 @@ export class EmployeeScheduleComponent implements OnInit {
   waitingCount = 0;
   checkedInCount = 0;
   inTreatmentCount = 0;
+  cancelledCount = 0;
   
   waitingList: CalendarEvent[] = [];
   checkedInList: CalendarEvent[] = [];
   inTreatmentList: CalendarEvent[] = [];
+  cancelledList: CalendarEvent[] = [];
   arrivalsIn30Mins: CalendarEvent[] = [];
 
   currentDate: Date = new Date();
@@ -186,10 +188,12 @@ export class EmployeeScheduleComponent implements OnInit {
     this.waitingList = todays.filter(b => b.status === 'confirmed');
     this.checkedInList = todays.filter(b => b.status === 'checked_in');
     this.inTreatmentList = todays.filter(b => b.status === 'in_treatment');
+    this.cancelledList = todays.filter(b => b.status === 'cancelled');
     
     this.waitingCount = this.waitingList.length;
     this.checkedInCount = this.checkedInList.length;
     this.inTreatmentCount = this.inTreatmentList.length;
+    this.cancelledCount = this.cancelledList.length;
     
     const now = new Date();
     const nowMins = now.getHours() * 60 + now.getMinutes();

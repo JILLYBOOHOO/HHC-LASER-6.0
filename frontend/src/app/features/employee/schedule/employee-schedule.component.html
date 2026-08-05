@@ -220,6 +220,34 @@
           </div>
         </div>
 
+        <!-- Cancellations Queue Section -->
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <div class="w-2.5 h-2.5 rounded-full bg-rose-500"></div>
+              <span class="text-xs font-black text-slate-800 uppercase tracking-wide">Cancellations ({{ cancelledCount }})</span>
+            </div>
+            <span class="text-[9px] font-black text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200 uppercase">Today</span>
+          </div>
+          
+          <div class="space-y-2">
+            <div *ngFor="let q of cancelledList" class="p-2.5 border border-rose-200 rounded-xl bg-rose-50/70 flex flex-col gap-1 shadow-2xs">
+              <div class="flex justify-between items-center text-xs font-black text-rose-950">
+                <span class="truncate">{{ q.patient }}</span>
+                <span class="font-mono text-[10px] text-rose-700 font-bold bg-white/90 px-1.5 py-0.5 rounded">{{ q.startTime }}</span>
+              </div>
+              <div class="text-[10px] font-bold text-rose-800/80 flex items-center justify-between">
+                <span class="truncate max-w-[140px]">{{ q.title }}</span>
+                <span class="uppercase font-black text-[9px] bg-rose-200 text-rose-900 px-1.5 py-0.5 rounded">CANCELLED</span>
+              </div>
+            </div>
+
+            <div *ngIf="cancelledList.length === 0" class="p-3 text-center border border-dashed border-slate-200 rounded-xl text-[11px] text-slate-400 font-semibold bg-slate-50/50">
+              No cancelled appointments today
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
