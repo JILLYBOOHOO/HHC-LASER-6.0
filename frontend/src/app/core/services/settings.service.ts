@@ -25,7 +25,7 @@ export class SettingsService {
   
   settings = signal<BusinessSettings>({
     business_name: 'HHC Laser & Co',
-    tagline: 'Jamaica\'s premier destination for advanced laser treatments',
+    tagline: 'Jamaica\'s trusted destination for advanced laser treatments',
     email: 'infohhcLaser@gmail.com',
     phone: '(876) 319-6241',
     address: '48 Constant Spring Road, Kingston, Jamaica',

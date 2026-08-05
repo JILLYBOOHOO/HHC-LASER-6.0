@@ -12,7 +12,7 @@ export const routes: Routes = [
         path: '',
         loadComponent: () => import('./features/public/home/home.component')
           .then(m => m.HomeComponent),
-        title: 'HHC Laser & Co. | Premier Medical Spa Kingston Jamaica | Laser Hair Removal, Botox, Fillers',
+        title: 'HHC Laser & Co. | Medical Spa Kingston Jamaica | Laser Hair Removal, Botox, Fillers',
       },
       {
         path: 'services',

@@ -28,7 +28,7 @@ import { AuthService } from '../../../core/services/auth.service';
         <div class="text-center mb-10">
           <a routerLink="/" class="inline-block">
             <div class="font-heading text-4xl text-neutral-900 mb-1">HHC LASER</div>
-            <div class="text-neutral-700 text-xs tracking-widest uppercase font-semibold">Jamaica's Premier MedSpa</div>
+            <div class="text-neutral-700 text-xs tracking-widest uppercase font-semibold">Jamaica's Trusted MedSpa</div>
           </a>
         </div>
 

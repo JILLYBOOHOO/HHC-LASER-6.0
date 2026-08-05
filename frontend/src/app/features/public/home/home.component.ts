@@ -90,7 +90,7 @@ import { BeforeAfterSliderComponent } from '../../../shared/components/before-af
           >
             Premium medical spa — laser hair removal, Botox, fillers, IV
             therapy, weight loss, body contouring and advanced skincare at
-            Jamaica's premier wellness destination.
+            Jamaica's trusted wellness destination.
           </p>
 
           <!-- CTA -->
@@ -134,7 +134,7 @@ import { BeforeAfterSliderComponent } from '../../../shared/components/before-af
                 >favorite</mat-icon
               >
               <span class="text-white text-[11px] font-medium tracking-wide"
-                >1,000+ Happy Clients</span
+                >10,000+ Happy Clients</span
               >
             </div>
           </div>

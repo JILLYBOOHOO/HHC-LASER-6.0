@@ -48,13 +48,9 @@ import { AuthService } from '../../../core/services/auth.service';
         <div class="flex items-center justify-end gap-3 xl:gap-4 lg:flex-1">
           @if (!authState.isAuthenticated()) {
             <a routerLink="/auth/login"
-               class="hidden sm:inline-flex items-center justify-center gap-1.5 h-9 px-4 xl:px-5 rounded-full bg-white text-black text-[10px] font-bold uppercase tracking-[0.15em] border border-black/10 hover:bg-neutral-100 transition-all shadow-sm">
-              <mat-icon class="!text-[14px] !w-[14px] !h-[14px]">person</mat-icon>
-              Login
-            </a>
-            <a routerLink="/customer/book" 
+               [queryParams]="{ returnUrl: '/customer/book' }"
                class="inline-flex items-center justify-center h-9 px-4 xl:px-5 rounded-full bg-gold-500 text-white text-[10px] font-bold uppercase tracking-[0.15em] hover:bg-gold-600 transition-all shadow-sm">
-              Book Now
+              Login to Book
             </a>
           } @else {
             <!-- Authenticated user menu -->
@@ -134,8 +130,10 @@ import { AuthService } from '../../../core/services/auth.service';
           </div>
           <div class="pt-4 border-t flex flex-col gap-3" [ngClass]="isHome() ? 'border-white/5' : 'border-black/10'">
             @if (!authState.isAuthenticated()) {
-              <a routerLink="/auth/login" (click)="mobileOpen.set(false)" class="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-white text-black text-xs font-bold uppercase tracking-[0.1em] border border-black/10 hover:bg-neutral-200 transition-all text-center">Login</a>
-              <a routerLink="/customer/book" (click)="mobileOpen.set(false)" class="btn-primary text-center text-xs">Book Now</a>
+              <a routerLink="/auth/login"
+                 [queryParams]="{ returnUrl: '/customer/book' }"
+                 (click)="mobileOpen.set(false)"
+                 class="btn-primary text-center text-xs">Login to Book</a>
             } @else {
               <a routerLink="/customer/dashboard" (click)="mobileOpen.set(false)" class="btn-secondary text-center text-xs">Dashboard</a>
               <button (click)="logout()" class="btn-secondary text-center w-full text-xs">Logout</button>
