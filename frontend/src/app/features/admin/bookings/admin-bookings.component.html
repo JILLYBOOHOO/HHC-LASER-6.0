@@ -240,3 +240,45 @@
   (close)="showInvoiceModal.set(false)"
   (paymentUpdated)="fetchAppointments()">
 </app-invoice-modal>
+
+<!-- Modern Glassmorphic Cancel Confirmation Modal Overlay -->
+<div *ngIf="showCancelConfirmModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 font-sans animate-fade-in">
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 relative overflow-hidden animate-scale-up">
+    
+    <!-- Top Danger Icon Badge -->
+    <div class="w-14 h-14 rounded-full bg-rose-50 border border-rose-200 text-rose-500 flex items-center justify-center mx-auto mb-4 shadow-xs">
+      <mat-icon class="!text-2xl">warning_amber</mat-icon>
+    </div>
+
+    <!-- Modal Header & Body Text -->
+    <div class="text-center space-y-2 mb-6">
+      <h3 class="text-xl font-black text-slate-900 tracking-tight">Cancel Appointment?</h3>
+      <p class="text-xs text-slate-600 leading-relaxed font-semibold">
+        Are you sure you want to cancel the booking for 
+        <strong class="text-slate-900 font-black">{{ appointmentToCancel()?.patient || 'this client' }}</strong> 
+        ({{ appointmentToCancel()?.title || 'Service' }} at {{ appointmentToCancel()?.startTime }})?
+      </p>
+      
+      <div class="bg-amber-50 border border-amber-200/80 rounded-xl p-3 text-[11px] font-bold text-amber-900 text-left flex items-start gap-2.5 mt-3">
+        <span class="text-amber-600 text-base shrink-0">💡</span>
+        <span>Cancelling will immediately remove the card from the weekly calendar grid, freeing up the time slot for other clients.</span>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+      <button type="button" 
+              (click)="closeCancelModal()" 
+              class="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs rounded-xl transition-all">
+        Keep Appointment
+      </button>
+      <button type="button" 
+              (click)="confirmCancelAppointment()" 
+              class="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5">
+        <mat-icon class="!text-base">cancel</mat-icon>
+        <span>Yes, Cancel Booking</span>
+      </button>
+    </div>
+
+  </div>
+</div>

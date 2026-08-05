@@ -38,6 +38,8 @@ export class AdminBookingsComponent implements OnInit {
   showAddNoteModal = signal(false);
   showInvoiceModal = signal(false);
   selectedEvent: CalendarEvent | null = null;
+  showCancelConfirmModal = signal<boolean>(false);
+  appointmentToCancel = signal<CalendarEvent | null>(null);
 
   allBookings: any[] = [];
   calendarEvents: CalendarEvent[] = [];
@@ -294,13 +296,25 @@ export class AdminBookingsComponent implements OnInit {
       this.openBookingModal();
     }
     else if (action === 'Cancel') {
-      if (confirm(`Are you sure you want to cancel the booking for ${event.patient}?`)) {
-        this.updateBookingStatus(event.id, 'cancelled');
-      }
+      this.appointmentToCancel.set(event);
+      this.showCancelConfirmModal.set(true);
     }
     else {
       this.snackBar.open(`${action} action triggered for ${event.patient}`, 'Close', { duration: 3000, panelClass: ['bg-black', 'text-white'] });
     }
+  }
+
+  confirmCancelAppointment() {
+    const appt = this.appointmentToCancel();
+    if (appt) {
+      this.updateBookingStatus(appt.id, 'cancelled');
+    }
+    this.closeCancelModal();
+  }
+
+  closeCancelModal() {
+    this.showCancelConfirmModal.set(false);
+    this.appointmentToCancel.set(null);
   }
 
   recordPayment(event: CalendarEvent) {
