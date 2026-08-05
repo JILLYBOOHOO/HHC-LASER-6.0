@@ -38,6 +38,17 @@ const app = express();
 // ─── Trust Proxy (for AWS ALB / EB) ──────────────────────────────────────────
 app.set("trust proxy", 1);
 
+const allowedOrigins = env.ALLOWED_ORIGINS.split(",").map((o) => o.trim()).filter(Boolean);
+
+function isAllowedOrigin(origin?: string | null): boolean {
+  if (!origin || origin === "null") return true;
+  if (allowedOrigins.includes(origin)) return true;
+  // Vercel production + preview deployments
+  if (/^https:\/\/([a-z0-9-]+\.)*vercel\.app$/i.test(origin)) return true;
+  if (/^https:\/\/([a-z0-9-]+\.)*hhclaser\.com$/i.test(origin)) return true;
+  return false;
+}
+
 // ─── Security Headers ─────────────────────────────────────────────────────────
 app.use(
   helmet({
@@ -47,26 +58,27 @@ app.use(
         scriptSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", "data:", "https:"],
-        connectSrc: ["'self'", env.FRONTEND_URL],
+        connectSrc: ["'self'", env.FRONTEND_URL, ...allowedOrigins],
         frameSrc: ["'none'"],
         objectSrc: ["'none'"],
         upgradeInsecureRequests: [],
       },
     },
+    // SPA (Vercel) → API (Render) cross-origin fetches fail with default same-origin CORP
+    crossOriginResourcePolicy: { policy: "cross-origin" },
     referrerPolicy: { policy: "strict-origin-when-cross-origin" },
   }),
 );
 
 // ─── CORS ─────────────────────────────────────────────────────────────────────
-const allowedOrigins = env.ALLOWED_ORIGINS.split(",").map((o) => o.trim());
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Fiserv / 3-D Secure browser returns often send Origin: null
-      if (!origin || origin === 'null' || allowedOrigins.includes(origin)) {
+      if (isAllowedOrigin(origin)) {
         callback(null, true);
       } else {
-        callback(new Error(`CORS: Origin not allowed — ${origin}`));
+        // Avoid throwing — a thrown error often surfaces in the browser as "Failed to fetch"
+        callback(null, false);
       }
     },
     credentials: true,

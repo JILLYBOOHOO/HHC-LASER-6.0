@@ -178,6 +178,12 @@ export class LoginComponent {
       },
       error: (err) => {
         this.isLoading.set(false);
+        if (err?.status === 0 || err?.name === 'HttpErrorResponse' && !err?.error) {
+          this.errorMessage.set(
+            'Cannot reach the login server. Please check your connection and try again.'
+          );
+          return;
+        }
         this.errorMessage.set(err.error?.message || 'Login failed. Please check your credentials.');
       },
     });
