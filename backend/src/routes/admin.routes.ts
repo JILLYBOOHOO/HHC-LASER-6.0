@@ -1,11 +1,14 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
+import { body, param } from 'express-validator';
 import { authenticate } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/rbac.middleware';
+import { validateRequest } from '../middleware/validation.middleware';
 import { executeQuery, executeQueryOne, executeUpdate } from '../config/database';
 import { successResponse, paginatedResponse } from '../models/types';
 import { AppError } from '../middleware/error.middleware';
 import { TransactionService } from '../services/transaction.service';
 import { notificationService } from '../services/notification.service';
+import { invoiceService } from '../services/invoice.service';
 
 const router = Router();
 
@@ -17,10 +20,16 @@ router.get('/bookings',
     try {
       const bookings = await executeQuery(
         `SELECT a.*, u.first_name as customer_first_name, u.last_name as customer_last_name,
-                s.name as service_name, s.duration_minutes as service_duration_minutes
+                u.phone as customer_phone,
+                s.name as service_name, s.duration_minutes as service_duration_minutes,
+                eu.first_name as employee_first_name, eu.last_name as employee_last_name,
+                l.name as location_name
          FROM appointments a
          JOIN users u ON a.customer_user_id = u.id
          JOIN services s ON a.service_id = s.id
+         LEFT JOIN employees e ON e.id = a.employee_id
+         LEFT JOIN users eu ON eu.id = e.user_id
+         LEFT JOIN locations l ON l.id = a.location_id
          ORDER BY a.scheduled_date ASC, a.start_time ASC`
       );
       // Map scheduled_date to appointment_date and start_time to appointment_time
@@ -30,6 +39,20 @@ router.get('/bookings',
         appointment_time: b.start_time
       }));
       res.json(successResponse(formatted));
+    } catch (e) { next(e); }
+  }
+);
+
+// GET /api/admin/appointments/:id/invoice — printable in-person invoice data
+router.get('/appointments/:id/invoice',
+  authenticate,
+  requireRole('owner', 'admin', 'manager', 'specialist'),
+  [param('id').isInt({ min: 1 }).withMessage('Valid appointment id is required')],
+  validateRequest,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const invoice = await invoiceService.getAppointmentInvoice(Number(req.params['id']));
+      res.json(successResponse(invoice));
     } catch (e) { next(e); }
   }
 );
@@ -120,7 +143,266 @@ router.get('/customers',
   }
 );
 
-// PATCH /api/admin/users/:id/status — activate/deactivate user
+// GET /api/admin/customers/:id — patient profile, appointment history, notes
+router.get('/customers/:id',
+  authenticate,
+  requireRole('owner', 'admin', 'manager', 'specialist'),
+  async (req, res, next) => {
+    try {
+      const customerId = parseInt(req.params['id'], 10);
+      if (Number.isNaN(customerId)) throw new AppError('Invalid customer ID.', 400);
+
+      const [profile, appointments, statusNotes, treatmentNotes, intake, spend] = await Promise.all([
+        executeQueryOne(
+          `SELECT u.id, u.email, u.first_name, u.last_name, u.phone, u.created_at, u.is_active, u.email_verified
+           FROM users u
+           JOIN user_roles ur ON ur.user_id = u.id AND ur.role = 'customer'
+           WHERE u.id = ?`,
+          [customerId]
+        ),
+        executeQuery(
+          `SELECT a.id, a.scheduled_date, a.start_time, a.end_time, a.status, a.notes,
+                  a.confirmation_code, a.payment_status, a.total_amount_jmd, a.created_at, a.updated_at,
+                  a.service_id, a.employee_id,
+                  s.name as service_name, s.duration_minutes as service_duration_minutes,
+                  l.name as location_name,
+                  eu.first_name as employee_first_name, eu.last_name as employee_last_name
+           FROM appointments a
+           LEFT JOIN services s ON s.id = a.service_id
+           LEFT JOIN locations l ON l.id = a.location_id
+           LEFT JOIN employees e ON e.id = a.employee_id
+           LEFT JOIN users eu ON eu.id = e.user_id
+           WHERE a.customer_user_id = ?
+           ORDER BY a.scheduled_date DESC, a.start_time DESC
+           LIMIT 100`,
+          [customerId]
+        ),
+        executeQuery(
+          `SELECT asl.appointment_id, asl.old_status, asl.new_status, asl.notes, asl.created_at,
+                  CONCAT(u.first_name, ' ', u.last_name) as changed_by_name
+           FROM appointment_status_log asl
+           JOIN appointments a ON a.id = asl.appointment_id
+           LEFT JOIN users u ON u.id = asl.changed_by_user_id
+           WHERE a.customer_user_id = ?
+             AND asl.notes IS NOT NULL AND TRIM(asl.notes) <> ''
+           ORDER BY asl.created_at DESC
+           LIMIT 200`,
+          [customerId]
+        ),
+        executeQuery(
+          `SELECT tn.id, tn.appointment_id, tn.notes, tn.created_at, tn.updated_at,
+                  s.name as service_name,
+                  CONCAT(eu.first_name, ' ', eu.last_name) as specialist_name,
+                  ls.body_area, ls.fluence, ls.pulse_width, ls.frequency_hz, ls.spot_size_mm, ls.passes, ls.skin_reaction
+           FROM treatment_notes tn
+           LEFT JOIN services s ON s.id = tn.service_id
+           LEFT JOIN employees e ON e.id = tn.employee_id
+           LEFT JOIN users eu ON eu.id = e.user_id
+           LEFT JOIN laser_settings ls ON ls.treatment_note_id = tn.id
+           WHERE tn.customer_user_id = ?
+           ORDER BY tn.created_at DESC
+           LIMIT 100`,
+          [customerId]
+        ),
+        executeQueryOne(
+          `SELECT fitzpatrick_type, allergies, medications, skin_conditions, additional_notes,
+                  contraindications, previous_treatments, pregnancy_status, pacemaker_status,
+                  keloid_history, sun_exposure_recent, submitted_at
+           FROM intake_forms
+           WHERE customer_user_id = ?
+           ORDER BY submitted_at DESC
+           LIMIT 1`,
+          [customerId]
+        ),
+        executeQueryOne<{ lifetime_value: number }>(
+          `SELECT COALESCE(SUM(amount_jmd), 0) as lifetime_value
+           FROM transactions
+           WHERE customer_user_id = ? AND status = 'completed'`,
+          [customerId]
+        ),
+      ]);
+
+      if (!profile) throw new AppError('Patient not found.', 404);
+
+      const notesByAppointment = new Map<number, any[]>();
+      for (const note of statusNotes) {
+        const list = notesByAppointment.get(note.appointment_id) || [];
+        list.push(note);
+        notesByAppointment.set(note.appointment_id, list);
+      }
+
+      const appointmentsWithNotes = appointments.map((a: any) => ({
+        ...a,
+        appointment_date: a.scheduled_date
+          ? new Date(a.scheduled_date).toISOString().split('T')[0]
+          : null,
+        appointment_time: a.start_time,
+        employee_name: `${a.employee_first_name || ''} ${a.employee_last_name || ''}`.trim() || null,
+        status_notes: notesByAppointment.get(a.id) || [],
+      }));
+
+      res.json(successResponse({
+        profile: {
+          ...profile,
+          total_appointments: appointments.length,
+          lifetime_value: Number(spend?.lifetime_value || 0),
+        },
+        appointments: appointmentsWithNotes,
+        treatment_notes: treatmentNotes,
+        intake: intake || null,
+      }));
+    } catch (e) { next(e); }
+  }
+);
+
+// POST /api/admin/customers/:id/treatment-notes — write a treatment note
+router.post('/customers/:id/treatment-notes',
+  authenticate,
+  requireRole('owner', 'admin', 'manager', 'specialist'),
+  [
+    body('appointment_id').isInt({ min: 1 }).withMessage('appointment_id is required'),
+    body('notes').isString().trim().notEmpty().isLength({ max: 2000 }).withMessage('Notes are required (max 2000 chars)'),
+    body('service_id').optional().isInt({ min: 1 }),
+  ],
+  validateRequest,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const customerId = parseInt(req.params['id'], 10);
+      if (Number.isNaN(customerId)) throw new AppError('Invalid customer ID.', 400);
+
+      const appointmentId = parseInt(req.body.appointment_id, 10);
+      const notes = String(req.body.notes || '').trim();
+
+      const appointment = await executeQueryOne<any>(
+        `SELECT id, customer_user_id, employee_id, service_id
+         FROM appointments
+         WHERE id = ? AND customer_user_id = ?`,
+        [appointmentId, customerId]
+      );
+      if (!appointment) throw new AppError('Appointment not found for this patient.', 404);
+
+      const staffEmployee = await executeQueryOne<{ id: number }>(
+        `SELECT id FROM employees WHERE user_id = ? LIMIT 1`,
+        [req.user!.userId]
+      );
+
+      const employeeId = staffEmployee?.id || appointment.employee_id;
+      if (!employeeId) {
+        throw new AppError('No specialist is available to attribute this note. Assign a specialist to the appointment first.', 400);
+      }
+
+      const serviceId = req.body.service_id
+        ? parseInt(req.body.service_id, 10)
+        : appointment.service_id;
+      if (!serviceId) throw new AppError('Service is required for treatment notes.', 400);
+
+      const result = await executeUpdate(
+        `INSERT INTO treatment_notes (appointment_id, employee_id, customer_user_id, service_id, notes)
+         VALUES (?, ?, ?, ?, ?)`,
+        [appointmentId, employeeId, customerId, serviceId, notes]
+      );
+
+      const created = await executeQueryOne(
+        `SELECT tn.id, tn.appointment_id, tn.notes, tn.created_at, tn.updated_at,
+                s.name as service_name,
+                CONCAT(eu.first_name, ' ', eu.last_name) as specialist_name
+         FROM treatment_notes tn
+         LEFT JOIN services s ON s.id = tn.service_id
+         LEFT JOIN employees e ON e.id = tn.employee_id
+         LEFT JOIN users eu ON eu.id = e.user_id
+         WHERE tn.id = ?`,
+        [result.insertId]
+      );
+
+      res.status(201).json(successResponse(created, 'Treatment note saved.'));
+    } catch (e) { next(e); }
+  }
+);
+
+// GET /api/admin/reports/revenue
+router.get('/reports/revenue',
+  authenticate,
+  requireRole('owner', 'admin'),
+  async (req, res, next) => {
+    try {
+      const { from, to, location_id } = req.query;
+
+      const revenueByService = await executeQuery(
+        `SELECT s.name, COUNT(aps.id) as sessions, SUM(aps.price_jmd) as revenue
+         FROM appointment_services aps
+         JOIN services s ON s.id = aps.service_id
+         JOIN appointments a ON a.id = aps.appointment_id
+         WHERE a.status = 'completed'
+         ${from ? 'AND a.scheduled_date >= ?' : ''} ${to ? 'AND a.scheduled_date <= ?' : ''}
+         ${location_id ? 'AND a.location_id = ?' : ''}
+         GROUP BY s.id, s.name ORDER BY revenue DESC`,
+        [
+          ...(from ? [from] : []),
+          ...(to ? [to] : []),
+          ...(location_id ? [location_id] : []),
+        ]
+      );
+
+      const revenueByEmployee = await executeQuery(
+        `SELECT CONCAT(u.first_name, ' ', u.last_name) as name, COUNT(a.id) as sessions, SUM(t.amount_jmd) as revenue
+         FROM appointments a
+         JOIN employees e ON e.id = a.employee_id
+         JOIN users u ON u.id = e.user_id
+         LEFT JOIN transactions t ON t.appointment_id = a.id AND t.status = 'completed'
+         WHERE a.status = 'completed'
+         ${from ? 'AND a.scheduled_date >= ?' : ''} ${to ? 'AND a.scheduled_date <= ?' : ''}
+         GROUP BY e.id ORDER BY revenue DESC`,
+        [
+          ...(from ? [from] : []),
+          ...(to ? [to] : []),
+        ]
+      );
+
+      res.json(successResponse({ revenueByService, revenueByEmployee }));
+    } catch (e) { next(e); }
+  }
+);
+
+// GET /api/admin/users  — all users with roles
+router.get('/users',
+  authenticate,
+  requireRole('owner', 'admin'),
+  async (req, res, next) => {
+    try {
+      const page = parseInt(req.query['page'] as string) || 1;
+      const limit = parseInt(req.query['limit'] as string) || 20;
+      const search = req.query['search'] as string;
+      const offset = (page - 1) * limit;
+
+      let sql = `
+        SELECT u.id, u.email, u.first_name, u.last_name, u.phone, u.is_active, u.created_at,
+               STRING_AGG(ur.role::text, ',' ORDER BY ur.role::text) as roles
+        FROM users u
+        LEFT JOIN user_roles ur ON ur.user_id = u.id
+      `;
+      const params: any[] = [];
+
+      if (search) {
+        sql += ` WHERE (u.email LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ? OR u.phone LIKE ?)`;
+        const s = `%${search}%`;
+        params.push(s, s, s, s);
+      }
+
+      sql += ' GROUP BY u.id ORDER BY u.created_at DESC LIMIT ? OFFSET ?';
+      params.push(limit, offset);
+
+      const [countRow] = await executeQuery<{ count: number }>(
+        `SELECT COUNT(*) as count FROM users u ${search ? 'WHERE u.email LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ?' : ''}`,
+        search ? [`%${search}%`, `%${search}%`, `%${search}%`] : []
+      );
+
+      const users = await executeQuery(sql, params);
+      res.json(paginatedResponse(users, page, limit, countRow?.count || 0));
+    } catch (e) { next(e); }
+  }
+);
+
+// PATCH /api/admin/users/:id/status  — activate/deactivate user
 router.patch('/users/:id/status',
   authenticate,
   requireRole('owner', 'admin'),

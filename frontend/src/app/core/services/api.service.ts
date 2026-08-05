@@ -375,6 +375,41 @@ export class ApiService {
     });
   }
 
+  getAdminCustomerDetail(customerId: number): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(
+      `${this.base}/admin/customers/${customerId}`,
+    );
+  }
+
+  createAdminCustomerTreatmentNote(
+    customerId: number,
+    payload: { appointment_id: number; notes: string; service_id?: number },
+  ): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(
+      `${this.base}/admin/customers/${customerId}/treatment-notes`,
+      payload,
+    );
+  }
+
+  getAppointmentInvoice(appointmentId: number): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(
+      `${this.base}/admin/appointments/${appointmentId}/invoice`,
+    );
+  }
+
+  recordManualPayment(payload: {
+    appointment_id: number;
+    customer_user_id: number;
+    amount_jmd: number;
+    payment_method: 'cash' | 'card_in_store' | 'bank_transfer' | 'other';
+    notes?: string;
+  }): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(
+      `${this.base}/payments/record-manual`,
+      payload,
+    );
+  }
+
   getAdminUsers(
     page = 1,
     limit = 20,

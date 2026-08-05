@@ -687,7 +687,7 @@ router.get("/", async (req, res) => {
       SELECT s.*, sc.name as category_name, sc.slug as category_slug
       FROM services s
       JOIN service_categories sc ON sc.id = s.category_id
-      WHERE s.is_active = 1
+      WHERE s.is_active = TRUE
     `;
     const params: any[] = [];
 
@@ -696,7 +696,7 @@ router.get("/", async (req, res) => {
       params.push(categoryId);
     }
     if (isFeatured === "true") {
-      sql += " AND s.is_featured = 1";
+      sql += " AND s.is_featured = TRUE";
     }
 
     sql += " ORDER BY sc.sort_order ASC, s.sort_order ASC";
@@ -723,7 +723,7 @@ router.get("/:slug", async (req, res, next) => {
       SELECT s.*, sc.name as category_name, sc.slug as category_slug
       FROM services s
       JOIN service_categories sc ON sc.id = s.category_id
-      WHERE (s.slug = $1 OR s.id = $2) AND s.is_active = 1
+      WHERE (s.slug = ? OR s.id = ?) AND s.is_active = TRUE
       LIMIT 1
     `;
 
@@ -762,12 +762,49 @@ router.get("/:slug", async (req, res, next) => {
       }
     }
 
+    // Prefer optimized galleries from live_galleries.json when available
+    if (service) {
+      try {
+        const fs = require('fs');
+        const path = require('path');
+        const galleriesPath = path.join(__dirname, '../../../live_galleries.json');
+        if (fs.existsSync(galleriesPath)) {
+          const allGalleries = JSON.parse(fs.readFileSync(galleriesPath, 'utf8'));
+          const items = allGalleries[String((service as any).id)] || allGalleries[(service as any).id];
+          if (Array.isArray(items) && items.length) {
+            (service as any).gallery_images = items;
+          }
+        }
+      } catch (err) {
+        console.error('Error attaching live_galleries.json', err);
+      }
+    }
+
     if (service) {
       res.json(successResponse(service));
     } else {
-      res.status(404).json({ error: "Service not found" });
+      res.status(404).json({ error: 'Service not found' });
     }
   } catch (e) {
+    const slug = req.params['slug'];
+    const isId = !isNaN(Number(slug));
+    const fallbackMatch = FALLBACK_SERVICES.find(
+      (s) => (s as any).slug === slug || (isId && s.id === Number(slug)),
+    );
+    if (fallbackMatch) {
+      let gallery: any = null;
+      try {
+        const fs = require('fs');
+        const path = require('path');
+        const galleriesPath = path.join(__dirname, '../../../live_galleries.json');
+        if (fs.existsSync(galleriesPath)) {
+          const allGalleries = JSON.parse(fs.readFileSync(galleriesPath, 'utf8'));
+          gallery = allGalleries[String(fallbackMatch.id)] || null;
+        }
+      } catch (_) {}
+      res.json(successResponse({ ...fallbackMatch, gallery_images: gallery }));
+      return;
+    }
     next(e);
   }
 });
@@ -866,29 +903,9 @@ router.delete("/:id", async (req, res, next) => {
 router.get("/categories", async (_req, res, next) => {
   try {
     const categories = await executeQuery(
-      "SELECT * FROM service_categories WHERE is_active = 1 ORDER BY sort_order ASC",
+      "SELECT * FROM service_categories WHERE is_active = TRUE ORDER BY sort_order ASC",
     );
     res.json(successResponse(categories));
-  } catch (e) {
-    next(e);
-  }
-});
-
-// GET /api/services/:slug  — service detail by slug
-router.get("/:slug", async (req, res, next) => {
-  try {
-    const service = await executeQueryOne(
-      `SELECT s.*, sc.name as category_name
-       FROM services s
-       JOIN service_categories sc ON sc.id = s.category_id
-       WHERE s.slug = ? AND s.is_active = 1`,
-      [req.params["slug"]],
-    );
-    if (!service) {
-      res.status(404).json({ success: false, message: "Service not found." });
-      return;
-    }
-    res.json(successResponse(service));
   } catch (e) {
     next(e);
   }

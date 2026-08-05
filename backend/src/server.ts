@@ -62,7 +62,8 @@ const allowedOrigins = env.ALLOWED_ORIGINS.split(",").map((o) => o.trim());
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      // Fiserv / 3-D Secure browser returns often send Origin: null
+      if (!origin || origin === 'null' || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         callback(new Error(`CORS: Origin not allowed — ${origin}`));
