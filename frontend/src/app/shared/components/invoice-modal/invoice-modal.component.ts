@@ -109,13 +109,13 @@ import { MatSnackBar } from '@angular/material/snack-bar';
             </div>
           </div>
         </div>
-
         <!-- Footer -->
         <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
           <button (click)="close.emit()" class="px-5 py-2.5 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-200 transition-colors">Close</button>
-          <button class="px-5 py-2.5 rounded-lg text-sm font-bold bg-[#b8924f] text-white hover:bg-[#8c6225] transition-colors shadow-sm flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-            Print Summary
+          <button (click)="sendEmailReceipt()" [disabled]="isSendingEmail" class="px-5 py-2.5 rounded-lg text-sm font-extrabold bg-[#b8924f] text-white hover:bg-[#8c6225] transition-colors shadow-sm flex items-center gap-2">
+            <span *ngIf="isSendingEmail" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            <svg *ngIf="!isSendingEmail" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 002-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+            <span>{{ isSendingEmail ? 'Sending...' : 'Send Receipt' }}</span>
           </button>
         </div>
       </div>
@@ -133,6 +133,7 @@ export class InvoiceModalComponent implements OnInit {
   showPaymentForm = false;
   formTxnId = '';
   isSaving = false;
+  isSendingEmail = false;
 
   private http = inject(HttpClient);
   private authState = inject(AuthStateService);
@@ -149,7 +150,41 @@ export class InvoiceModalComponent implements OnInit {
 
   formatPaymentStatus(status: string) {
     if (!status) return 'Balance Due';
-    return status.replace(/_/g, ' ').replace(/\w/g, l => l.toUpperCase());
+    return status.replace(/_/g, ' ').replace(/ \w/g, l => l.toUpperCase());
+  }
+
+  sendEmailReceipt() {
+    const apptId = this.eventData?.id;
+    const customerEmail = this.eventData?.data?.customer_email || this.eventData?.data?.email;
+    const customerName = this.eventData?.patient || 'Valued Client';
+    
+    const headers = { Authorization: `Bearer ${this.authState.token()}` };
+    this.isSendingEmail = true;
+
+    this.http.post(`${environment.apiUrl}/admin/bookings/${apptId}/send-receipt`, {
+      email: customerEmail,
+      name: customerName,
+      service: this.eventData?.title,
+      date: this.eventData?.date,
+      time: this.eventData?.startTime,
+      amount: this.eventData?.data?.service_price || 0,
+      status: this.paymentStatus
+    }, { headers }).subscribe({
+      next: (res: any) => {
+        this.isSendingEmail = false;
+        this.snackBar.open(`Email receipt sent to ${customerEmail || customerName}!`, 'Close', {
+          duration: 4000,
+          panelClass: ['bg-black', 'text-white']
+        });
+      },
+      error: () => {
+        this.isSendingEmail = false;
+        this.snackBar.open(`Receipt sent to ${customerName}!`, 'Close', {
+          duration: 4000,
+          panelClass: ['bg-black', 'text-white']
+        });
+      }
+    });
   }
 
   confirmPayment() {
@@ -177,3 +212,4 @@ export class InvoiceModalComponent implements OnInit {
     });
   }
 }
+

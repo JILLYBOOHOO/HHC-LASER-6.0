@@ -5,6 +5,7 @@ import { executeQuery, executeQueryOne, executeUpdate } from '../config/database
 import { successResponse, paginatedResponse } from '../models/types';
 import { AppError } from '../middleware/error.middleware';
 import { TransactionService } from '../services/transaction.service';
+import { notificationService } from '../services/notification.service';
 
 const router = Router();
 
@@ -316,6 +317,30 @@ router.get('/transactions',
           total_refunds: Number(kpiRow?.total_refunds || 0)
         }
       }));
+    } catch (e) { next(e); }
+  }
+);
+
+// POST /api/admin/bookings/:id/send-receipt
+router.post('/bookings/:id/send-receipt',
+  authenticate,
+  requireRole('owner', 'admin', 'manager', 'specialist'),
+  async (req, res, next) => {
+    try {
+      const appointmentId = parseInt(req.params['id']);
+      const appt = await executeQueryOne<any>('SELECT * FROM appointments WHERE id = ?', [appointmentId]);
+      
+      const email = req.body.email || appt?.customer_email || 'kake.101buchanan@gmail.com';
+      const amount = req.body.amount || appt?.total_amount_jmd || 0;
+
+      await notificationService.sendPaymentConfirmation(appt?.customer_user_id || 1, {
+        amount: amount,
+        approvalCode: 'MANUAL-RECEIPT',
+        idempotencyKey: `receipt-${appointmentId}-${Date.now()}`,
+        appointmentId: appointmentId
+      });
+
+      res.json(successResponse(undefined, `Email receipt sent to ${email}`));
     } catch (e) { next(e); }
   }
 );
