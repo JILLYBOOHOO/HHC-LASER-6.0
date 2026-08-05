@@ -56,6 +56,42 @@ import { treatments } from '../../../core/data/services.data';
             </div>
           </div>
 
+          <div class="mb-8 relative overflow-hidden rounded-3xl border border-[#d4a359]/35"
+               style="background: linear-gradient(135deg, #fffdf9 0%, #f7efe3 48%, #f3e6d4 100%);">
+            <div class="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full opacity-40"
+                 style="background: radial-gradient(circle, rgba(212,163,89,0.35) 0%, transparent 70%);"></div>
+            <div class="pointer-events-none absolute -left-10 -bottom-16 h-44 w-44 rounded-full opacity-30"
+                 style="background: radial-gradient(circle, rgba(212,163,89,0.28) 0%, transparent 70%);"></div>
+
+            <div class="relative px-8 py-10 md:px-12 md:py-11 flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+              <div class="max-w-xl text-center md:text-left">
+                <span class="inline-block text-[11px] tracking-[0.22em] uppercase font-semibold mb-3"
+                      style="color: #b8893f;">Need guidance?</span>
+                <h3 class="font-heading text-2xl md:text-3xl text-black leading-tight mb-3">
+                  Having trouble choosing a treatment?
+                </h3>
+                <p class="text-charcoal-600 text-sm md:text-[15px] leading-relaxed">
+                  Give us a call — our team can help you find the right option for your goals.
+                </p>
+              </div>
+
+              <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 shrink-0">
+                <a href="tel:+18763196241"
+                   class="inline-flex items-center justify-center gap-2.5 min-w-[11.5rem] px-5 py-3.5 rounded-2xl font-semibold text-black transition-all duration-300 hover:-translate-y-0.5"
+                   style="background: #d4a359; box-shadow: 0 10px 24px rgba(212,163,89,0.28);">
+                  <mat-icon class="!text-[1.15rem] !w-5 !h-5">call</mat-icon>
+                  (876) 319-6241
+                </a>
+                <a href="tel:+18766318134"
+                   class="inline-flex items-center justify-center gap-2.5 min-w-[11.5rem] px-5 py-3.5 rounded-2xl font-semibold text-black transition-all duration-300 hover:-translate-y-0.5 bg-white/80 hover:bg-white border border-[#d4a359]/45"
+                   style="box-shadow: 0 8px 20px rgba(0,0,0,0.04);">
+                  <mat-icon class="!text-[1.15rem] !w-5 !h-5" style="color: #b8893f;">call</mat-icon>
+                  (876) 631-8134
+                </a>
+              </div>
+            </div>
+          </div>
+
           <div class="mb-16">
             <div class="bg-white rounded-3xl p-8 md:p-10 shadow-lg border border-cream-200">
               <h3 class="font-heading font-bold text-black mb-6 text-2xl text-center md:text-left">What to Expect</h3>
@@ -116,25 +152,6 @@ import { treatments } from '../../../core/data/services.data';
               </div>
             </div>
           }
-
-          <div class="mb-8 rounded-3xl border border-black/10 bg-black text-white px-8 py-10 md:px-12 md:py-12 text-center">
-            <h3 class="font-heading text-2xl md:text-3xl mb-3">Having trouble choosing a treatment?</h3>
-            <p class="text-white/70 text-sm md:text-base max-w-xl mx-auto mb-8">
-              Give us a call — our team can help you find the right option for your goals.
-            </p>
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-              <a href="tel:+18763196241"
-                 class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#d4a359] hover:bg-[#c49348] text-black font-bold transition-colors">
-                <mat-icon class="!text-xl">phone</mat-icon>
-                (876) 319-6241
-              </a>
-              <a href="tel:+18766318134"
-                 class="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-white/30 hover:border-white/60 text-white font-bold transition-colors">
-                <mat-icon class="!text-xl">phone</mat-icon>
-                (876) 631-8134
-              </a>
-            </div>
-          </div>
         </div>
       } @else {
         <div class="text-center py-32">
