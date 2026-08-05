@@ -1,12 +1,27 @@
-import { Component, signal, OnInit } from '@angular/core';
+import { Component, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { getContactMessages, ContactMessage, CONTACT_MESSAGES_KEY } from '../../../core/services/contact-messages';
-
+import { HttpClient } from '@angular/common/http';
 import { RouterModule } from '@angular/router';
+import { AuthStateService } from '../../../core/store/auth-state.service';
+import { environment } from '../../../../environments/environment';
+import { getContactMessages, ContactMessage, CONTACT_MESSAGES_KEY } from '../../../core/services/contact-messages';
 import { InternalBookingModalComponent } from '../../../shared/components/internal-booking-modal/internal-booking-modal.component';
+
+export interface TodayScheduleItem {
+  id: string;
+  time: string;
+  patientName: string;
+  serviceName: string;
+  specialistName: string;
+  locationName: string;
+  locationClass: string;
+  status: string;
+  statusClass: string;
+  rawDate: string;
+}
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -63,8 +78,11 @@ import { InternalBookingModalComponent } from '../../../shared/components/intern
                    placeholder="Patient or Confirm #..."
                    class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:border-slate-800 text-slate-900 placeholder:text-slate-400">
           </div>
-          
-
+          <button type="button" (click)="openBookingModal()"
+                  class="px-3 py-2 bg-black text-white rounded-lg text-xs font-bold hover:bg-slate-800 transition-colors flex items-center gap-1.5 shrink-0 shadow-sm">
+            <mat-icon class="!text-sm text-[#B36A17]">add_circle</mat-icon>
+            <span>New Appointment</span>
+          </button>
         </div>
       </div>
 
@@ -85,7 +103,7 @@ import { InternalBookingModalComponent } from '../../../shared/components/intern
         <div class="p-4 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white shadow-sm border border-emerald-400/20 flex items-center justify-between h-20 group hover:scale-[1.01] transition-transform">
           <div>
             <div class="text-[10px] font-extrabold text-emerald-100 uppercase tracking-widest">Appointments</div>
-            <div class="text-xl font-black mt-0.5 tracking-tight">411</div>
+            <div class="text-xl font-black mt-0.5 tracking-tight">{{ todayAppointmentCount() }}</div>
           </div>
           <div class="w-8 h-8 rounded-lg bg-black/20 flex items-center justify-center flex-shrink-0">
             <mat-icon class="!text-lg text-emerald-100">calendar_today</mat-icon>
@@ -96,7 +114,7 @@ import { InternalBookingModalComponent } from '../../../shared/components/intern
         <div class="p-4 rounded-xl bg-gradient-to-br from-orange-500 to-rose-600 text-white shadow-sm border border-orange-400/20 flex items-center justify-between h-20 group hover:scale-[1.01] transition-transform">
           <div>
             <div class="text-[10px] font-extrabold text-orange-100 uppercase tracking-widest">Total Patients</div>
-            <div class="text-xl font-black mt-0.5 tracking-tight">479</div>
+            <div class="text-xl font-black mt-0.5 tracking-tight">{{ totalPatientsCount() }}</div>
           </div>
           <div class="w-8 h-8 rounded-lg bg-black/20 flex items-center justify-center flex-shrink-0">
             <mat-icon class="!text-lg text-orange-100">people</mat-icon>
@@ -107,7 +125,7 @@ import { InternalBookingModalComponent } from '../../../shared/components/intern
         <div class="p-4 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-700 text-white shadow-sm border border-blue-400/20 flex items-center justify-between h-20 group hover:scale-[1.01] transition-transform">
           <div>
             <div class="text-[10px] font-extrabold text-blue-100 uppercase tracking-widest">Pending Transactions</div>
-            <div class="text-xl font-black mt-0.5 tracking-tight">12 pending</div>
+            <div class="text-xl font-black mt-0.5 tracking-tight">{{ pendingCount() }} pending</div>
           </div>
           <div class="w-8 h-8 rounded-lg bg-black/20 flex items-center justify-center flex-shrink-0">
             <mat-icon class="!text-lg text-blue-100">payment</mat-icon>
@@ -134,75 +152,37 @@ import { InternalBookingModalComponent } from '../../../shared/components/intern
             <table class="w-full text-left text-xs border-collapse">
               <thead>
                 <tr class="bg-slate-50/50 border-b border-slate-100 text-slate-500 font-extrabold uppercase text-[10px] tracking-wider">
-                  <th class="py-2 px-4 w-20">Time</th>
-                  <th class="py-2 px-4">Patient</th>
-                  <th class="py-2 px-4">Service</th>
-                  <th class="py-2 px-4">Specialist</th>
-                  <th class="py-2 px-4">Location</th>
-                  <th class="py-2 px-4">Status</th>
+                  <th class="py-2.5 px-4 w-24">Time</th>
+                  <th class="py-2.5 px-4">Patient</th>
+                  <th class="py-2.5 px-4">Service</th>
+                  <th class="py-2.5 px-4">Specialist</th>
+                  <th class="py-2.5 px-4">Location</th>
+                  <th class="py-2.5 px-4">Status</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 text-slate-700 font-bold">
-                
-                <!-- Appointment Row 1 (Mannings Hill) -->
-                @if (selectedLocation === 'all' || selectedLocation === 'mannings') {
-                  <tr class="hover:bg-slate-50/80 transition-colors">
-                    <td class="py-2 px-4 text-slate-900 font-black whitespace-nowrap">09:00 AM</td>
-                    <td class="py-2 px-4">Jane Bennett</td>
-                    <td class="py-2 px-4 text-slate-600">Laser Hair Removal</td>
-                    <td class="py-2 px-4 text-slate-600">Dr. Sarah Jenkins</td>
-                    <td class="py-2 px-4"><span class="text-[10px] px-2 py-0.5 bg-purple-50 text-purple-700 rounded-full font-extrabold">Mannings Hill</span></td>
-                    <td class="py-2 px-4"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded-full uppercase">In Room</span></td>
-                  </tr>
-                }
+                <tr *ngFor="let appt of filteredAppointments()" class="hover:bg-slate-50/80 transition-colors">
+                  <td class="py-2.5 px-4 text-slate-900 font-black whitespace-nowrap">{{ appt.time }}</td>
+                  <td class="py-2.5 px-4 font-extrabold text-slate-900">{{ appt.patientName }}</td>
+                  <td class="py-2.5 px-4 text-slate-600 font-semibold">{{ appt.serviceName }}</td>
+                  <td class="py-2.5 px-4 text-slate-600 font-semibold">{{ appt.specialistName }}</td>
+                  <td class="py-2.5 px-4">
+                    <span class="text-[10px] px-2.5 py-0.5 rounded-full font-extrabold whitespace-nowrap" [ngClass]="appt.locationClass">
+                      {{ appt.locationName }}
+                    </span>
+                  </td>
+                  <td class="py-2.5 px-4">
+                    <span class="px-2.5 py-0.5 text-[10px] font-black rounded-full uppercase whitespace-nowrap" [ngClass]="appt.statusClass">
+                      {{ appt.status }}
+                    </span>
+                  </td>
+                </tr>
 
-                <!-- Appointment Row 2 (Constant Spring) -->
-                @if (selectedLocation === 'all' || selectedLocation === 'constant') {
-                  <tr class="hover:bg-slate-50/80 transition-colors">
-                    <td class="py-2 px-4 text-slate-900 font-black whitespace-nowrap">10:30 AM</td>
-                    <td class="py-2 px-4">Marcus Sterling</td>
-                    <td class="py-2 px-4 text-slate-600">Microdermabrasion</td>
-                    <td class="py-2 px-4 text-slate-600">Dr. Marcus Wright</td>
-                    <td class="py-2 px-4"><span class="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full font-extrabold">Constant Spring</span></td>
-                    <td class="py-2 px-4"><span class="px-2 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-black rounded-full uppercase">Checked In</span></td>
-                  </tr>
-                }
-
-                <!-- Appointment Row 3 (Mannings Hill) -->
-                @if (selectedLocation === 'all' || selectedLocation === 'mannings') {
-                  <tr class="hover:bg-slate-50/80 transition-colors">
-                    <td class="py-2 px-4 text-slate-900 font-black whitespace-nowrap">01:00 PM</td>
-                    <td class="py-2 px-4">Alianna Myers</td>
-                    <td class="py-2 px-4 text-slate-600">Chemical Peel</td>
-                    <td class="py-2 px-4 text-slate-600">Dr. Sarah Jenkins</td>
-                    <td class="py-2 px-4"><span class="text-[10px] px-2 py-0.5 bg-purple-50 text-purple-700 rounded-full font-extrabold">Mannings Hill</span></td>
-                    <td class="py-2 px-4"><span class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-black rounded-full uppercase">Pending</span></td>
-                  </tr>
-                }
-
-                <!-- Appointment Row 4 (Constant Spring) -->
-                @if (selectedLocation === 'all' || selectedLocation === 'constant') {
-                  <tr class="hover:bg-slate-50/80 transition-colors">
-                    <td class="py-2 px-4 text-slate-900 font-black whitespace-nowrap">02:30 PM</td>
-                    <td class="py-2 px-4">Donald Sinclair</td>
-                    <td class="py-2 px-4 text-slate-600">Laser Treatment</td>
-                    <td class="py-2 px-4 text-slate-600">Dr. Marcus Wright</td>
-                    <td class="py-2 px-4"><span class="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full font-extrabold">Constant Spring</span></td>
-                    <td class="py-2 px-4"><span class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-black rounded-full uppercase">Pending</span></td>
-                  </tr>
-                }
-
-                <!-- Appointment Row 5 (Mannings Hill) -->
-                @if (selectedLocation === 'all' || selectedLocation === 'mannings') {
-                  <tr class="hover:bg-slate-50/80 transition-colors">
-                    <td class="py-2 px-4 text-slate-900 font-black whitespace-nowrap">04:00 PM</td>
-                    <td class="py-2 px-4">Vanessa Campbell</td>
-                    <td class="py-2 px-4 text-slate-600">Chemical Peel</td>
-                    <td class="py-2 px-4 text-slate-600">Dr. Sarah Jenkins</td>
-                    <td class="py-2 px-4"><span class="text-[10px] px-2 py-0.5 bg-purple-50 text-purple-700 rounded-full font-extrabold">Mannings Hill</span></td>
-                    <td class="py-2 px-4"><span class="px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-black rounded-full uppercase">Scheduled</span></td>
-                  </tr>
-                }
+                <tr *ngIf="filteredAppointments().length === 0">
+                  <td colspan="6" class="py-8 text-center text-slate-400 text-xs font-bold">
+                    No appointments scheduled for today.
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -217,25 +197,13 @@ import { InternalBookingModalComponent } from '../../../shared/components/intern
               <button type="button" class="text-[10px] font-black text-cyan-600 hover:text-cyan-800 uppercase tracking-wider">View all</button>
             </div>
             <div class="space-y-2 text-xs">
-              <div class="flex items-start gap-2.5 p-1.5 rounded-lg hover:bg-slate-50 transition-colors">
-                <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0"><mat-icon class="!text-base">calendar_today</mat-icon></div>
-                <div>
-                  <div class="font-extrabold text-slate-800">New appointment booked</div>
-                  <div class="text-[10px] font-bold text-slate-500">John Doe - Consultation (2m ago)</div>
+              <div *ngFor="let act of recentActivities()" class="flex items-start gap-2.5 p-1.5 rounded-lg hover:bg-slate-50 transition-colors">
+                <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" [ngClass]="act.iconBg">
+                  <mat-icon class="!text-base">{{ act.icon }}</mat-icon>
                 </div>
-              </div>
-              <div class="flex items-start gap-2.5 p-1.5 rounded-lg hover:bg-slate-50 transition-colors">
-                <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0"><mat-icon class="!text-base">check_circle</mat-icon></div>
                 <div>
-                  <div class="font-extrabold text-slate-800">Appointment completed</div>
-                  <div class="text-[10px] font-bold text-slate-500">Sarah Smith - Follow-up (15m ago)</div>
-                </div>
-              </div>
-              <div class="flex items-start gap-2.5 p-1.5 rounded-lg hover:bg-slate-50 transition-colors">
-                <div class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0"><mat-icon class="!text-base">schedule</mat-icon></div>
-                <div>
-                  <div class="font-extrabold text-slate-800">Appointment rescheduled</div>
-                  <div class="text-[10px] font-bold text-slate-500">Mike Johnson - Check-up (1h ago)</div>
+                  <div class="font-extrabold text-slate-800">{{ act.title }}</div>
+                  <div class="text-[10px] font-bold text-slate-500">{{ act.sub }}</div>
                 </div>
               </div>
             </div>
@@ -248,43 +216,37 @@ import { InternalBookingModalComponent } from '../../../shared/components/intern
                 <mat-icon class="text-amber-500 !text-lg">mail</mat-icon>
                 <span class="font-extrabold text-sm text-slate-800 tracking-tight">
                   Form Submissions
-                  @if (unreadCount() > 0) {
-                    <span class="ml-1.5 px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-black rounded-full">{{ unreadCount() }} NEW</span>
-                  }
+                  <span *ngIf="unreadCount() > 0" class="ml-1.5 px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-black rounded-full">{{ unreadCount() }} NEW</span>
                 </span>
               </div>
               <button type="button" (click)="clearAll()" class="text-[10px] font-black text-slate-400 hover:text-red-500 transition-colors uppercase tracking-wider">Clear</button>
             </div>
 
-            @if (messages().length === 0) {
-              <div class="py-8 text-center text-slate-400 text-xs font-bold">
-                <mat-icon class="!text-3xl text-slate-200 block mx-auto mb-1">inbox</mat-icon>
-                No submissions.
-              </div>
-            } @else {
-              <div class="divide-y divide-slate-100 max-h-48 overflow-y-auto custom-scrollbar">
-                @for (msg of messages(); track msg.id) {
-                  <div class="px-4 py-2.5 flex items-start gap-3 hover:bg-slate-50 transition-colors cursor-pointer"
-                       [class.bg-blue-50]="!msg.read"
-                       (click)="markRead(msg)">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-black font-black text-xs flex-shrink-0"
-                         style="background: linear-gradient(135deg, #D6B36A, #b8924f);">
-                      {{ msg.name.charAt(0).toUpperCase() }}
-                    </div>
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-center justify-between gap-1">
-                        <span class="font-extrabold text-xs text-slate-800 truncate">{{ msg.name }}</span>
-                        <span class="text-[9px] font-bold text-slate-400 whitespace-nowrap">{{ formatTime(msg.timestamp) }}</span>
-                      </div>
-                      <p class="text-xs text-slate-600 truncate">{{ msg.message }}</p>
-                    </div>
-                    <button type="button" (click)="deleteMsg($event, msg.id)" class="text-slate-300 hover:text-red-400 transition-colors flex-shrink-0">
-                      <mat-icon class="!text-base">delete_outline</mat-icon>
-                    </button>
+            <div *ngIf="messages().length === 0" class="py-8 text-center text-slate-400 text-xs font-bold">
+              <mat-icon class="!text-3xl text-slate-200 block mx-auto mb-1">inbox</mat-icon>
+              No submissions.
+            </div>
+
+            <div *ngIf="messages().length > 0" class="divide-y divide-slate-100 max-h-48 overflow-y-auto custom-scrollbar">
+              <div *ngFor="let msg of messages()" class="px-4 py-2.5 flex items-start gap-3 hover:bg-slate-50 transition-colors cursor-pointer"
+                   [class.bg-blue-50]="!msg.read"
+                   (click)="markRead(msg)">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center text-black font-black text-xs flex-shrink-0"
+                     style="background: linear-gradient(135deg, #D6B36A, #b8924f);">
+                  {{ msg.name.charAt(0).toUpperCase() }}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between gap-1">
+                    <span class="font-extrabold text-xs text-slate-800 truncate">{{ msg.name }}</span>
+                    <span class="text-[9px] font-bold text-slate-400 whitespace-nowrap">{{ formatTime(msg.timestamp) }}</span>
                   </div>
-                }
+                  <p class="text-xs text-slate-600 truncate">{{ msg.message }}</p>
+                </div>
+                <button type="button" (click)="deleteMsg($event, msg.id)" class="text-slate-300 hover:text-red-400 transition-colors flex-shrink-0">
+                  <mat-icon class="!text-base">delete_outline</mat-icon>
+                </button>
               </div>
-            }
+            </div>
           </div>
         </div>
 
@@ -294,7 +256,7 @@ import { InternalBookingModalComponent } from '../../../shared/components/intern
     </div>
   `
 })
-export class AdminDashboardComponent implements OnInit {
+export class AdminDashboardComponent implements OnInit, OnDestroy {
   selectedLocation = 'all';
   todayDate = new Date();
   searchQuery = '';
@@ -302,18 +264,127 @@ export class AdminDashboardComponent implements OnInit {
   unreadCount = signal(0);
   showBookingModal = false;
 
+  // Real-time dynamic state signals
+  todayAppointments = signal<TodayScheduleItem[]>([]);
+  todayAppointmentCount = signal<number>(0);
+  totalPatientsCount = signal<number>(479);
+  pendingCount = signal<number>(0);
+  recentActivities = signal<{title: string, sub: string, icon: string, iconBg: string}[]>([]);
+
+  private pollInterval: any;
+
+  constructor(private http: HttpClient, private authState: AuthStateService) {}
+
+  ngOnInit() {
+    this.loadMessages();
+    this.fetchDashboardData();
+
+    // Poll every 5 seconds for real-time synchronization with calendar & backend database
+    this.pollInterval = setInterval(() => {
+      this.loadMessages();
+      this.fetchDashboardData();
+    }, 5000);
+  }
+
+  ngOnDestroy() {
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+    }
+  }
+
+  fetchDashboardData() {
+    const headers = { Authorization: `Bearer ${this.authState.token()}` };
+    this.http.get<any>(`${environment.apiUrl}/admin/bookings`, { headers }).subscribe({
+      next: (res) => {
+        if (res.success && Array.isArray(res.data)) {
+          const todayStr = new Date().toISOString().split('T')[0];
+          const allBookings = res.data;
+          
+          const mapped: TodayScheduleItem[] = allBookings.map((b: any) => {
+            const time24 = b.appointment_time || b.start_time || '09:00';
+            const [h, m] = time24.split(':').map(Number);
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            const h12 = h % 12 || 12;
+            const formattedTime = `${h12.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${ampm}`;
+            
+            const locId = b.location_id || 1;
+            const locationName = locId === 2 ? 'Constant Spring' : 'Mannings Hill';
+            const locationClass = locId === 2 ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700';
+            
+            let statusLabel = 'SCHEDULED';
+            let statusClass = 'bg-slate-100 text-slate-600';
+
+            if (b.status === 'in_treatment') {
+              statusLabel = 'IN ROOM';
+              statusClass = 'bg-emerald-100 text-emerald-800';
+            } else if (b.status === 'checked_in') {
+              statusLabel = 'CHECKED IN';
+              statusClass = 'bg-blue-100 text-blue-800';
+            } else if (b.status === 'completed') {
+              statusLabel = 'COMPLETED';
+              statusClass = 'bg-purple-100 text-purple-800';
+            } else if (b.status === 'cancelled') {
+              statusLabel = 'CANCELLED';
+              statusClass = 'bg-red-100 text-red-800';
+            } else if (b.status === 'pending' || b.payment_status === 'pending_payment') {
+              statusLabel = 'PENDING';
+              statusClass = 'bg-amber-100 text-amber-800';
+            }
+
+            return {
+              id: String(b.id),
+              time: formattedTime,
+              patientName: `${b.customer_first_name || ''} ${b.customer_last_name || ''}`.trim() || 'Patient',
+              serviceName: b.service_name || 'Service',
+              specialistName: b.employee_name || (locId === 2 ? 'Dr. Marcus Wright' : 'Dr. Sarah Jenkins'),
+              locationName,
+              locationClass,
+              status: statusLabel,
+              statusClass,
+              rawDate: b.appointment_date || b.scheduled_date || todayStr
+            };
+          });
+
+          // Show today's active appointments or fallback to latest appointments
+          const todaysOnly = mapped.filter(item => item.rawDate === todayStr && item.status !== 'CANCELLED');
+          const activeList = todaysOnly.length > 0 ? todaysOnly : mapped.filter(i => i.status !== 'CANCELLED').slice(0, 10);
+          
+          this.todayAppointments.set(activeList);
+          this.todayAppointmentCount.set(activeList.length);
+          this.pendingCount.set(mapped.filter(i => i.status === 'PENDING').length);
+
+          // Generate dynamic recent activity feed from latest bookings
+          const recentActs = mapped.slice(0, 3).map((item: TodayScheduleItem) => ({
+            title: item.status === 'COMPLETED' ? 'Appointment completed' : (item.status === 'CANCELLED' ? 'Appointment cancelled' : 'New appointment booked'),
+            sub: `${item.patientName} - ${item.serviceName}`,
+            icon: item.status === 'COMPLETED' ? 'check_circle' : (item.status === 'CANCELLED' ? 'cancel' : 'calendar_today'),
+            iconBg: item.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600' : (item.status === 'CANCELLED' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600')
+          }));
+          this.recentActivities.set(recentActs);
+        }
+      },
+      error: (err) => console.error('Failed to load dashboard bookings', err)
+    });
+  }
+
+  filteredAppointments(): TodayScheduleItem[] {
+    const query = this.searchQuery.toLowerCase().trim();
+    return this.todayAppointments().filter(item => {
+      const matchLoc = this.selectedLocation === 'all' || 
+                       (this.selectedLocation === 'mannings' && item.locationName === 'Mannings Hill') ||
+                       (this.selectedLocation === 'constant' && item.locationName === 'Constant Spring');
+      const matchSearch = !query || item.patientName.toLowerCase().includes(query) || item.serviceName.toLowerCase().includes(query);
+      return matchLoc && matchSearch;
+    });
+  }
+
   openBookingModal() {
     this.showBookingModal = true;
   }
 
   closeBookingModal() {
     this.showBookingModal = false;
-  }
-
-  ngOnInit() {
-    this.loadMessages();
-    // Poll for new messages every 10s
-    setInterval(() => this.loadMessages(), 10000);
+    this.fetchDashboardData();
   }
 
   loadMessages() {
