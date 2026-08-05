@@ -1,0 +1,6 @@
+{
+  "buildCommand": "npm run build:prod",
+  "outputDirectory": "dist/hhc-laser-frontend/browser",
+  "framework": null,
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
