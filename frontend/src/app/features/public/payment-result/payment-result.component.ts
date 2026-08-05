@@ -52,7 +52,7 @@ interface PaymentResult {
                 <div class="flex justify-between items-center py-3 border-b border-gray-100">
                   <span class="text-sm font-semibold text-gray-500">Amount Paid</span>
                   <span class="text-base font-extrabold text-green-600">
-                    {{ result().currency === '840' ? 'USD' : 'JMD' }} {{ result().chargetotal | number:'1.2-2' }}
+                    {{ result().currency === '840' || result().currency === 'USD' ? 'USD' : 'JMD' }} {{ result().chargetotal | number:'1.2-2' }}
                   </span>
                 </div>
               }
@@ -115,7 +115,7 @@ interface PaymentResult {
                 <div class="flex justify-between items-center py-3">
                   <span class="text-sm font-semibold text-gray-500">Attempted Amount</span>
                   <span class="text-base font-extrabold text-gray-600">
-                    {{ result().currency === '840' ? 'USD' : 'JMD' }} {{ result().chargetotal | number:'1.2-2' }}
+                    {{ result().currency === '840' || result().currency === 'USD' ? 'USD' : 'JMD' }} {{ result().chargetotal | number:'1.2-2' }}
                   </span>
                 </div>
               }
@@ -182,7 +182,7 @@ export class PaymentResultComponent implements OnInit {
     const approvalCode  = params['approval_code'] || '';
     const responseCode  = params['response_code'] || '';
     const chargetotal   = params['chargetotal'] || '';
-    const currency      = params['currency'] || '840';
+    const currency      = params['currency'] || '388';
     const txndatetime   = params['txndatetime'] || '';
     const status        = params['status'] || '';
 

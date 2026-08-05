@@ -9,12 +9,10 @@ import { requireRole } from '../middleware/rbac.middleware';
 import { validateRequest } from '../middleware/validation.middleware';
 import { transactionService } from '../services/transaction.service';
 import { paymentFlowService } from '../payments/fiserv/payment-flow.service';
-import { fiservClient } from '../payments/fiserv/fiserv.client';
 import { fiservWebhookHandler } from '../payments/fiserv/fiserv.webhook';
 import { executeQueryOne } from '../config/database';
 import { successResponse } from '../models/types';
 import { AppError } from '../middleware/error.middleware';
-import { logger } from '../utils/logger';
 
 const router = express.Router();
 
@@ -49,26 +47,12 @@ router.post('/create-checkout', authenticate, async (req: Request, res: Response
 });
 
 // ─── POST /api/payments/create-direct-checkout ───────────────────────────────
-router.post('/create-direct-checkout', authenticate, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { amount_jmd, description, order_ref } = req.body;
-    const amount = Number(amount_jmd);
-    if (!amount || amount <= 0) {
-      throw new AppError('amount_jmd is required and must be greater than 0', 400);
-    }
-
-    const idempotencyKey = order_ref || crypto.randomBytes(16).toString('hex');
-    const desc = description || 'HHC Laser Treatment';
-    const session = fiservClient.buildPaymentSession(idempotencyKey, amount, desc);
-
-    logger.info(
-      `[Fiserv] Direct checkout initiated: key=${idempotencyKey}, amount=${amount}, user=${req.user!.userId}`
-    );
-
-    res.json(successResponse(session));
-  } catch (e) {
-    next(e);
-  }
+// Disabled: all customer payments must go through a real appointment booking.
+router.post('/create-direct-checkout', authenticate, (_req: Request, res: Response) => {
+  res.status(410).json({
+    success: false,
+    message: 'Direct checkout is disabled. Please book a service and pay through the normal booking flow.',
+  });
 });
 
 // ─── POST /api/payments/callback ─────────────────────────────────────────────
@@ -153,8 +137,9 @@ router.post(
 
 /**
  * Builds a complete Fiserv Connect form + correct hashExtended.
+ * Admin/dev only — not used by customer booking (which uses create-checkout).
  */
-router.post('/generate-hash', (req, res) => {
+router.post('/generate-hash', authenticate, requireRole('admin', 'owner', 'manager'), (req, res) => {
   const chargeTotal = String(req.body.chargeTotal || '').trim();
 
   if (!chargeTotal || Number.isNaN(Number(chargeTotal))) {
@@ -162,7 +147,14 @@ router.post('/generate-hash', (req, res) => {
   }
 
   const storeId = env.FISERV_STORE_ID || env.FISERV_STORE_NAME;
-  const currency = env.FISERV_CURRENCY || '840';
+  // Always JMD (388) — never fall back to USD (840)
+  const rawCurrency = String(env.FISERV_CURRENCY || '388').trim();
+  const currency =
+    rawCurrency === '840' || rawCurrency.toUpperCase() === 'USD'
+      ? '388'
+      : rawCurrency.toUpperCase() === 'JMD'
+        ? '388'
+        : rawCurrency;
   const gatewayUrl =
     env.FISERV_GATEWAY_URL || `${env.FISERV_BASE_URL}/connect/gateway/processing`;
 

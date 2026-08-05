@@ -53,10 +53,14 @@ class PaymentFlowService {
                 transaction = undefined;
                 return;
             }
-            if (currency && currency !== transaction.currency && currency !== '840') {
-                logger_1.logger.error(`[Fiserv] Currency mismatch for ${idempotencyKey}. Expected ${transaction.currency} or 840, got ${currency}`);
-                transaction = undefined;
-                return;
+            // Gateway sends ISO numeric 388; DB stores 'JMD'. Reject USD (840).
+            if (currency) {
+                const normalized = String(currency).trim().toUpperCase();
+                if (normalized !== '388' && normalized !== 'JMD') {
+                    logger_1.logger.error(`[Fiserv] Currency mismatch for ${idempotencyKey}. Expected JMD/388, got ${currency}`);
+                    transaction = undefined;
+                    return;
+                }
             }
             // Update transaction status
             await conn.execute(`UPDATE transactions 

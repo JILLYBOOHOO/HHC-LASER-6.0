@@ -165,13 +165,6 @@ export class ApiService {
     );
   }
 
-  mockPayment(appointmentId: number): Observable<ApiResponse> {
-    return this.http.post<ApiResponse>(
-      `${this.base}/bookings/${appointmentId}/mock-payment`,
-      {},
-    );
-  }
-
   getAvailableDates(
     employeeId: number,
     locationId: number,
@@ -259,31 +252,7 @@ export class ApiService {
     });
   }
 
-  /** Creates a Fiserv HPP session directly without requiring a DB appointment record. */
-  createDirectCheckout(
-    amountJmd: number,
-    description: string,
-    orderRef?: string,
-  ): Observable<
-    ApiResponse<{
-      idempotencyKey: string;
-      redirectUrl: string;
-      formFields: Record<string, string>;
-    }>
-  > {
-    return this.http.post<
-      ApiResponse<{
-        idempotencyKey: string;
-        redirectUrl: string;
-        formFields: Record<string, string>;
-      }>
-    >(`${this.base}/payments/create-direct-checkout`, {
-      amount_jmd: amountJmd,
-      description,
-      order_ref: orderRef,
-    });
-  }
-
+  // ─── Admin / Staff ──────────────────────────────────────────────────────────
   getPaymentStatus(key: string): Observable<ApiResponse<Transaction>> {
     return this.http.get<ApiResponse<Transaction>>(
       `${this.base}/payments/status/${key}`,

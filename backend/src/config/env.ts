@@ -71,7 +71,8 @@ const envSchema = z.object({
   FISERV_SHARED_SECRET: z.string().min(1),
   FISERV_STORE_ID: z.string().min(1),
   FISERV_STORE_NAME: z.string().optional(),
-  FISERV_CURRENCY: z.string().default("840"),
+  // ISO 4217 numeric: 388 = JMD (never default to 840/USD for this business)
+  FISERV_CURRENCY: z.string().default("388"),
   FISERV_GATEWAY_URL: z
     .string()
     .url()
