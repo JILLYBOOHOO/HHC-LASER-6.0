@@ -111,4 +111,12 @@ export class AuthService {
       new_password: newPassword,
     });
   }
+
+  forgotPassword(email: string): Observable<ApiResponse> {
+    return this.http.post<ApiResponse>(`${this.api}/forgot-password`, { email });
+  }
+
+  resetPassword(token: string, password: string): Observable<ApiResponse> {
+    return this.http.post<ApiResponse>(`${this.api}/reset-password`, { token, password });
+  }
 }

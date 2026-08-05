@@ -29,6 +29,18 @@ export const loginValidators = [
   body('password').notEmpty().withMessage('Password is required.'),
 ];
 
+export const forgotPasswordValidators = [
+  body('email').isEmail().normalizeEmail().withMessage('A valid email is required.'),
+];
+
+export const resetPasswordValidators = [
+  body('token').notEmpty().withMessage('Reset token is required.'),
+  body('password')
+    .isLength({ min: 8 }).withMessage('Password must be at least 8 characters.')
+    .matches(/(?=.*[A-Z])(?=.*[a-z])(?=.*\d)/)
+    .withMessage('Password must contain uppercase, lowercase, and a number.'),
+];
+
 export class AuthController {
   async register(req: Request, res: Response): Promise<void> {
     const result = await authService.register(req.body);
@@ -109,6 +121,23 @@ export class AuthController {
     const { current_password, new_password } = req.body;
     await authService.changePassword(req.user!.userId, current_password, new_password);
     res.json(successResponse(undefined, 'Password changed successfully.'));
+  }
+
+  async forgotPassword(req: Request, res: Response): Promise<void> {
+    const { email } = req.body;
+    await authService.requestPasswordReset(email);
+    res.json(
+      successResponse(
+        undefined,
+        'If an account exists for that email, a password reset link has been sent.'
+      )
+    );
+  }
+
+  async resetPassword(req: Request, res: Response): Promise<void> {
+    const { token, password } = req.body;
+    await authService.resetPasswordWithToken(token, password);
+    res.json(successResponse(undefined, 'Password updated successfully. You can sign in now.'));
   }
 
   async me(req: Request, res: Response): Promise<void> {

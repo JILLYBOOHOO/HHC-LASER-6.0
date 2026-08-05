@@ -138,6 +138,12 @@ export const routes: Routes = [
         title: 'Reset Password — HHC LASER',
       },
       {
+        path: 'reset-password',
+        loadComponent: () => import('./features/auth/reset-password/reset-password.component')
+          .then(m => m.ResetPasswordComponent),
+        title: 'Choose New Password — HHC LASER',
+      },
+      {
         path: 'callback',
         loadComponent: () => import('./features/auth/oauth-callback/oauth-callback.component')
           .then(m => m.OauthCallbackComponent),

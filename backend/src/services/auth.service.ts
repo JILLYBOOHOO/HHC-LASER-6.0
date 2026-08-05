@@ -2,7 +2,13 @@ import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { OAuth2Client } from 'google-auth-library';
 import { executeQuery, executeQueryOne, executeUpdate, withTransaction } from '../config/database';
-import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt';
+import {
+  signAccessToken,
+  signRefreshToken,
+  verifyRefreshToken,
+  signPasswordResetToken,
+  verifyPasswordResetToken,
+} from '../utils/jwt';
 import { AppError } from '../middleware/error.middleware';
 import { CreateUserDto, User, UserWithRoles, UserRole } from '../models/types';
 import { notificationService } from './notification.service';
@@ -484,6 +490,100 @@ export class AuthService {
     }
 
     logger.info(`[Auth] User logged out: ID ${userId}`);
+  }
+
+  /**
+   * Always resolves successfully to avoid email enumeration.
+   * Sends a reset link when an active account exists.
+   */
+  async requestPasswordReset(email: string): Promise<void> {
+    const normalized = email.toLowerCase().trim();
+    const user = await executeQueryOne<User & { auth_uid?: string | null }>(
+      'SELECT * FROM users WHERE email = ? AND is_active = TRUE',
+      [normalized]
+    );
+
+    if (!user) {
+      logger.info(`[Auth] Password reset requested for unknown email: ${normalized}`);
+      return;
+    }
+
+    const token = signPasswordResetToken({
+      userId: user.id,
+      email: user.email,
+    });
+
+    await notificationService.sendPasswordReset(
+      { email: user.email, first_name: user.first_name },
+      token
+    );
+    logger.info(`[Auth] Password reset email queued for user ID ${user.id}`);
+  }
+
+  async resetPasswordWithToken(token: string, newPassword: string): Promise<void> {
+    let payload;
+    try {
+      payload = verifyPasswordResetToken(token);
+    } catch {
+      throw new AppError('This reset link is invalid or has expired. Please request a new one.', 400);
+    }
+
+    const user = await executeQueryOne<User & { auth_uid?: string | null }>(
+      'SELECT * FROM users WHERE id = ? AND email = ? AND is_active = TRUE',
+      [payload.userId, payload.email.toLowerCase()]
+    );
+    if (!user) {
+      throw new AppError('This reset link is invalid or has expired. Please request a new one.', 400);
+    }
+
+    if (isSupabaseAuthEnabled()) {
+      const admin = getSupabaseAdmin();
+      let authUid = user.auth_uid || null;
+
+      if (!authUid) {
+        const { data: created, error: createError } = await admin.auth.admin.createUser({
+          email: user.email,
+          password: newPassword,
+          email_confirm: true,
+          user_metadata: {
+            first_name: user.first_name,
+            last_name: user.last_name,
+          },
+        });
+
+        if (createError || !created.user) {
+          const listed = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+          const match = listed.data.users.find((u) => u.email?.toLowerCase() === user.email.toLowerCase());
+          if (!match) {
+            throw new AppError(createError?.message || 'Unable to update password. Please contact support.', 400);
+          }
+          authUid = match.id;
+          const { error: updateError } = await admin.auth.admin.updateUserById(authUid, {
+            password: newPassword,
+          });
+          if (updateError) throw new AppError(updateError.message, 400);
+        } else {
+          authUid = created.user.id;
+        }
+      } else {
+        const { error } = await admin.auth.admin.updateUserById(authUid, {
+          password: newPassword,
+        });
+        if (error) throw new AppError(error.message, 400);
+      }
+
+      await executeUpdate(
+        'UPDATE users SET password_hash = NULL, auth_uid = ?, token_version = token_version + 1 WHERE id = ?',
+        [authUid, user.id]
+      );
+      return;
+    }
+
+    const newHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+    await executeUpdate(
+      'UPDATE users SET password_hash = ?, token_version = token_version + 1 WHERE id = ?',
+      [newHash, user.id]
+    );
   }
 
   async changePassword(userId: number, currentPassword: string, newPassword: string): Promise<void> {
