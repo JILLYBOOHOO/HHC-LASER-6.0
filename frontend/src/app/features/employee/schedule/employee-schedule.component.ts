@@ -11,13 +11,14 @@ import { AddNoteModalComponent } from '../../../shared/components/add-note-modal
 import { InvoiceModalComponent } from '../../../shared/components/invoice-modal/invoice-modal.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatInputModule } from '@angular/material/input';
-import { ReactiveFormsModule, FormControl } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 
 @Component({
   selector: 'app-employee-schedule',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatIconModule,
     WeeklyCalendarComponent,
     InternalBookingModalComponent,
@@ -111,13 +112,65 @@ export class EmployeeScheduleComponent implements OnInit {
     return this.locations[this.currentLocationIdx];
   }
 
+  showFilterModal = signal<boolean>(false);
+  selectedStaffFilter = 'all';
+  selectedStatusFilter = 'all';
+  selectedPaymentFilter = 'all';
+  selectedServiceFilter = 'all';
+
   goToToday() { this.currentDate = new Date(); }
-  previousWeek() { const d = new Date(this.currentDate); d.setDate(d.getDate() - 7); this.currentDate = d; }
-  nextWeek() { const d = new Date(this.currentDate); d.setDate(d.getDate() + 7); this.currentDate = d; }
+  
+  previousWeek() {
+    const d = new Date(this.currentDate);
+    const step = this.activeView === 'day' ? 1 : (this.activeView === 'month' ? 30 : 7);
+    d.setDate(d.getDate() - step);
+    this.currentDate = d;
+  }
+
+  nextWeek() {
+    const d = new Date(this.currentDate);
+    const step = this.activeView === 'day' ? 1 : (this.activeView === 'month' ? 30 : 7);
+    d.setDate(d.getDate() + step);
+    this.currentDate = d;
+  }
+
   toggleLocation() { this.currentLocationIdx = (this.currentLocationIdx + 1) % this.locations.length; }
   zoomIn() { if (this.zoomLevel < 200) this.zoomLevel += 10; }
   zoomOut() { if (this.zoomLevel > 50) this.zoomLevel -= 10; }
-  setView(view: string) { this.activeView = view; }
+  
+  setView(view: string) {
+    this.activeView = view;
+    this.snackBar.open(`Switched view to ${view.toUpperCase()}`, 'Close', { duration: 2000, panelClass: ['bg-black', 'text-white'] });
+  }
+
+  openFilterMenu() {
+    this.showFilterModal.set(true);
+  }
+
+  resetFilters() {
+    this.selectedStaffFilter = 'all';
+    this.selectedStatusFilter = 'all';
+    this.selectedPaymentFilter = 'all';
+    this.selectedServiceFilter = 'all';
+    this.showFilterModal.set(false);
+    this.snackBar.open('Filters reset to show all appointments', 'Close', { duration: 2500, panelClass: ['bg-black', 'text-white'] });
+  }
+
+  applyFilters() {
+    this.showFilterModal.set(false);
+    const count = this.filteredCalendarEvents().length;
+    this.snackBar.open(`Filters applied (${count} appointments found)`, 'Close', { duration: 2500, panelClass: ['bg-black', 'text-white'] });
+  }
+
+  filteredCalendarEvents(): CalendarEvent[] {
+    return this.calendarEvents.filter(ev => {
+      if (this.selectedStaffFilter !== 'all' && ev.staffName !== this.selectedStaffFilter) return false;
+      if (this.selectedStatusFilter !== 'all' && ev.status !== this.selectedStatusFilter) return false;
+      if (this.selectedPaymentFilter !== 'all' && ev.paymentStatus !== this.selectedPaymentFilter) return false;
+      if (this.selectedServiceFilter !== 'all' && !ev.title.toLowerCase().includes(this.selectedServiceFilter.toLowerCase())) return false;
+      return true;
+    });
+  }
 
   addBlockTime(category: string) {
     // Quick mockup block time
