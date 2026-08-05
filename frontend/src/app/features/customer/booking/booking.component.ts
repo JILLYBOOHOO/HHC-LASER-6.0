@@ -2444,17 +2444,52 @@ export class BookingComponent implements OnInit {
 
   /** Dynamically creates and submits an HTML form via POST to the Fiserv gateway. */
   private postToFiservGateway(url: string, fields: Record<string, string>): void {
+    const gatewayUrl = String(url || '').trim();
+    if (!gatewayUrl || !/^https:\/\/.+\.ipg-online\.com\//i.test(gatewayUrl)) {
+      this.isPaying.set(false);
+      console.error('[Fiserv] Refusing to submit — invalid gateway URL:', gatewayUrl);
+      this.snackBar.open(
+        'Payment gateway URL is invalid. Please contact support.',
+        'Close',
+        { duration: 8000 }
+      );
+      return;
+    }
+
+    // Never accidentally POST to our SPA fail/success routes
+    if (/\/payment\/(failure|success)/i.test(gatewayUrl) || /localhost:4200/i.test(gatewayUrl)) {
+      this.isPaying.set(false);
+      console.error('[Fiserv] Refusing to submit — URL looks like an app return path:', gatewayUrl);
+      this.snackBar.open(
+        'Payment could not start (bad redirect). Please try again.',
+        'Close',
+        { duration: 8000 }
+      );
+      return;
+    }
+
     const form = document.createElement('form');
     form.method = 'POST';
-    form.action = url;
+    form.action = gatewayUrl;
+    form.acceptCharset = 'UTF-8';
+    form.style.display = 'none';
 
-    for (const [key, value] of Object.entries(fields)) {
+    for (const [key, value] of Object.entries(fields || {})) {
+      if (value == null || value === '') continue;
       const input = document.createElement('input');
       input.type = 'hidden';
       input.name = key;
       input.value = String(value);
       form.appendChild(input);
     }
+
+    console.info('[Fiserv] Submitting to gateway', {
+      action: gatewayUrl,
+      currency: fields?.['currency'],
+      chargetotal: fields?.['chargetotal'],
+      timezone: fields?.['timezone'],
+      oid: fields?.['oid'],
+    });
 
     document.body.appendChild(form);
     form.submit();

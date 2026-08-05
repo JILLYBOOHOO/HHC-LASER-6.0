@@ -7,6 +7,7 @@ import { Transaction, TransactionPaymentStatus } from '../models/types';
 import { env } from '../config/env';
 import { logger } from '../utils/logger';
 import { notificationService } from './notification.service';
+import { resolveFiservBrowserReturnUrl } from '../payments/fiserv/fiserv-return-urls';
 
 export interface InitiatePaymentDto {
   appointmentId?: number;
@@ -70,8 +71,14 @@ export class PaymentService {
       currency,
       hash_algorithm: 'HMACSHA256',
       hash,
-      responseSuccessURL: env.FISERV_SUCCESS_URL,
-      responseFailURL: env.FISERV_FAILURE_URL,
+      responseSuccessURL: resolveFiservBrowserReturnUrl(
+        env.FISERV_SUCCESS_URL,
+        '/api/payments/success',
+      ),
+      responseFailURL: resolveFiservBrowserReturnUrl(
+        env.FISERV_FAILURE_URL,
+        '/api/payments/error',
+      ),
       transactionNotificationURL: env.FISERV_CALLBACK_URL,
       oid: idempotencyKey,
       mode: 'payonly',
