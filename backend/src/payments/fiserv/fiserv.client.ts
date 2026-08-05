@@ -1,12 +1,20 @@
 import moment from 'moment-timezone';
 import { env } from '../../config/env';
 import { generateFiservSignature } from './fiserv.crypto';
+import { resolveFiservBrowserReturnUrl } from './fiserv-return-urls';
 
 export interface FiservPaymentSession {
   idempotencyKey: string;
   redirectUrl: string;
   formFields: Record<string, string>;
 }
+
+/**
+ * Fiserv Connect only accepts a fixed timezone list.
+ * America/Jamaica is NOT valid and causes an immediate bounce to responseFailURL
+ * before the card entry page (often seen in the browser as Cannot POST /payment/failure).
+ */
+const FISERV_TIMEZONE = 'America/New_York';
 
 export class FiservClient {
   /**
@@ -18,30 +26,39 @@ export class FiservClient {
     amountJmd: number,
     description: string
   ): FiservPaymentSession {
-    const timezone = 'America/Jamaica';
+    const timezone = FISERV_TIMEZONE;
     const txnDatetime = moment().tz(timezone).format('YYYY:MM:DD-HH:mm:ss');
     const chargetotal = Number(amountJmd || 0).toFixed(2);
 
     const storeId = env.FISERV_STORE_ID || env.FISERV_STORE_NAME || '';
     // Always charge in Jamaican dollars (ISO 4217 numeric code 388).
-    // Reject accidental USD (840) from misconfigured env.
     const rawCurrency = String(env.FISERV_CURRENCY || '388').trim();
-    const currency = rawCurrency === '840' || rawCurrency.toUpperCase() === 'USD' ? '388' : (rawCurrency.toUpperCase() === 'JMD' ? '388' : rawCurrency);
+    const currency =
+      rawCurrency === '840' || rawCurrency.toUpperCase() === 'USD'
+        ? '388'
+        : rawCurrency.toUpperCase() === 'JMD'
+          ? '388'
+          : rawCurrency;
 
     const gatewayUrl =
       env.FISERV_GATEWAY_URL ||
       env.FISERV_ENDPOINT ||
       `${env.FISERV_BASE_URL}/connect/gateway/processing`;
 
-    const apiBase = (env.API_BASE_URL || '').replace(/\/$/, '');
-    const successUrl = env.FISERV_SUCCESS_URL || `${apiBase}/api/payments/success`;
-    const failUrl = env.FISERV_FAILURE_URL || `${apiBase}/api/payments/error`;
+    // Must be API endpoints (accept POST). Never point at the Angular SPA.
+    const successUrl = resolveFiservBrowserReturnUrl(
+      env.FISERV_SUCCESS_URL,
+      '/api/payments/success',
+    );
+    const failUrl = resolveFiservBrowserReturnUrl(
+      env.FISERV_FAILURE_URL,
+      '/api/payments/error',
+    );
 
-    // Align with the working generate-hash Connect field set
+    // Minimal Connect field set — only gateway-recognized params (all hashed).
     const baseFields: Record<string, string> = {
       chargetotal,
       checkoutoption: 'combinedpage',
-      comments: `HHC LASER - ${description}`,
       currency,
       hash_algorithm: 'HMACSHA256',
       language: 'en_US',
@@ -50,10 +67,17 @@ export class FiservClient {
       responseSuccessURL: successUrl,
       storename: storeId,
       timezone,
-      transactionNotificationURL: env.FISERV_CALLBACK_URL,
       txndatetime: txnDatetime,
       txntype: 'sale',
     };
+
+    // Optional but supported — only include when publicly reachable (not localhost)
+    if (
+      env.FISERV_CALLBACK_URL &&
+      !/localhost|127\.0\.0\.1/i.test(env.FISERV_CALLBACK_URL)
+    ) {
+      baseFields.transactionNotificationURL = env.FISERV_CALLBACK_URL;
+    }
 
     const hashExtended = generateFiservSignature(baseFields);
 
