@@ -151,6 +151,5 @@ export class FooterComponent {
   legalLinks = [
     { path: '/terms-of-service', label: 'Terms of Service' },
     { path: '/refund-policy', label: 'Refund Policy' },
-    { path: '/consent',  label: 'Consent Forms' },
   ];
 }
