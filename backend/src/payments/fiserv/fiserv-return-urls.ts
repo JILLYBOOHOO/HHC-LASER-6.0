@@ -9,7 +9,7 @@ export function resolveFiservBrowserReturnUrl(
   configured: string | undefined,
   apiPath: '/api/payments/success' | '/api/payments/error',
 ): string {
-  const apiBase = (env.API_BASE_URL || '').replace(/\/$/, '');
+  const apiBase = (env.API_BASE_URL || 'http://localhost:3004').replace(/\/$/, '');
   const apiUrl = `${apiBase}${apiPath}`;
 
   if (!configured) return apiUrl;
