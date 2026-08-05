@@ -72,3 +72,35 @@ export function decodeToken(token: string): JwtPayload | null {
     return null;
   }
 }
+
+export interface PasswordResetTokenPayload {
+  purpose: 'password_reset';
+  userId: number;
+  email: string;
+  iat?: number;
+  exp?: number;
+}
+
+export function signPasswordResetToken(payload: Omit<PasswordResetTokenPayload, 'iat' | 'exp' | 'purpose'>): string {
+  return jwt.sign(
+    { ...payload, purpose: 'password_reset' as const },
+    env.JWT_SECRET,
+    {
+      expiresIn: '15m',
+      issuer: 'hhc-laser-api',
+      audience: 'hhc-laser-password-reset',
+    }
+  );
+}
+
+export function verifyPasswordResetToken(token: string): PasswordResetTokenPayload {
+  const payload = jwt.verify(token, env.JWT_SECRET, {
+    issuer: 'hhc-laser-api',
+    audience: 'hhc-laser-password-reset',
+  }) as PasswordResetTokenPayload;
+
+  if (payload.purpose !== 'password_reset') {
+    throw new jwt.JsonWebTokenError('Invalid password reset token');
+  }
+  return payload;
+}

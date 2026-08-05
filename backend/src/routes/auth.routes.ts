@@ -1,5 +1,11 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { authController, registerValidators, loginValidators } from '../controllers/auth.controller';
+import {
+  authController,
+  registerValidators,
+  loginValidators,
+  forgotPasswordValidators,
+  resetPasswordValidators,
+} from '../controllers/auth.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { validateRequest } from '../middleware/validation.middleware';
 import { body } from 'express-validator';
@@ -32,6 +38,24 @@ router.post(
   loginValidators,
   validateRequest,
   (req: Request, res: Response, next: NextFunction) => authController.login(req, res).catch(next)
+);
+
+// POST /api/auth/forgot-password
+router.post(
+  '/forgot-password',
+  authRateLimiter,
+  forgotPasswordValidators,
+  validateRequest,
+  (req: Request, res: Response, next: NextFunction) => authController.forgotPassword(req, res).catch(next)
+);
+
+// POST /api/auth/reset-password
+router.post(
+  '/reset-password',
+  authRateLimiter,
+  resetPasswordValidators,
+  validateRequest,
+  (req: Request, res: Response, next: NextFunction) => authController.resetPassword(req, res).catch(next)
 );
 
 // GET /api/auth/google

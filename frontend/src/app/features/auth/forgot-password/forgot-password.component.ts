@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-forgot-password',
@@ -19,13 +20,11 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
   ],
   template: `
     <div class="min-h-screen flex items-center justify-center px-4 py-12 bg-white">
-      <!-- Background Texture -->
       <div class="fixed inset-0 pointer-events-none opacity-40"
            style="background-image: radial-gradient(circle, rgba(0,0,0,0.05) 1px, transparent 1px); background-size: 40px 40px;">
       </div>
 
       <div class="relative w-full max-w-md animate-fade-up">
-        <!-- Logo -->
         <div class="text-center mb-10">
           <a routerLink="/" class="inline-block">
             <div class="font-heading text-4xl text-neutral-900 mb-1">HHC LASER</div>
@@ -33,7 +32,6 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
           </a>
         </div>
 
-        <!-- Black Card -->
         <div class="bg-black rounded-2xl p-8 md:p-10 shadow-2xl border border-white/10 text-white">
           <h2 class="text-white text-2xl font-heading font-medium mb-2">Forgot Password?</h2>
           <p class="text-neutral-400 text-sm mb-8">Enter your email address and we will send you a link to reset your password.</p>
@@ -89,7 +87,11 @@ export class ForgotPasswordComponent {
   form: FormGroup;
   isLoading = signal(false);
 
-  constructor(private fb: FormBuilder, private snackBar: MatSnackBar) {
+  constructor(
+    private fb: FormBuilder,
+    private snackBar: MatSnackBar,
+    private authService: AuthService,
+  ) {
     this.form = this.fb.group({
       email: ['', [Validators.required, Validators.email]]
     });
@@ -100,12 +102,27 @@ export class ForgotPasswordComponent {
       this.form.markAllAsTouched();
       return;
     }
+
     this.isLoading.set(true);
-    // Simulate API call
-    setTimeout(() => {
-      this.isLoading.set(false);
-      this.snackBar.open('If an account exists, a reset link will be sent to your email.', 'Close', { duration: 5000 });
-      this.form.reset();
-    }, 1500);
+    const email = this.form.value.email as string;
+
+    this.authService.forgotPassword(email).subscribe({
+      next: (res) => {
+        this.isLoading.set(false);
+        this.snackBar.open(
+          res.message || 'If an account exists, a reset link will be sent to your email.',
+          'Close',
+          { duration: 6000 }
+        );
+        this.form.reset();
+      },
+      error: (err) => {
+        this.isLoading.set(false);
+        const message =
+          err?.error?.message ||
+          'Unable to send reset email right now. Please try again shortly.';
+        this.snackBar.open(message, 'Close', { duration: 5000 });
+      },
+    });
   }
 }
