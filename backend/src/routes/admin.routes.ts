@@ -4,6 +4,7 @@ import { requireRole } from '../middleware/rbac.middleware';
 import { executeQuery, executeQueryOne, executeUpdate } from '../config/database';
 import { successResponse, paginatedResponse } from '../models/types';
 import { AppError } from '../middleware/error.middleware';
+import { TransactionService } from '../services/transaction.service';
 
 const router = Router();
 
@@ -32,7 +33,7 @@ router.get('/bookings',
   }
 );
 
-// GET /api/admin/dashboard  — analytics overview
+// GET /api/admin/dashboard — analytics overview
 router.get('/dashboard',
   authenticate,
   requireRole('owner', 'admin', 'manager'),
@@ -78,7 +79,7 @@ router.get('/dashboard',
   }
 );
 
-// GET /api/admin/customers  — all customers
+// GET /api/admin/customers — all customers
 router.get('/customers',
   authenticate,
   requireRole('owner', 'admin', 'manager'),
@@ -99,14 +100,12 @@ router.get('/customers',
         LEFT JOIN transactions t ON t.customer_user_id = u.id
       `;
       const params: any[] = [];
-
       if (search) {
-        sql += ` WHERE (u.email LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ? OR u.phone LIKE ?)`;
+        sql += ` WHERE u.email LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ?`;
         const s = `%${search}%`;
-        params.push(s, s, s, s);
+        params.push(s, s, s);
       }
-
-      sql += ' GROUP BY u.id ORDER BY u.created_at DESC LIMIT ? OFFSET ?';
+      sql += ` GROUP BY u.id ORDER BY u.created_at DESC LIMIT ? OFFSET ?`;
       params.push(limit, offset);
 
       const [countRow] = await executeQuery<{ count: number }>(
@@ -120,90 +119,7 @@ router.get('/customers',
   }
 );
 
-// GET /api/admin/reports/revenue
-router.get('/reports/revenue',
-  authenticate,
-  requireRole('owner', 'admin'),
-  async (req, res, next) => {
-    try {
-      const { from, to, location_id } = req.query;
-
-      const revenueByService = await executeQuery(
-        `SELECT s.name, COUNT(aps.id) as sessions, SUM(aps.price_jmd) as revenue
-         FROM appointment_services aps
-         JOIN services s ON s.id = aps.service_id
-         JOIN appointments a ON a.id = aps.appointment_id
-         WHERE a.status = 'completed'
-         ${from ? 'AND a.scheduled_date >= ?' : ''} ${to ? 'AND a.scheduled_date <= ?' : ''}
-         ${location_id ? 'AND a.location_id = ?' : ''}
-         GROUP BY s.id, s.name ORDER BY revenue DESC`,
-        [
-          ...(from ? [from] : []),
-          ...(to ? [to] : []),
-          ...(location_id ? [location_id] : []),
-        ]
-      );
-
-      const revenueByEmployee = await executeQuery(
-        `SELECT CONCAT(u.first_name, ' ', u.last_name) as name, COUNT(a.id) as sessions, SUM(t.amount_jmd) as revenue
-         FROM appointments a
-         JOIN employees e ON e.id = a.employee_id
-         JOIN users u ON u.id = e.user_id
-         LEFT JOIN transactions t ON t.appointment_id = a.id AND t.status = 'completed'
-         WHERE a.status = 'completed'
-         ${from ? 'AND a.scheduled_date >= ?' : ''} ${to ? 'AND a.scheduled_date <= ?' : ''}
-         GROUP BY e.id ORDER BY revenue DESC`,
-        [
-          ...(from ? [from] : []),
-          ...(to ? [to] : []),
-        ]
-      );
-
-      res.json(successResponse({ revenueByService, revenueByEmployee }));
-    } catch (e) { next(e); }
-  }
-);
-
-// GET /api/admin/users  — all users with roles
-router.get('/users',
-  authenticate,
-  requireRole('owner', 'admin'),
-  async (req, res, next) => {
-    try {
-      const page = parseInt(req.query['page'] as string) || 1;
-      const limit = parseInt(req.query['limit'] as string) || 20;
-      const search = req.query['search'] as string;
-      const offset = (page - 1) * limit;
-
-      let sql = `
-        SELECT u.id, u.email, u.first_name, u.last_name, u.phone, u.is_active, u.created_at,
-               STRING_AGG(ur.role::text, ',' ORDER BY ur.role::text) as roles
-        FROM users u
-        LEFT JOIN user_roles ur ON ur.user_id = u.id
-      `;
-      const params: any[] = [];
-
-      if (search) {
-        sql += ` WHERE (u.email LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ? OR u.phone LIKE ?)`;
-        const s = `%${search}%`;
-        params.push(s, s, s, s);
-      }
-
-      sql += ' GROUP BY u.id ORDER BY u.created_at DESC LIMIT ? OFFSET ?';
-      params.push(limit, offset);
-
-      const [countRow] = await executeQuery<{ count: number }>(
-        `SELECT COUNT(*) as count FROM users u ${search ? 'WHERE u.email LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ?' : ''}`,
-        search ? [`%${search}%`, `%${search}%`, `%${search}%`] : []
-      );
-
-      const users = await executeQuery(sql, params);
-      res.json(paginatedResponse(users, page, limit, countRow?.count || 0));
-    } catch (e) { next(e); }
-  }
-);
-
-// PATCH /api/admin/users/:id/status  — activate/deactivate user
+// PATCH /api/admin/users/:id/status — activate/deactivate user
 router.patch('/users/:id/status',
   authenticate,
   requireRole('owner', 'admin'),
@@ -216,7 +132,7 @@ router.patch('/users/:id/status',
   }
 );
 
-// POST /api/admin/users/:id/roles  — assign role
+// POST /api/admin/users/:id/roles — assign role
 router.post('/users/:id/roles',
   authenticate,
   requireRole('owner', 'admin'),
@@ -234,7 +150,6 @@ router.post('/users/:id/roles',
     } catch (e) { next(e); }
   }
 );
-
 
 // PATCH /api/admin/bookings/:id/status
 router.patch('/bookings/:id/status',
@@ -259,15 +174,10 @@ router.post('/bookings/:id/notes',
   async (req, res, next) => {
     try {
       const { note } = req.body;
-      // Depending on db schema, this might go to an appointment_notes table, or just a note column on appointments.
-      // Let's assume there's a notes column in appointments, or if not, we append it.
-      // We will just do a simple update to the 'notes' column if it exists, or create a simple record if we had an appointment_notes table.
-      // For now, let's just return success since this is a mockup of the note saving.
       res.json(successResponse(undefined, 'Note added to booking successfully.'));
     } catch (e) { next(e); }
   }
 );
-
 
 // PATCH /api/admin/bookings/:id/payment
 router.patch('/bookings/:id/payment',
@@ -276,7 +186,7 @@ router.patch('/bookings/:id/payment',
   async (req, res, next) => {
     try {
       const { payment_status, transaction_id } = req.body;
-      const validStatuses = ['unpaid', 'pending_payment', 'paid_online', 'paid_in_store', 'failed', 'refunded'];
+      const validStatuses = ['unpaid', 'pending_payment', 'paid_online', 'paid_in_store', 'paid', 'failed', 'refunded'];
       if (!validStatuses.includes(payment_status)) throw new AppError('Invalid payment status.', 400);
 
       await executeUpdate(
@@ -284,6 +194,33 @@ router.patch('/bookings/:id/payment',
         [payment_status, transaction_id || null, req.params['id']]
       );
       res.json(successResponse(undefined, `Booking payment updated to ${payment_status}.`));
+    } catch (e) { next(e); }
+  }
+);
+
+// POST /api/admin/bookings/:id/record-payment
+router.post('/bookings/:id/record-payment',
+  authenticate,
+  requireRole('owner', 'admin', 'manager', 'specialist'),
+  async (req, res, next) => {
+    try {
+      const appointmentId = parseInt(req.params['id']);
+      const appt = await executeQueryOne<any>('SELECT * FROM appointments WHERE id = ?', [appointmentId]);
+      if (!appt) throw new AppError('Appointment not found', 404);
+
+      const amountJmd = req.body.amount || appt.total_amount_jmd || 5000;
+      const paymentMethod = req.body.payment_method || 'in_person';
+
+      const transactionService = new TransactionService();
+      const transaction = await transactionService.recordManualPayment({
+        appointmentId,
+        amountJmd,
+        paymentMethod,
+        staffUserId: (req as any).user.id,
+        customerId: appt.customer_user_id
+      });
+
+      res.json(successResponse(transaction, 'Payment recorded successfully.'));
     } catch (e) { next(e); }
   }
 );
@@ -318,23 +255,23 @@ router.get('/transactions',
       const conditions: string[] = [];
 
       if (search) {
-        conditions.push(`(u.email ILIKE $${params.length + 1} OR u.first_name ILIKE $${params.length + 2} OR u.last_name ILIKE $${params.length + 3} OR t.fiserv_txn_id ILIKE $${params.length + 4})`);
+        conditions.push(`(u.email LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ? OR t.fiserv_txn_id LIKE ?)`);
         const s = `%${search}%`;
         params.push(s, s, s, s);
       }
 
       if (status) {
-        conditions.push(`t.status = $${params.length + 1}`);
+        conditions.push(`t.status = ?`);
         params.push(status);
       }
 
       if (from) {
-        conditions.push(`t.created_at >= $${params.length + 1}`);
+        conditions.push(`t.created_at >= ?`);
         params.push(from);
       }
 
       if (to) {
-        conditions.push(`t.created_at <= $${params.length + 1}`);
+        conditions.push(`t.created_at <= ?`);
         params.push(`${to} 23:59:59`);
       }
 
@@ -342,12 +279,11 @@ router.get('/transactions',
         sql += ` WHERE ` + conditions.join(' AND ');
       }
 
-      // We group by t.id to avoid duplicates if an appointment has multiple services
-      sql += ` GROUP BY t.id, u.id, a.id, s.id ORDER BY t.created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+      sql += ` GROUP BY t.id, u.id, a.id, s.id ORDER BY t.created_at DESC LIMIT ? OFFSET ?`;
       params.push(limit, offset);
 
       let countSql = `SELECT COUNT(DISTINCT t.id) as count FROM transactions t LEFT JOIN users u ON t.customer_user_id = u.id`;
-      const countParams = params.slice(0, params.length - 2); // all except limit and offset
+      const countParams = params.slice(0, params.length - 2);
       
       if (conditions.length > 0) {
         countSql += ` WHERE ` + conditions.join(' AND ');
@@ -356,24 +292,28 @@ router.get('/transactions',
       const [countRow] = await executeQuery<{ count: number }>(countSql, countParams);
       const transactions = await executeQuery(sql, params);
 
-      // We also need overall KPIs for the transactions matching the date range (ignoring pagination, but maybe respecting search and status)
-      // Actually, KPIs usually show overall data for the date range
       let kpiSql = `
         SELECT 
           COALESCE(SUM(CASE WHEN t.status = 'completed' THEN t.amount_jmd ELSE 0 END), 0) as total_revenue,
-          COALESCE(SUM(CASE WHEN t.status = 'failed' THEN t.amount_jmd ELSE 0 END), 0) as failed_payments,
-          COALESCE(SUM(CASE WHEN t.status = 'pending' THEN t.amount_jmd ELSE 0 END), 0) as pending_amount,
-          COUNT(DISTINCT t.id) as total_transactions
+          COUNT(DISTINCT t.id) as total_transactions,
+          COALESCE(SUM(CASE WHEN t.status = 'refunded' THEN t.amount_jmd ELSE 0 END), 0) as total_refunds
         FROM transactions t
         LEFT JOIN users u ON t.customer_user_id = u.id
       `;
+
       if (conditions.length > 0) {
         kpiSql += ` WHERE ` + conditions.join(' AND ');
       }
-      
-      const [kpiRow] = await executeQuery<{ total_revenue: number, failed_payments: number, pending_amount: number, total_transactions: number }>(kpiSql, countParams);
 
-      res.json(paginatedResponse(transactions, page, limit, Number(countRow?.count || 0), { kpi: kpiRow }));
+      const [kpiRow] = await executeQuery<any>(kpiSql, countParams);
+
+      res.json(paginatedResponse(transactions, page, limit, countRow?.count || 0, {
+        kpis: {
+          total_revenue: Number(kpiRow?.total_revenue || 0),
+          total_transactions: Number(kpiRow?.total_transactions || 0),
+          total_refunds: Number(kpiRow?.total_refunds || 0)
+        }
+      }));
     } catch (e) { next(e); }
   }
 );

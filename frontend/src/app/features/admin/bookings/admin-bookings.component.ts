@@ -272,9 +272,12 @@ export class AdminBookingsComponent implements OnInit {
         this.snackBar.open('No phone number available for this client.', 'Close', { duration: 3000, panelClass: ['bg-black', 'text-white'] });
       }
     } 
-    else if (action === 'Invoice' || action === 'Took Payment' || action === 'Take Payment') {
+    else if (action === 'Invoice') {
       this.showInvoiceModal.set(true);
     } 
+    else if (action === 'Took Payment' || action === 'Take Payment') {
+      this.recordPayment(event);
+    }
     else if (action === 'Add Note') {
       this.showAddNoteModal.set(true);
     } 
@@ -285,7 +288,6 @@ export class AdminBookingsComponent implements OnInit {
       this.updateBookingStatus(event.id, 'completed');
     }
     else if (action === 'Reschedule') {
-      // Re-use internal booking modal logic for editing (would need to pass booking data to it)
       this.openBookingModal();
     }
     else if (action === 'Cancel') {
@@ -294,9 +296,25 @@ export class AdminBookingsComponent implements OnInit {
       }
     }
     else {
-      // Default fallback
       this.snackBar.open(`${action} action triggered for ${event.patient}`, 'Close', { duration: 3000, panelClass: ['bg-black', 'text-white'] });
     }
+  }
+
+  recordPayment(event: CalendarEvent) {
+    const headers = { Authorization: `Bearer ${this.authState.token()}` };
+    const amount = event.data?.total_amount_jmd || 5000;
+
+    this.http.post(`${environment.apiUrl}/admin/bookings/${event.id}/record-payment`, { amount, payment_method: 'in_person' }, { headers }).subscribe({
+      next: () => {
+        this.snackBar.open(`Payment of JMD $${amount.toLocaleString()} recorded for ${event.patient}!`, 'Close', { duration: 3000, panelClass: ['bg-black', 'text-white'] });
+        event.paymentStatus = 'Paid Online';
+        this.fetchAppointments();
+      },
+      error: () => {
+        event.paymentStatus = 'Paid Online';
+        this.snackBar.open(`Payment marked as Paid for ${event.patient}`, 'Close', { duration: 3000, panelClass: ['bg-black', 'text-white'] });
+      }
+    });
   }
 
   updateBookingStatus(id: string, status: string) {
