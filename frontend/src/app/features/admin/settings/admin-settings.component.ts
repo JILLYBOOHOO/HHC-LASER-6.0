@@ -38,7 +38,7 @@ import { environment } from '../../../../environments/environment';
           
           <mat-form-field appearance="outline" class="w-full mt-4">
             <mat-label>Tagline</mat-label>
-            <input matInput formControlName="tagline" placeholder="Jamaica's premier destination for advanced laser treatments..." />
+            <input matInput formControlName="tagline" placeholder="Jamaica's trusted destination for advanced laser treatments..." />
           </mat-form-field>
         </div>
 
