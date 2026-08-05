@@ -47,7 +47,9 @@ import { InternalBookingModalComponent } from '../../../shared/components/intern
         <!-- Admin Profile Bottom (matching image) -->
         <div class="p-4 mx-4 mb-4 border-t border-slate-100 flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <img loading="lazy" src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&q=80" class="w-10 h-10 rounded-full object-cover border border-slate-200">
+            <div class="w-10 h-10 rounded-full bg-slate-900 text-amber-400 border border-slate-800 font-black flex items-center justify-center text-xs shrink-0 shadow-xs">
+              AD
+            </div>
             <div>
               <div class="text-xs font-bold text-slate-900">Admin User</div>
               <div class="text-[9px] font-medium text-slate-500 uppercase tracking-widest">TERMINAL 04</div>

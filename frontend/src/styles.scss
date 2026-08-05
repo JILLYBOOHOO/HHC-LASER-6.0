@@ -547,3 +547,23 @@ img, video { max-width: 100%; display: block; }
 
 iframe { color-scheme: normal; }
 
+/* ─── Custom Visible Scrollbar for Time Slots ──────────────────────────────── */
+.custom-visible-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-visible-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 8px;
+}
+.custom-visible-scrollbar::-webkit-scrollbar-thumb {
+  background: #D4A359;
+  border-radius: 8px;
+}
+.custom-visible-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #b8924f;
+}
+.custom-visible-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #D4A359 #f1f5f9;
+}
+

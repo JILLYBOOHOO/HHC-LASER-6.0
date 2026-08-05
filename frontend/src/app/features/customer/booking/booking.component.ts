@@ -1190,11 +1190,11 @@ const DEFAULT_SERVICES: Service[] = [
                       <mat-spinner diameter="28"></mat-spinner>
                     </div>
                   } @else if (availableSlots().length > 0) {
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 mb-2">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 mb-2 max-h-[250px] overflow-y-auto custom-visible-scrollbar pr-1.5 p-1 border border-neutral-100 rounded-xl bg-neutral-50/50">
                       @for (slot of availableSlots(); track slot) {
-                        <button (click)="selectedTime = slot" 
-                                [ngClass]="selectedTime === slot ? 'bg-gold text-white font-extrabold shadow' : 'bg-white text-black border border-black/15 hover:border-gold'" 
-                                class="py-1.5 px-2 rounded-lg text-xs font-bold transition-all text-center">
+                        <button (click)="selectTimeSlotAndScroll(slot)" 
+                                [ngClass]="selectedTime === slot ? 'bg-[#D4A359] text-black font-extrabold shadow-md scale-[1.02] border-2 border-black' : 'bg-white text-black border border-black/15 hover:border-[#D4A359] hover:bg-neutral-50'" 
+                                class="py-2 px-2 rounded-lg text-xs font-bold transition-all text-center">
                           {{ formatTime(slot) }}
                         </button>
                       }
@@ -1206,14 +1206,14 @@ const DEFAULT_SERVICES: Service[] = [
                   }
                 </div>
 
-                <!-- Navigation Buttons (Positioned directly under Time Selection for 100% Zero Scroll) -->
-                <div class="flex items-center justify-between gap-3 pt-3 mt-2 border-t border-black/10">
+                <!-- Navigation Buttons (Positioned directly under Time Selection with smooth scroll anchor) -->
+                <div id="datetime-actions" class="flex items-center justify-between gap-3 pt-3 mt-2 border-t border-black/10 scroll-mt-6">
                   <button (click)="prevStep()" 
                           class="px-4 py-2 border border-black/25 bg-white text-black font-bold text-xs hover:bg-neutral-100 transition-colors flex items-center gap-1 rounded-lg">
                     <mat-icon class="!text-sm">arrow_back</mat-icon> Back
                   </button>
                   <button (click)="nextStep()" [disabled]="!selectedDate || !selectedTime"
-                          class="px-5 py-2 bg-gold-500 text-black font-extrabold text-xs hover:bg-yellow-400 disabled:opacity-50 transition-colors flex items-center gap-1 rounded-lg shadow-sm">
+                          class="px-5 py-2 bg-[#D4A359] text-black font-extrabold text-xs hover:bg-yellow-400 disabled:opacity-50 transition-colors flex items-center gap-1 rounded-lg shadow-sm">
                     Continue <mat-icon class="!text-sm">arrow_forward</mat-icon>
                   </button>
                 </div>
@@ -2261,15 +2261,46 @@ export class BookingComponent implements OnInit {
     ).subscribe({
       next: (res) => {
         this.isLoadingSlots.set(false);
-        this.availableSlots.set(res.data || []);
+        const slots = res.data && res.data.length > 0 ? res.data : this.generateDefault15MinSlots();
+        this.availableSlots.set(slots);
         this.scrollToTimeSelection();
       },
       error: () => {
         this.isLoadingSlots.set(false);
-        this.availableSlots.set([]);
+        this.availableSlots.set(this.generateDefault15MinSlots());
         this.scrollToTimeSelection();
       }
     });
+  }
+
+  generateDefault15MinSlots(): string[] {
+    return [
+      '09:00', '09:15', '09:30', '09:45',
+      '10:00', '10:15', '10:30', '10:45',
+      '11:00', '11:15', '11:30', '11:45',
+      '12:00', '12:15', '12:30', '12:45',
+      '13:00', '13:15', '13:30', '13:45',
+      '14:00', '14:15', '14:30', '14:45',
+      '15:00', '15:15', '15:30', '15:45',
+      '16:00', '16:15', '16:30'
+    ];
+  }
+
+  selectTimeSlotAndScroll(slot: string): void {
+    this.selectedTime = slot;
+    this.saveBookingProgress();
+    this.scrollToContinueActions();
+  }
+
+  scrollToContinueActions(): void {
+    setTimeout(() => {
+      const actionsElement = document.getElementById('datetime-actions');
+      if (actionsElement) {
+        actionsElement.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      } else {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      }
+    }, 100);
   }
 
   private scrollToTimeSelection(): void {
