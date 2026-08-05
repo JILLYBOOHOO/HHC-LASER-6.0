@@ -27,7 +27,7 @@ const DEFAULT_SERVICES: Service[] = [
     "category_name": "Facial & Skin Treatments",
     "name": "TEST SERVICE",
     "slug": "test-service",
-    "short_description": "Temporary J$200 payment test — remove after verifying checkout.",
+    "short_description": "Short booking for verifying live checkout (JMD $200).",
     "duration_minutes": 10,
     "price_jmd": 200,
     "thumbnail_url": "/hhclaser_img/hhclaser_images/Modern luxury clinic reception area.webp",
@@ -2296,54 +2296,8 @@ export class BookingComponent implements OnInit {
   }
 
   confirmBooking(): void {
-    this.isBooking.set(true);
-    const empId = this.selectedEmployeeId() || (this.employees().length > 0 ? this.employees()[0].id : 1);
-    
-    const pad = (n: number) => n < 10 ? '0' + n : n;
-    const dateStr = `${this.selectedDate!.getFullYear()}-${pad(this.selectedDate!.getMonth() + 1)}-${pad(this.selectedDate!.getDate())}`;
-
-    const dto = {
-      booking_type: this.selectedBookingType(),
-      employee_id: empId,
-      location_id: this.selectedLocationId() || 1,
-      scheduled_date: dateStr,
-      start_time: this.selectedTime,
-      service_ids: [this.selectedServiceId()!],
-      notes: this.detailsForm.value.notes
-    };
-
-    // Call the real API to create the booking and initialize payment
-    this.api.createBooking(dto).subscribe({
-      next: (res) => {
-        this.isBooking.set(false);
-        // Assuming the backend returns the Fiserv payment redirectUrl
-        if (res.data?.payment?.redirectUrl) {
-          this.snackBar.open('Redirecting to payment gateway...', 'Close', { duration: 3000 });
-          // In a real app we'd submit the form fields to Fiserv via POST or redirect.
-          // For now, redirecting to the URL or moving to confirmation for demo purposes
-          // window.location.href = res.data.payment.redirectUrl;
-          
-          if (res.data?.appointment) {
-            this.currentAppointmentId = res.data.appointment.id;
-            if (res.data.appointment.confirmation_code) {
-              this.confirmationCode.set(res.data.appointment.confirmation_code);
-            } else {
-              this.confirmationCode.set(String(res.data.appointment.id));
-            }
-          } else {
-            this.confirmationCode.set(String(Math.floor(1000 + Math.random() * 9000)));
-          }
-          this.nextStep();
-        } else {
-          this.confirmationCode.set(String(Math.floor(1000 + Math.random() * 9000)));
-          this.nextStep();
-        }
-      },
-      error: (err) => {
-        this.isBooking.set(false);
-        this.snackBar.open(err.error?.message || 'Failed to create booking', 'Close', { duration: 5000 });
-      }
-    });
+    // Same live booking + Fiserv checkout path as Confirm and Pay
+    this.submitPayment();
   }
 
   addToCalendar(): void {
@@ -2378,13 +2332,12 @@ export class BookingComponent implements OnInit {
     if (this.isPaying()) return;
     this.isPaying.set(true);
 
-    // If we already have a DB appointment (e.g. they hit back and forth), use it
+    // Existing appointment: start a live Fiserv checkout for that booking
     if (this.currentAppointmentId) {
       this.initiateCheckoutSession();
       return;
     }
 
-    // Prepare booking DTO
     const empId = this.selectedEmployeeId() || (this.employees().length > 0 ? this.employees()[0].id : 1);
     const pad = (n: number) => n < 10 ? '0' + n : n;
     const dateStr = `${this.selectedDate!.getFullYear()}-${pad(this.selectedDate!.getMonth() + 1)}-${pad(this.selectedDate!.getDate())}`;
@@ -2399,7 +2352,7 @@ export class BookingComponent implements OnInit {
       notes: this.detailsForm.value.notes
     };
 
-    // 1. Create the pending appointment
+    // Create the real appointment, then immediately POST to the live Fiserv gateway
     this.api.createBooking(dto).subscribe({
       next: (res) => {
         if (res.data?.appointment) {
@@ -2409,12 +2362,16 @@ export class BookingComponent implements OnInit {
           } else {
             this.confirmationCode.set(String(res.data.appointment.id));
           }
-          // 2. Initiate checkout session with the new appointment ID
-          this.initiateCheckoutSession();
-        } else {
-          this.isPaying.set(false);
-          this.snackBar.open('Failed to create booking record.', 'Close', { duration: 6000 });
         }
+
+        const payment = res.data?.payment;
+        if (payment?.redirectUrl && payment?.formFields) {
+          this.postToFiservGateway(payment.redirectUrl, payment.formFields);
+          return;
+        }
+
+        // Fallback: build a live checkout session for the appointment
+        this.initiateCheckoutSession();
       },
       error: (err) => {
         this.isPaying.set(false);

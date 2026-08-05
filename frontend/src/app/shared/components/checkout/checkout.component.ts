@@ -27,7 +27,7 @@ export class CheckoutComponent {
       next: (data: any) => {
         const form = this.document.createElement('form');
         form.method = 'POST';
-        form.action = data.gatewayUrl || 'https://test.ipg-online.com/connect/gateway/processing';
+        form.action = data.gatewayUrl || 'https://www2.ipg-online.com/connect/gateway/processing';
 
         const fields: Record<string, string> = data.formFields || {
           chargetotal: this.orderTotal,

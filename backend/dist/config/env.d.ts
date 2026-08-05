@@ -21,7 +21,9 @@ export declare const env: {
     EMAIL_FROM_NOREPLY: string;
     EMAIL_DEV_SENDER: string;
     FISERV_SHARED_SECRET: string;
+    FISERV_STORE_ID: string;
     FISERV_CURRENCY: string;
+    FISERV_GATEWAY_URL: string;
     FISERV_BASE_URL: string;
     FISERV_CALLBACK_URL: string;
     FISERV_SUCCESS_URL: string;
@@ -43,9 +45,10 @@ export declare const env: {
     AWS_ACCESS_KEY_ID?: string | undefined;
     AWS_SECRET_ACCESS_KEY?: string | undefined;
     RESEND_API_KEY?: string | undefined;
+    SMTP_USER?: string | undefined;
+    SMTP_PASS?: string | undefined;
     FISERV_MERCHANT_ID?: string | undefined;
     FISERV_API_KEY?: string | undefined;
-    FISERV_STORE_ID?: string | undefined;
     FISERV_STORE_NAME?: string | undefined;
     FISERV_ENDPOINT?: string | undefined;
     GOOGLE_CLIENT_ID?: string | undefined;

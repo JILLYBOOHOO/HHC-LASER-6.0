@@ -1,56 +1,57 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fiservClient = exports.FiservClient = void 0;
+const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const env_1 = require("../../config/env");
 const fiserv_crypto_1 = require("./fiserv.crypto");
 class FiservClient {
     /**
      * Builds the form fields required to redirect the customer to the
      * Fiserv LATAM Hosted Payment Pages (WebCheckout).
-     *
-     * Per Scotiabank/Fiserv LATAM integration guide:
-     *  - `storename`  = Store ID (e.g. 81186299021)
-     *  - `currency`   = ISO 4217 numeric code (840 = USD, 388 = JMD)
-     *  - `hashExtended` = HMAC-SHA256 over ALL other field values sorted
-     *                     alphabetically by key, pipe-delimited, Base64-encoded.
-     *
-     * Gateway endpoint (sandbox): https://test.ipg-online.com/connect/gateway/processing
      */
     buildPaymentSession(idempotencyKey, amountJmd, description) {
-        const txnDatetime = (0, fiserv_crypto_1.getFiservTimestamp)();
-        const chargetotal = amountJmd.toFixed(2);
-        // Use FISERV_STORE_ID preferentially, fallback to FISERV_STORE_NAME
+        const timezone = 'America/Jamaica';
+        const txnDatetime = (0, moment_timezone_1.default)().tz(timezone).format('YYYY:MM:DD-HH:mm:ss');
+        const chargetotal = Number(amountJmd || 0).toFixed(2);
         const storeId = env_1.env.FISERV_STORE_ID || env_1.env.FISERV_STORE_NAME || '';
-        const currency = env_1.env.FISERV_CURRENCY || '840';
-        // Fiserv gateway URL
-        const gatewayUrl = env_1.env.FISERV_ENDPOINT ||
+        // Always charge in Jamaican dollars (ISO 4217 numeric code 388).
+        // Reject accidental USD (840) from misconfigured env.
+        const rawCurrency = String(env_1.env.FISERV_CURRENCY || '388').trim();
+        const currency = rawCurrency === '840' || rawCurrency.toUpperCase() === 'USD' ? '388' : (rawCurrency.toUpperCase() === 'JMD' ? '388' : rawCurrency);
+        const gatewayUrl = env_1.env.FISERV_GATEWAY_URL ||
+            env_1.env.FISERV_ENDPOINT ||
             `${env_1.env.FISERV_BASE_URL}/connect/gateway/processing`;
-        // --- Build ALL form fields (EXCLUDING hashExtended itself) ---
-        // Keys must be sorted alphabetically when computing the hash.
+        const apiBase = (env_1.env.API_BASE_URL || '').replace(/\/$/, '');
+        const successUrl = env_1.env.FISERV_SUCCESS_URL || `${apiBase}/api/payments/success`;
+        const failUrl = env_1.env.FISERV_FAILURE_URL || `${apiBase}/api/payments/error`;
+        // Align with the working generate-hash Connect field set
         const baseFields = {
             chargetotal,
+            checkoutoption: 'combinedpage',
             comments: `HHC LASER - ${description}`,
             currency,
             hash_algorithm: 'HMACSHA256',
-            mode: 'payonly',
+            language: 'en_US',
             oid: idempotencyKey,
-            paymentMethod: 'M', // Credit/Debit (Visa + Mastercard)
-            responseFailURL: env_1.env.FISERV_FAILURE_URL,
-            responseSuccessURL: env_1.env.FISERV_SUCCESS_URL,
+            responseFailURL: failUrl,
+            responseSuccessURL: successUrl,
             storename: storeId,
+            timezone,
             transactionNotificationURL: env_1.env.FISERV_CALLBACK_URL,
             txndatetime: txnDatetime,
+            txntype: 'sale',
         };
-        // --- Compute hashExtended (HMAC-SHA256, Base64) over ALL baseFields ---
         const hashExtended = (0, fiserv_crypto_1.generateFiservSignature)(baseFields);
-        const formFields = {
-            ...baseFields,
-            hashExtended,
-        };
         return {
             idempotencyKey,
             redirectUrl: gatewayUrl,
-            formFields,
+            formFields: {
+                ...baseFields,
+                hashExtended,
+            },
         };
     }
 }

@@ -55,7 +55,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
                 <p class="font-extrabold text-slate-800">{{ eventData?.title }}</p>
                 <p class="text-xs text-slate-500 font-medium mt-1">{{ eventData?.durationMinutes }} Minutes • {{ eventData?.room || 'Standard Room' }}</p>
               </div>
-              <p class="font-bold text-slate-800">{{ (eventData?.data?.service_price || 0) | currency:'JMD':'symbol':'1.2-2' }}</p>
+              <p class="font-bold text-slate-800">JMD $ {{ (eventData?.data?.service_price || 0) | number:'1.2-2' }}</p>
             </div>
           </div>
 
@@ -100,11 +100,11 @@ import { MatSnackBar } from '@angular/material/snack-bar';
             <div class="w-1/2 pl-4">
               <div class="flex justify-between items-center py-2 border-b border-slate-100">
                 <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Subtotal</span>
-                <span class="text-sm font-bold text-slate-800">{{ (eventData?.data?.service_price || 0) | currency:'JMD':'symbol':'1.2-2' }}</span>
+                <span class="text-sm font-bold text-slate-800">JMD $ {{ (eventData?.data?.service_price || 0) | number:'1.2-2' }}</span>
               </div>
               <div class="flex justify-between items-center py-3">
                 <span class="text-sm font-extrabold text-slate-800 uppercase tracking-wide">Total Due</span>
-                <span class="text-lg font-black text-[#b8924f]">{{ (eventData?.data?.service_price || 0) | currency:'JMD':'symbol':'1.2-2' }}</span>
+                <span class="text-lg font-black text-[#b8924f]">JMD $ {{ (eventData?.data?.service_price || 0) | number:'1.2-2' }}</span>
               </div>
             </div>
           </div>

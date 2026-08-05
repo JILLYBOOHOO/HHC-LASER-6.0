@@ -45,7 +45,7 @@ import { environment } from '../../../../environments/environment';
             </div>
           </div>
           <div>
-            <div class="text-2xl font-black mt-2 tracking-tight">{{ kpis().total_revenue | currency:'JMD':'symbol':'1.0-0' }}</div>
+            <div class="text-2xl font-black mt-2 tracking-tight">JMD $ {{ kpis().total_revenue | number:'1.0-0' }}</div>
             <div class="text-[9px] font-bold uppercase tracking-wider text-emerald-100/80 flex items-center gap-1 mt-1">
               <mat-icon class="!text-[12px] !w-3 !h-3">trending_up</mat-icon>
               <span>Verified completed payments</span>
@@ -62,7 +62,7 @@ import { environment } from '../../../../environments/environment';
             </div>
           </div>
           <div>
-            <div class="text-2xl font-black mt-2 tracking-tight">{{ onlineTotal() | currency:'JMD':'symbol':'1.0-0' }}</div>
+            <div class="text-2xl font-black mt-2 tracking-tight">JMD $ {{ onlineTotal() | number:'1.0-0' }}</div>
             <div class="text-[9px] font-bold uppercase tracking-wider text-indigo-100/80 flex items-center gap-1 mt-1">
               <mat-icon class="!text-[12px] !w-3 !h-3">credit_card</mat-icon>
               <span>Website booking deposits</span>
@@ -79,7 +79,7 @@ import { environment } from '../../../../environments/environment';
             </div>
           </div>
           <div>
-            <div class="text-2xl font-black mt-2 tracking-tight">{{ inPersonTotal() | currency:'JMD':'symbol':'1.0-0' }}</div>
+            <div class="text-2xl font-black mt-2 tracking-tight">JMD $ {{ inPersonTotal() | number:'1.0-0' }}</div>
             <div class="text-[9px] font-bold uppercase tracking-wider text-amber-100/80 flex items-center gap-1 mt-1">
               <mat-icon class="!text-[12px] !w-3 !h-3">payments</mat-icon>
               <span>In-store / took payment</span>

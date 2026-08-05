@@ -3,23 +3,24 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
+const express_1 = __importDefault(require("express"));
 const crypto_1 = __importDefault(require("crypto"));
+const moment_timezone_1 = __importDefault(require("moment-timezone"));
+const express_validator_1 = require("express-validator");
+const env_1 = require("../config/env");
+const fiserv_crypto_1 = require("../payments/fiserv/fiserv.crypto");
 const auth_middleware_1 = require("../middleware/auth.middleware");
 const rbac_middleware_1 = require("../middleware/rbac.middleware");
-const types_1 = require("../models/types");
-const express_validator_1 = require("express-validator");
 const validation_middleware_1 = require("../middleware/validation.middleware");
-const fiserv_webhook_1 = require("../payments/fiserv/fiserv.webhook");
 const transaction_service_1 = require("../services/transaction.service");
-const database_1 = require("../config/database");
 const payment_flow_service_1 = require("../payments/fiserv/payment-flow.service");
-const fiserv_client_1 = require("../payments/fiserv/fiserv.client");
+const fiserv_webhook_1 = require("../payments/fiserv/fiserv.webhook");
+const database_1 = require("../config/database");
+const types_1 = require("../models/types");
 const error_middleware_1 = require("../middleware/error.middleware");
-const logger_1 = require("../utils/logger");
-const router = (0, express_1.Router)();
+const router = express_1.default.Router();
 // ─── POST /api/payments/create-checkout ──────────────────────────────────────
-// Creates a Fiserv WebCheckout session for an existing appointment (requires auth + DB).
+// Creates a Fiserv WebCheckout session for an existing appointment
 router.post('/create-checkout', auth_middleware_1.authenticate, async (req, res, next) => {
     try {
         const { appointment_id } = req.body;
@@ -34,7 +35,7 @@ router.post('/create-checkout', auth_middleware_1.authenticate, async (req, res,
             appointmentId: appointment.id,
             amountJmd: Number(appointment.total_amount_jmd) || 0,
             customerId: req.user.userId,
-            description: `Appointment #${appointment.id}`
+            description: `Appointment #${appointment.id}`,
         });
         res.json((0, types_1.successResponse)(session));
     }
@@ -43,35 +44,16 @@ router.post('/create-checkout', auth_middleware_1.authenticate, async (req, res,
     }
 });
 // ─── POST /api/payments/create-direct-checkout ───────────────────────────────
-// Creates a Fiserv WebCheckout session WITHOUT requiring a DB appointment.
-// Used when the booking flow hasn't yet persisted an appointment (e.g. during
-// testing or when the DB is unavailable).
-// Still requires authentication to prevent anonymous abuse.
-router.post('/create-direct-checkout', auth_middleware_1.authenticate, async (req, res, next) => {
-    try {
-        const { amount_jmd, description, order_ref } = req.body;
-        const amount = Number(amount_jmd);
-        if (!amount || amount <= 0) {
-            throw new error_middleware_1.AppError('amount_jmd is required and must be greater than 0', 400);
-        }
-        // Generate a unique order reference (idempotency key) for this transaction
-        const idempotencyKey = order_ref || crypto_1.default.randomBytes(16).toString('hex');
-        const desc = description || 'HHC Laser Treatment';
-        // Build the Fiserv HPP session directly (no DB write needed)
-        const session = fiserv_client_1.fiservClient.buildPaymentSession(idempotencyKey, amount, desc);
-        logger_1.logger.info(`[Fiserv] Direct checkout initiated: key=${idempotencyKey}, ` +
-            `amount=${amount}, user=${req.user.userId}`);
-        res.json((0, types_1.successResponse)(session));
-    }
-    catch (e) {
-        next(e);
-    }
+// Disabled: all customer payments must go through a real appointment booking.
+router.post('/create-direct-checkout', auth_middleware_1.authenticate, (_req, res) => {
+    res.status(410).json({
+        success: false,
+        message: 'Direct checkout is disabled. Please book a service and pay through the normal booking flow.',
+    });
 });
 // ─── POST /api/payments/callback ─────────────────────────────────────────────
-// Fiserv webhook / notification URL (no auth, validated cryptographically)
-router.post('/callback', fiserv_webhook_1.fiservWebhookHandler.handleCallback.bind(fiserv_webhook_1.fiservWebhookHandler));
+router.post('/callback', (req, res) => fiserv_webhook_1.fiservWebhookHandler.handleCallback(req, res));
 // ─── GET /api/payments/status/:key ───────────────────────────────────────────
-// Poll payment status by idempotency key
 router.get('/status/:key', auth_middleware_1.authenticate, async (req, res, next) => {
     try {
         const txn = await transaction_service_1.transactionService.getPaymentStatus(req.params['key'], req.user.userId);
@@ -86,11 +68,10 @@ router.get('/status/:key', auth_middleware_1.authenticate, async (req, res, next
     }
 });
 // ─── GET /api/payments/history ───────────────────────────────────────────────
-// Customer transaction history
 router.get('/history', auth_middleware_1.authenticate, async (req, res, next) => {
     try {
-        const page = parseInt(req.query['page']) || 1;
-        const limit = parseInt(req.query['limit']) || 10;
+        const page = parseInt(String(req.query['page'])) || 1;
+        const limit = parseInt(String(req.query['limit'])) || 10;
         const result = await transaction_service_1.transactionService.getCustomerTransactions(req.user.userId, page, limit);
         res.json((0, types_1.successResponse)(result));
     }
@@ -99,11 +80,10 @@ router.get('/history', auth_middleware_1.authenticate, async (req, res, next) =>
     }
 });
 // ─── GET /api/payments/all ──────────────────────────────────────────────────
-// Admin all transactions
 router.get('/all', auth_middleware_1.authenticate, (0, rbac_middleware_1.requireRole)('admin', 'manager', 'owner'), async (req, res, next) => {
     try {
-        const page = parseInt(req.query['page']) || 1;
-        const limit = parseInt(req.query['limit']) || 50;
+        const page = parseInt(String(req.query['page'])) || 1;
+        const limit = parseInt(String(req.query['limit'])) || 50;
         const result = await transaction_service_1.transactionService.getAllTransactions(page, limit);
         res.json((0, types_1.successResponse)(result));
     }
@@ -112,22 +92,23 @@ router.get('/all', auth_middleware_1.authenticate, (0, rbac_middleware_1.require
     }
 });
 // ─── POST /api/payments/record-manual ─────────────────────────────────────────
-// Record a manual payment (e.g. cash, card terminal in store)
 router.post('/record-manual', auth_middleware_1.authenticate, (0, rbac_middleware_1.requireRole)('admin', 'manager', 'owner'), [
     (0, express_validator_1.body)('appointment_id').isInt().withMessage('appointment_id is required'),
     (0, express_validator_1.body)('customer_user_id').isInt().withMessage('customer_user_id is required'),
     (0, express_validator_1.body)('amount_jmd').isNumeric().withMessage('amount_jmd is required'),
-    (0, express_validator_1.body)('payment_method').isIn(['cash', 'card_in_store', 'bank_transfer', 'other']).withMessage('Invalid payment method'),
+    (0, express_validator_1.body)('payment_method')
+        .isIn(['cash', 'card_in_store', 'bank_transfer', 'other'])
+        .withMessage('Invalid payment method'),
     (0, express_validator_1.body)('notes').optional().isString(),
 ], validation_middleware_1.validateRequest, async (req, res, next) => {
     try {
         const txn = await transaction_service_1.transactionService.recordManualPayment({
             appointmentId: req.body.appointment_id,
-            amountJmd: req.body.amount_jmd,
+            amountJmd: Number(req.body.amount_jmd),
             paymentMethod: req.body.payment_method,
             notes: req.body.notes,
             staffUserId: req.user.userId,
-            customerId: req.body.customer_user_id
+            customerId: req.body.customer_user_id,
         });
         res.status(201).json((0, types_1.successResponse)(txn, 'Manual payment recorded successfully.'));
     }
@@ -135,27 +116,116 @@ router.post('/record-manual', auth_middleware_1.authenticate, (0, rbac_middlewar
         next(e);
     }
 });
-// ─── GET /api/payments/link/:appointmentId ──────────────────────────────────
-// Returns a payment link for a specific appointment
-router.get('/link/:appointmentId', [
-    (0, express_validator_1.param)('appointmentId').isInt().withMessage('appointmentId is required'),
-], validation_middleware_1.validateRequest, async (req, res, next) => {
-    try {
-        const appointment = await (0, database_1.executeQueryOne)('SELECT * FROM appointments WHERE id = ?', [req.params['appointmentId']]);
-        if (!appointment) {
-            throw new error_middleware_1.AppError('Appointment not found', 404);
-        }
-        const session = await payment_flow_service_1.paymentFlowService.initiatePayment({
-            appointmentId: appointment.id,
-            amountJmd: Number(appointment.total_amount_jmd) || 0,
-            customerId: appointment.customer_user_id,
-            description: `Appointment #${appointment.id}`
+/**
+ * Builds a complete Fiserv Connect form + correct hashExtended.
+ * Admin/dev only — not used by customer booking (which uses create-checkout).
+ */
+router.post('/generate-hash', auth_middleware_1.authenticate, (0, rbac_middleware_1.requireRole)('admin', 'owner', 'manager'), (req, res) => {
+    const chargeTotal = String(req.body.chargeTotal || '').trim();
+    if (!chargeTotal || Number.isNaN(Number(chargeTotal))) {
+        return res.status(400).json({ error: 'chargeTotal is required (e.g. "1.00")' });
+    }
+    const storeId = env_1.env.FISERV_STORE_ID || env_1.env.FISERV_STORE_NAME;
+    // Always JMD (388) — never fall back to USD (840)
+    const rawCurrency = String(env_1.env.FISERV_CURRENCY || '388').trim();
+    const currency = rawCurrency === '840' || rawCurrency.toUpperCase() === 'USD'
+        ? '388'
+        : rawCurrency.toUpperCase() === 'JMD'
+            ? '388'
+            : rawCurrency;
+    const gatewayUrl = env_1.env.FISERV_GATEWAY_URL || `${env_1.env.FISERV_BASE_URL}/connect/gateway/processing`;
+    if (!storeId || !env_1.env.FISERV_SHARED_SECRET || env_1.env.FISERV_SHARED_SECRET.startsWith('REPLACE_')) {
+        return res.status(500).json({
+            error: 'Fiserv is not configured. Set FISERV_STORE_ID and FISERV_SHARED_SECRET in backend/.env',
         });
-        res.json((0, types_1.successResponse)(session));
     }
-    catch (e) {
-        next(e);
-    }
+    const timezone = 'America/Jamaica';
+    const txnDateTime = (0, moment_timezone_1.default)().tz(timezone).format('YYYY:MM:DD-HH:mm:ss');
+    const oid = crypto_1.default.randomUUID();
+    const apiBase = env_1.env.API_BASE_URL.replace(/\/$/, '');
+    const successUrl = env_1.env.FISERV_SUCCESS_URL || `${apiBase}/api/payments/success`;
+    const failUrl = env_1.env.FISERV_FAILURE_URL || `${apiBase}/api/payments/error`;
+    const baseFields = {
+        chargetotal: chargeTotal.includes('.') ? chargeTotal : `${chargeTotal}.00`,
+        checkoutoption: 'combinedpage',
+        currency,
+        hash_algorithm: 'HMACSHA256',
+        language: 'en_US',
+        oid,
+        responseFailURL: failUrl,
+        responseSuccessURL: successUrl,
+        storename: storeId,
+        timezone,
+        txndatetime: txnDateTime,
+        txntype: 'sale',
+    };
+    const hashExtended = (0, fiserv_crypto_1.generateFiservSignature)(baseFields);
+    res.json({
+        gatewayUrl,
+        formFields: {
+            ...baseFields,
+            hashExtended,
+        },
+        hashExtended,
+        txnDateTime,
+        storeId,
+        currency,
+        timezone,
+    });
+});
+function paymentReturnParams(req) {
+    const src = { ...req.query, ...req.body };
+    const str = (key) => {
+        const v = src[key];
+        return typeof v === 'string' ? v : v != null ? String(v) : '';
+    };
+    return {
+        oid: str('oid') || str('order_id') || str('OrderID'),
+        approvalCode: str('approval_code') || str('approvalCode'),
+        responseCode: str('fail_reason') ||
+            str('associationResponseCode') ||
+            str('response_code') ||
+            str('responseCode'),
+        chargetotal: str('chargetotal') || str('chargeTotal'),
+        currency: str('currency'),
+        status: str('status'),
+    };
+}
+router.all('/success', (req, res) => {
+    const p = paymentReturnParams(req);
+    console.log('[Fiserv SUCCESS]', {
+        oid: p.oid,
+        approvalCode: p.approvalCode,
+        chargetotal: p.chargetotal,
+        status: p.status,
+    });
+    const frontendUrl = (env_1.env.FRONTEND_URL || 'http://localhost:4200').replace(/\/$/, '');
+    const q = new URLSearchParams({
+        approvalCode: p.approvalCode,
+        oid: p.oid,
+        chargetotal: p.chargetotal,
+        currency: p.currency || env_1.env.FISERV_CURRENCY || '388',
+        status: p.status || 'APPROVED',
+    });
+    res.redirect(303, `${frontendUrl}/payment/success?${q.toString()}`);
+});
+router.all('/error', (req, res) => {
+    const p = paymentReturnParams(req);
+    console.log('[Fiserv DECLINE]', {
+        oid: p.oid,
+        approvalCode: p.approvalCode,
+        responseCode: p.responseCode,
+        chargetotal: p.chargetotal,
+    });
+    const frontendUrl = (env_1.env.FRONTEND_URL || 'http://localhost:4200').replace(/\/$/, '');
+    const q = new URLSearchParams({
+        approvalCode: p.approvalCode,
+        responseCode: p.responseCode,
+        oid: p.oid,
+        chargetotal: p.chargetotal,
+        currency: p.currency || env_1.env.FISERV_CURRENCY || '388',
+    });
+    res.redirect(303, `${frontendUrl}/payment/failure?${q.toString()}`);
 });
 exports.default = router;
 //# sourceMappingURL=payments.routes.js.map

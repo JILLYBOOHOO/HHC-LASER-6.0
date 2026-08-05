@@ -4,8 +4,6 @@
 export type PublicRoute = string | { path: string; methods?: string[] };
 
 export const PUBLIC_ROUTES: PublicRoute[] = [
-  // Fiserv public payment endpoints
-  "/api/payments/create-direct-checkout",
   // Fiserv webhook / transaction notification
   "/api/payments/callback",
   // Booking availability endpoints
