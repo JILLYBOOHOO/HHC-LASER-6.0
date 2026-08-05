@@ -19,7 +19,7 @@ import { treatments } from '../../../core/data/services.data';
         </div>
       } @else if (service()) {
         <div class="max-w-6xl mx-auto px-4">
-          <a routerLink="/services" class="inline-flex items-center text-charcoal-500 hover:text-gold-600 transition-colors mb-8 text-sm font-medium">
+          <a routerLink="/services" class="inline-flex items-center text-neutral-600 hover:text-black transition-colors mb-8 text-sm font-medium">
             <mat-icon class="!text-sm !w-4 !h-4 mr-1">arrow_back</mat-icon> Back to Services
           </a>
 

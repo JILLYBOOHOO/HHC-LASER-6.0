@@ -38,7 +38,7 @@ import { CustomerBookingsComponent } from '../bookings/customer-bookings.compone
             <!-- Right Col: Resources -->
             <div class="space-y-6">
               <div class="card p-5">
-                <h3 class="font-heading text-lg border-b border-cream-200 pb-2 mb-4">Preparation Videos</h3>
+                <h3 class="font-heading text-lg border-b border-neutral-200 pb-2 mb-4 text-black">Preparation Videos</h3>
                 <div class="space-y-4">
                   <div class="flex items-start gap-3 cursor-pointer group">
                     <div class="w-20 h-12 bg-gray-50 rounded flex items-center justify-center relative overflow-hidden flex-shrink-0">
@@ -46,8 +46,8 @@ import { CustomerBookingsComponent } from '../bookings/customer-bookings.compone
                       <img loading="lazy" src="https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=200&q=80" class="absolute inset-0 w-full h-full object-cover opacity-50">
                     </div>
                     <div>
-                      <div class="text-sm font-medium text-gray-50 group-hover:text-gold-600 transition-colors">Pre-Laser Care</div>
-                      <div class="text-xs text-charcoal-400">2:45 min</div>
+                      <div class="text-sm font-medium text-neutral-800 group-hover:text-[#a5813f] transition-colors">Pre-Laser Care</div>
+                      <div class="text-xs text-neutral-500">2:45 min</div>
                     </div>
                   </div>
                   <div class="flex items-start gap-3 cursor-pointer group">
@@ -56,8 +56,8 @@ import { CustomerBookingsComponent } from '../bookings/customer-bookings.compone
                       <img loading="lazy" src="https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?w=200&q=80" class="absolute inset-0 w-full h-full object-cover opacity-50">
                     </div>
                     <div>
-                      <div class="text-sm font-medium text-gray-50 group-hover:text-gold-600 transition-colors">Chemical Peel Prep</div>
-                      <div class="text-xs text-charcoal-400">4:10 min</div>
+                      <div class="text-sm font-medium text-neutral-800 group-hover:text-[#a5813f] transition-colors">Chemical Peel Prep</div>
+                      <div class="text-xs text-neutral-500">4:10 min</div>
                     </div>
                   </div>
                 </div>
@@ -83,7 +83,7 @@ import { CustomerBookingsComponent } from '../bookings/customer-bookings.compone
                 <tbody class="divide-y divide-cream-100">
                   <tr class="hover:bg-cream-50 transition-colors">
                     <td class="py-3 px-4">Jul 12, 2026</td>
-                    <td class="py-3 px-4 font-medium text-gray-50">Full Legs Laser Hair Removal</td>
+                    <td class="py-3 px-4 font-medium text-neutral-800">Full Legs Laser Hair Removal</td>
                     <td class="py-3 px-4">Dr. Sarah Jenkins</td>
                     <td class="py-3 px-4"><span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">Completed</span></td>
                     <td class="py-3 px-4 text-right">
@@ -92,7 +92,7 @@ import { CustomerBookingsComponent } from '../bookings/customer-bookings.compone
                   </tr>
                   <tr class="hover:bg-cream-50 transition-colors">
                     <td class="py-3 px-4">Jun 05, 2026</td>
-                    <td class="py-3 px-4 font-medium text-gray-50">HydraFacial</td>
+                    <td class="py-3 px-4 font-medium text-neutral-800">HydraFacial</td>
                     <td class="py-3 px-4">Emma Watson</td>
                     <td class="py-3 px-4"><span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">Completed</span></td>
                     <td class="py-3 px-4 text-right">
@@ -110,21 +110,24 @@ import { CustomerBookingsComponent } from '../bookings/customer-bookings.compone
   styles: [`
     ::ng-deep .luxury-tabs .mat-mdc-tab-labels {
       background: transparent;
-      border-bottom: 1px solid var(--color-cream-300);
+      border-bottom: 1px solid #e5e5e5;
     }
     ::ng-deep .luxury-tabs .mat-mdc-tab {
       letter-spacing: 0.05em;
       text-transform: uppercase;
       font-size: 0.75rem;
       font-weight: 600;
-      color: var(--color-charcoal-400);
+      color: #737373;
     }
     ::ng-deep .luxury-tabs .mat-mdc-tab.mdc-tab--active {
-      color: var(--color-gold-600);
+      color: #a5813f;
     }
     ::ng-deep .luxury-tabs .mdc-tab-indicator__content--underline {
-      border-color: var(--color-gold-500) !important;
+      border-color: #d6b36a !important;
       border-width: 2px !important;
+    }
+    ::ng-deep .luxury-tabs .mat-mdc-tab .mdc-tab__text-label {
+      color: inherit;
     }
   `]
 })

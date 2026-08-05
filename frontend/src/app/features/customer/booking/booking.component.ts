@@ -22,6 +22,20 @@ import { Service, Employee, Location, BookingType, BookingStep } from '../../../
 
 const DEFAULT_SERVICES: Service[] = [
   {
+    "id": 69,
+    "category_id": 3,
+    "category_name": "Facial & Skin Treatments",
+    "name": "TEST SERVICE",
+    "slug": "test-service",
+    "short_description": "Temporary J$200 payment test — remove after verifying checkout.",
+    "duration_minutes": 10,
+    "price_jmd": 200,
+    "thumbnail_url": "/hhclaser_img/hhclaser_images/Modern luxury clinic reception area.webp",
+    "is_active": true,
+    "is_featured": false,
+    "sort_order": 0
+  },
+  {
     "id": 55,
     "category_id": 11,
     "category_name": "BODY CONTOUR",
@@ -1362,7 +1376,7 @@ const DEFAULT_SERVICES: Service[] = [
                       <span>Redirecting...</span>
                     } @else {
                       <mat-icon class="!text-sm">lock</mat-icon>
-                      <span>Proceed to Fiserv Secure Checkout</span>
+                      <span>Confirm and Pay</span>
                     }
                   </button>
                 </div>
