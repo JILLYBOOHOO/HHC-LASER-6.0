@@ -1741,6 +1741,10 @@ export class BookingComponent implements OnInit {
   isBooking         = signal(false);
   isPaying          = signal(false);
   currentAppointmentId: number | null = null;
+  /** Prefetched Fiserv session so Confirm and Pay can redirect immediately. */
+  private pendingPaymentSession: { redirectUrl: string; formFields: Record<string, string> } | null = null;
+  private paymentPrefetchInFlight = false;
+  private paymentPrefetchError: string | null = null;
 
   selectedDate: Date | null = null;
   selectedTime = '';
@@ -2145,6 +2149,8 @@ export class BookingComponent implements OnInit {
           this.populateGuestDetails();
         }
         this.scrollToDetailsSection();
+      } else if (step === 'payment') {
+        this.prefetchPaymentSession();
       }
       this.saveBookingProgress();
     }
@@ -2207,6 +2213,9 @@ export class BookingComponent implements OnInit {
           this.populateGuestDetails();
         }
         this.scrollToDetailsSection();
+      } else if (next === 'payment') {
+        // Create booking + Fiserv session while the user reads the payment screen
+        this.prefetchPaymentSession();
       }
       this.saveBookingProgress();
     }
@@ -2349,6 +2358,112 @@ export class BookingComponent implements OnInit {
     if (this.isPaying()) return;
     this.isPaying.set(true);
 
+    // Prefetch finished — redirect immediately
+    if (this.pendingPaymentSession) {
+      this.postToFiservGateway(
+        this.pendingPaymentSession.redirectUrl,
+        this.pendingPaymentSession.formFields
+      );
+      return;
+    }
+
+    // Prefetch still running — wait briefly, then fall through
+    if (this.paymentPrefetchInFlight) {
+      const started = Date.now();
+      const waitForPrefetch = () => {
+        if (this.pendingPaymentSession) {
+          this.postToFiservGateway(
+            this.pendingPaymentSession.redirectUrl,
+            this.pendingPaymentSession.formFields
+          );
+          return;
+        }
+        if (this.paymentPrefetchInFlight && Date.now() - started < 20000) {
+          setTimeout(waitForPrefetch, 50);
+          return;
+        }
+        if (this.paymentPrefetchError) {
+          this.isPaying.set(false);
+          this.snackBar.open(this.paymentPrefetchError, 'Close', { duration: 6000 });
+          return;
+        }
+        this.createBookingAndPay();
+      };
+      waitForPrefetch();
+      return;
+    }
+
+    this.createBookingAndPay();
+  }
+
+  /** Starts booking + payment session as soon as the payment step is shown. */
+  private prefetchPaymentSession(): void {
+    if (this.pendingPaymentSession || this.paymentPrefetchInFlight || this.currentAppointmentId) {
+      if (this.currentAppointmentId && !this.pendingPaymentSession && !this.paymentPrefetchInFlight) {
+        this.paymentPrefetchInFlight = true;
+        this.api.createCheckoutSession(this.currentAppointmentId).subscribe({
+          next: (res) => {
+            this.paymentPrefetchInFlight = false;
+            if (res.data?.redirectUrl && res.data?.formFields) {
+              this.pendingPaymentSession = {
+                redirectUrl: res.data.redirectUrl,
+                formFields: res.data.formFields,
+              };
+            }
+          },
+          error: () => {
+            this.paymentPrefetchInFlight = false;
+          },
+        });
+      }
+      return;
+    }
+
+    this.paymentPrefetchInFlight = true;
+    this.paymentPrefetchError = null;
+
+    const empId = this.selectedEmployeeId() || (this.employees().length > 0 ? this.employees()[0].id : 1);
+    const pad = (n: number) => n < 10 ? '0' + n : n;
+    const dateStr = `${this.selectedDate!.getFullYear()}-${pad(this.selectedDate!.getMonth() + 1)}-${pad(this.selectedDate!.getDate())}`;
+
+    const dto = {
+      booking_type: this.selectedBookingType(),
+      employee_id: empId,
+      location_id: this.selectedLocationId() || 1,
+      scheduled_date: dateStr,
+      start_time: this.selectedTime,
+      service_ids: [this.selectedServiceId()!],
+      notes: this.detailsForm.value.notes
+    };
+
+    this.api.createBooking(dto).subscribe({
+      next: (res) => {
+        this.paymentPrefetchInFlight = false;
+        if (res.data?.appointment) {
+          this.currentAppointmentId = res.data.appointment.id;
+          if (res.data.appointment.confirmation_code) {
+            this.confirmationCode.set(res.data.appointment.confirmation_code);
+          } else {
+            this.confirmationCode.set(String(res.data.appointment.id));
+          }
+        }
+
+        const payment = res.data?.payment;
+        if (payment?.redirectUrl && payment?.formFields) {
+          this.pendingPaymentSession = {
+            redirectUrl: payment.redirectUrl,
+            formFields: payment.formFields,
+          };
+        }
+      },
+      error: (err) => {
+        this.paymentPrefetchInFlight = false;
+        this.paymentPrefetchError = err.error?.message || 'Failed to prepare payment. Please try again.';
+      },
+    });
+  }
+
+  private createBookingAndPay(): void {
     // Existing appointment: start a live Fiserv checkout for that booking
     if (this.currentAppointmentId) {
       this.initiateCheckoutSession();

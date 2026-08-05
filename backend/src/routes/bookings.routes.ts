@@ -343,9 +343,7 @@ router.post('/',
     try {
       const appointment = await bookingService.createAppointment(req.user!.userId, req.body as CreateAppointmentDto);
 
-      socketService.emitBookingEvent('booking_created', { appointment });
-
-      // Initiate payment session
+      // Initiate payment session before socket emit so the client can redirect ASAP
       const paymentSession = await paymentFlowService.initiatePayment({
         appointmentId: appointment.id,
         amountJmd: appointment.total_amount_jmd,
@@ -354,6 +352,15 @@ router.post('/',
       });
 
       res.status(201).json(successResponse({ appointment, payment: paymentSession }, 'Appointment created. Proceed to payment.'));
+
+      // Non-blocking side effects after the client already has the redirect payload
+      setImmediate(() => {
+        try {
+          socketService.emitBookingEvent('booking_created', { appointment });
+        } catch (err) {
+          console.error('[Booking] Failed to emit booking_created:', err);
+        }
+      });
     } catch (e) { next(e); }
   }
 );
