@@ -4,8 +4,11 @@
 export type PublicRoute = string | { path: string; methods?: string[] };
 
 export const PUBLIC_ROUTES: PublicRoute[] = [
-  // Fiserv webhook / transaction notification
+  // Fiserv browser returns (POST) + server notification
   "/api/payments/callback",
+  "/api/payments/success",
+  "/api/payments/error",
+  "/api/payments/failure",
   // Booking availability endpoints
   "/api/bookings/available-slots",
   "/api/bookings/available-dates",
