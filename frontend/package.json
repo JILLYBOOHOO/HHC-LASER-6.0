@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "build:prod": "ng build --configuration=production",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test",
-    "lint": "ng lint",
+    "start": "npx ng serve",
+    "build": "npx ng build",
+    "build:prod": "npx ng build --configuration=production",
+    "watch": "npx ng build --watch --configuration development",
+    "test": "npx ng test",
+    "lint": "npx ng lint",
     "pwa:serve": "http-server -p 8080 -c-1 dist/hhc-laser-frontend"
   },
   "private": true,
