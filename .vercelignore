@@ -1,0 +1,5 @@
+# Archives are not needed at runtime — keep deploy size down
+frontend/public/**/*.zip
+frontend/public/**/*.ZIP
+**/*.zip
+**/*.ZIP

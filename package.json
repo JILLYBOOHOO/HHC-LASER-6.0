@@ -1,4 +1,14 @@
 {
+  "name": "hhc-laser",
+  "private": true,
+  "engines": {
+    "node": "20.x"
+  },
+  "scripts": {
+    "build": "npm --prefix frontend run build:prod",
+    "build:prod": "npm --prefix frontend run build:prod",
+    "install:frontend": "npm --prefix frontend install --include=dev"
+  },
   "dependencies": {
     "better-sqlite3": "^13.0.2",
     "cheerio": "^1.2.0",
