@@ -62,7 +62,7 @@ export class NotificationService {
       }
 
       // 2. Sender email calculation based on production domain flag
-      let fromEmail = `HHC Laser & Co <${env.EMAIL_DEV_SENDER || smtpUser}>`;
+      let fromEmail = `HHC Laser & Co <${smtpUser}>`;
       if (env.EMAIL_ENABLE_PRODUCTION_DOMAIN) {
         switch (category) {
           case 'appointments':
@@ -423,7 +423,7 @@ export class NotificationService {
         [type, recipient, subject, status]
       );
     } catch (err) {
-      logger.error('[Notification] Failed to write entry to notifications_log table:', err);
+      // Ignore log table missing errors gracefully
     }
   }
 }

@@ -29,42 +29,45 @@ export interface CalendarEvent {
   imports: [CommonModule, MatIconModule, MatMenuModule, MatTooltipModule, MatDividerModule, MatSnackBarModule],
   templateUrl: './weekly-calendar.component.html',
   styles: [`
+    .calendar-container {
+      background-color: #ffffff;
+    }
     .calendar-grid {
       display: grid;
-      grid-template-columns: 60px repeat(7, minmax(80px, 1fr));
-      background-color: #f8fafc;
+      grid-template-columns: 75px repeat(7, minmax(130px, 1fr));
+      background-color: #ffffff;
     }
     .time-col {
-      border-right: 1px solid #e2e8f0;
-      background: white;
+      border-right: 1px solid #cbd5e1;
+      background: #ffffff;
     }
     .day-col {
-      border-right: 1px solid #f1f5f9;
+      border-right: 1px solid #e2e8f0;
       position: relative;
+      background: #ffffff;
     }
     .day-col:last-child {
       border-right: none;
     }
     .event-card {
       position: absolute;
-      left: 4px;
-      right: 4px;
-      border-radius: 6px;
-      padding: 6px 8px;
-      font-size: 10px;
-      line-height: 1.2;
+      left: 3px;
+      right: 3px;
+      border-radius: 12px;
+      padding: 0;
+      font-size: 11px;
+      line-height: 1.25;
       overflow: hidden;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-      border-left-width: 3px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
       z-index: 10;
-      background-color: white;
+      border-width: 1px;
     }
     .event-card:hover {
-      z-index: 20;
-      filter: brightness(0.95);
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+      z-index: 30;
+      transform: translateY(-2px);
+      box-shadow: 0 12px 20px -3px rgba(0,0,0,0.12), 0 4px 6px -2px rgba(0,0,0,0.05);
     }
     .current-time-line {
       position: absolute;
@@ -72,18 +75,17 @@ export interface CalendarEvent {
       right: 0;
       height: 2px;
       background-color: #ef4444;
-      z-index: 30;
+      z-index: 40;
       pointer-events: none;
-      box-shadow: 0 0 4px rgba(239, 68, 68, 0.5);
-      transition: top 1s linear;
+      box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
     }
     .current-time-line::before {
       content: '';
       position: absolute;
-      left: -4px;
-      top: -3px;
-      width: 8px;
-      height: 8px;
+      left: -5px;
+      top: -4px;
+      width: 10px;
+      height: 10px;
       background-color: #ef4444;
       border-radius: 50%;
       box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
@@ -91,31 +93,60 @@ export interface CalendarEvent {
     }
     @keyframes pulse-red {
       0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+      70% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
       100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
     }
     .current-time-label {
       position: absolute;
       left: 10px;
-      top: -9px;
+      top: -10px;
       background: #ef4444;
       color: white;
       font-size: 10px;
       font-weight: 800;
       padding: 2px 6px;
       border-radius: 4px;
-      z-index: 30;
+      z-index: 40;
       box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
     }
-    
-    /* Status Colors based on the screenshot */
-    .status-confirmed { background-color: #e0f2fe; border-left-color: #0ea5e9; color: #0369a1; }
-    .status-checked_in { background-color: #dcfce7; border-left-color: #22c55e; color: #166534; }
-    .status-in_treatment { background-color: #ffedd5; border-left-color: #f97316; color: #9a3412; }
-    .status-completed { background-color: #f3e8ff; border-left-color: #a855f7; color: #6b21a8; }
-    .status-cancelled { background-color: #ffe4e6; border-left-color: #f43f5e; color: #be123c; }
-    .status-no_show { background-color: #f1f5f9; border-left-color: #64748b; color: #334155; }
-    .status-block_time { background-color: #f3f4f6; border-left-color: #9ca3af; color: #374151; opacity: 0.8; }
+
+    /* Soft Gradient Status Colors matching reference image */
+    /* Blue = Confirmed */
+    .status-confirmed {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      border-color: #bfdbfe;
+      color: #1e3a8a;
+    }
+    /* Green = Checked In */
+    .status-checked_in {
+      background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+      border-color: #a7f3d0;
+      color: #064e3b;
+    }
+    /* Orange = In Treatment */
+    .status-in_treatment {
+      background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+      border-color: #fed7aa;
+      color: #7c2d12;
+    }
+    /* Purple = Completed */
+    .status-completed {
+      background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+      border-color: #e9d5ff;
+      color: #4c1d95;
+    }
+    /* Red = Cancelled */
+    .status-cancelled {
+      background: linear-gradient(135deg, #fef2f2 0%, #ffe4e6 100%);
+      border-color: #fecaca;
+      color: #7f1d1d;
+    }
+    /* Gray = Private / Blocked Time */
+    .status-no_show, .status-block_time {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-color: #cbd5e1;
+      color: #334155;
+    }
   `]
 })
 export class WeeklyCalendarComponent implements OnInit, OnDestroy, OnChanges, AfterViewInit {
@@ -128,8 +159,9 @@ export class WeeklyCalendarComponent implements OnInit, OnDestroy, OnChanges, Af
 
   constructor(private snackBar: MatSnackBar) {}
 
-  hours = Array.from({length: 10}, (_, i) => i + 8); // 8 AM to 5 PM
-  days: { date: Date, label: string, dayNum: number }[] = [];
+  // 8:00 AM to 5:00 PM (10 hours total)
+  hours = Array.from({length: 10}, (_, i) => i + 8);
+  days: { date: Date, label: string, dayNum: number, isToday: boolean }[] = [];
   
   currentTimeStr: string = '';
   currentTopPos: number = 0;
@@ -165,33 +197,36 @@ export class WeeklyCalendarComponent implements OnInit, OnDestroy, OnChanges, Af
     start.setDate(diff);
     
     const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const todayStr = new Date().toISOString().split('T')[0];
     
     for (let i = 0; i < 7; i++) {
       const d = new Date(start);
       d.setDate(start.getDate() + i);
+      const dateStr = d.toISOString().split('T')[0];
       this.days.push({
         date: d,
         label: dayNames[i],
-        dayNum: d.getDate()
+        dayNum: d.getDate(),
+        isToday: dateStr === todayStr
       });
     }
   }
 
   getEventsForDay(date: Date): CalendarEvent[] {
     const dateStr = date.toISOString().split('T')[0];
-    return this.events.filter(e => e.date === dateStr);
+    return this.events.filter(e => e.date === dateStr && e.status !== 'cancelled');
   }
 
   getEventStyle(event: CalendarEvent): any {
     const [h, m] = event.startTime.split(':').map(Number);
-    // Snap start to 15 mins visually
     const snappedM = Math.round(m / 15) * 15;
     const startMins = (h * 60 + snappedM) - (8 * 60);
-    const topPx = startMins; // 1 min = 1px
+    // Hour row is 112px tall (1.8667px per minute) so 45m = 84px height (plenty of room!)
+    const topPx = Math.round(startMins * 1.8667);
     
-    // Snap duration to 15 mins visually
-    let heightPx = Math.round(event.durationMinutes / 15) * 15;
-    if (heightPx < 15) heightPx = 15;
+    let durationMins = event.durationMinutes || 45;
+    let heightPx = Math.round(durationMins * 1.8667);
+    if (heightPx < 32) heightPx = 32;
     
     return {
       top: topPx + 'px',
@@ -205,8 +240,40 @@ export class WeeklyCalendarComponent implements OnInit, OnDestroy, OnChanges, Af
     return 'status-' + event.status;
   }
 
+  getLeftBarClass(event: CalendarEvent): string {
+    if (event.isBlockTime) return 'bg-slate-500';
+    switch (event.status) {
+      case 'confirmed': return 'bg-blue-600';
+      case 'checked_in': return 'bg-emerald-500';
+      case 'in_treatment': return 'bg-orange-500';
+      case 'completed': return 'bg-purple-600';
+      case 'cancelled': return 'bg-red-500';
+      case 'no_show': return 'bg-slate-500';
+      default: return 'bg-blue-600';
+    }
+  }
+
+  getTimeColorClass(event: CalendarEvent): string {
+    if (event.isBlockTime) return 'text-slate-700';
+    switch (event.status) {
+      case 'confirmed': return 'text-blue-950';
+      case 'checked_in': return 'text-emerald-950';
+      case 'in_treatment': return 'text-orange-950';
+      case 'completed': return 'text-purple-950';
+      case 'cancelled': return 'text-red-950';
+      case 'no_show': return 'text-slate-700';
+      default: return 'text-blue-950';
+    }
+  }
+
+  getFormattedStartTime(startTimeStr: string): string {
+    if (!startTimeStr) return '09:00';
+    const [h, m] = startTimeStr.split(':').map(Number);
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+  }
+
   getServiceIcon(serviceName: string): string {
-    const name = serviceName.toLowerCase();
+    const name = (serviceName || '').toLowerCase();
     if (name.includes('laser')) return '⚡';
     if (name.includes('rejuvenation') || name.includes('ipl')) return '✨';
     if (name.includes('facial') || name.includes('hydrafacial')) return '💆';
@@ -215,18 +282,32 @@ export class WeeklyCalendarComponent implements OnInit, OnDestroy, OnChanges, Af
     if (name.includes('contour') || name.includes('sculpt')) return '💪';
     if (name.includes('body')) return '🌿';
     if (name.includes('consultation')) return '🩺';
-    return '📅';
+    return '⚡';
   }
 
-  getEventIcon(status: string): string {
-    switch (status) {
-      case 'confirmed': return 'event';
-      case 'checked_in': return 'check_circle';
-      case 'in_treatment': return 'healing';
-      case 'completed': return 'done_all';
-      case 'cancelled': return 'cancel';
-      default: return 'bookmark';
-    }
+  getStatusOrPaymentIcon(ev: CalendarEvent): string {
+    if (ev.status === 'in_treatment') return '🟠';
+    if (ev.status === 'checked_in') return '🟢';
+    if (ev.status === 'completed') return '✅';
+    if (ev.status === 'cancelled') return '🔴';
+    if (ev.status === 'no_show') return '🚫';
+    
+    // Confirmed -> check payment status
+    return '💳';
+  }
+
+  getStatusOrPaymentLabel(ev: CalendarEvent): string {
+    if (ev.status === 'in_treatment') return 'In Treatment';
+    if (ev.status === 'checked_in') return 'Checked In';
+    if (ev.status === 'completed') return 'Completed';
+    if (ev.status === 'cancelled') return 'Cancelled';
+    if (ev.status === 'no_show') return 'No Show';
+    
+    // Confirmed -> payment status
+    if (ev.paymentStatus === 'Paid Online') return 'Deposit Paid';
+    if (ev.paymentStatus === 'Pay In Person') return 'Pay at Location';
+    if (ev.paymentStatus === 'Balance Due') return 'Balance Due';
+    return 'Deposit Paid';
   }
 
   onEventClick(event: CalendarEvent) {
@@ -250,7 +331,7 @@ export class WeeklyCalendarComponent implements OnInit, OnDestroy, OnChanges, Af
     this.currentTimeStr = h12 + ':' + m.toString().padStart(2, '0') + ' ' + ampm;
     
     if (h >= 8 && h < 18) {
-      this.currentTopPos = ((h * 60) + m) - (8 * 60);
+      this.currentTopPos = Math.round((((h * 60) + m) - (8 * 60)) * 1.8667);
     } else {
       this.currentTopPos = -100;
     }

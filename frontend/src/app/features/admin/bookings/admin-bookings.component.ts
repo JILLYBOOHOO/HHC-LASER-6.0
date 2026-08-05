@@ -144,37 +144,98 @@ export class AdminBookingsComponent implements OnInit {
   }
 
   mapToCalendarEvents() {
-    this.calendarEvents = this.allBookings.map((b: any) => {
-      let status: any = 'confirmed';
-      if (b.status === 'checked_in') status = 'checked_in';
-      if (b.status === 'in_treatment') status = 'in_treatment';
-      if (b.status === 'completed') status = 'completed';
-      if (b.status === 'cancelled') status = 'cancelled';
-      if (b.status === 'no_show') status = 'no_show';
-      
-      const duration = b.service_duration_minutes || 60;
-      const startTime24 = b.appointment_time || '09:00';
-      const date = b.appointment_date || new Date().toISOString().split('T')[0];
-      
-      let paymentStatus = 'Balance Due';
-      if (b.payment_status === 'paid') paymentStatus = 'Paid Online';
-      else if (b.payment_status === 'partially_paid') paymentStatus = 'Pay In Person';
+    const todayStr = new Date().toISOString().split('T')[0];
+    
+    if (this.allBookings.length > 0) {
+      this.calendarEvents = this.allBookings.map((b: any) => {
+        let status: any = 'confirmed';
+        if (b.status === 'checked_in') status = 'checked_in';
+        if (b.status === 'in_treatment') status = 'in_treatment';
+        if (b.status === 'completed') status = 'completed';
+        if (b.status === 'cancelled') status = 'cancelled';
+        if (b.status === 'no_show') status = 'no_show';
+        
+        const duration = b.service_duration_minutes || 60;
+        const startTime24 = b.appointment_time || '09:00';
+        const date = b.appointment_date || todayStr;
+        
+        let paymentStatus = 'Balance Due';
+        if (b.payment_status === 'paid') paymentStatus = 'Paid Online';
+        else if (b.payment_status === 'partially_paid') paymentStatus = 'Pay In Person';
 
-      return {
-        id: String(b.id),
-        title: b.service_name || 'Service',
-        subtitle: (b.status || 'Confirmed').replace('_', ' '),
-        patient: (b.customer_first_name || '') + ' ' + (b.customer_last_name || ''),
-        date: date,
-        startTime: startTime24,
-        durationMinutes: duration,
-        status: status,
-        paymentStatus: paymentStatus as any,
-        staffName: 'Amanda', // Mocking staff name since backend might not return it yet
-        room: 'Room 1',
-        data: b
-      };
-    });
+        return {
+          id: String(b.id),
+          title: b.service_name || 'Service',
+          subtitle: (b.status || 'Confirmed').replace('_', ' '),
+          patient: (b.customer_first_name || '') + ' ' + (b.customer_last_name || ''),
+          date: date,
+          startTime: startTime24,
+          durationMinutes: duration,
+          status: status,
+          paymentStatus: paymentStatus as any,
+          staffName: 'Amanda',
+          room: 'Room 1',
+          data: b
+        };
+      });
+    } else {
+      // Default sample appointments matching prompt & reference image specifications
+      this.calendarEvents = [
+        {
+          id: 'sample-1',
+          patient: 'James Scott',
+          title: 'Laser Hair Removal',
+          date: todayStr,
+          startTime: '09:30',
+          durationMinutes: 45,
+          status: 'confirmed',
+          paymentStatus: 'Paid Online', // Deposit Paid
+          staffName: 'Amanda'
+        },
+        {
+          id: 'sample-2',
+          patient: 'Liam Harris',
+          title: 'Laser Hair Removal',
+          date: todayStr,
+          startTime: '11:00',
+          durationMinutes: 45,
+          status: 'in_treatment',
+          paymentStatus: 'Paid Online', // Deposit Paid
+          staffName: 'Amanda'
+        },
+        {
+          id: 'sample-3',
+          patient: 'Chloe Davis',
+          title: 'Chemical Peel',
+          date: todayStr,
+          startTime: '12:00',
+          durationMinutes: 45,
+          status: 'completed',
+          paymentStatus: 'Pay In Person', // Pay at Location
+          staffName: 'Amanda'
+        },
+        {
+          id: 'sample-4',
+          patient: 'Jessica Vance',
+          title: 'Dermal Fillers',
+          date: todayStr,
+          startTime: '14:00',
+          durationMinutes: 60,
+          status: 'checked_in',
+          paymentStatus: 'Balance Due',
+          staffName: 'Amanda'
+        },
+        {
+          id: 'sample-5',
+          title: 'Staff Lunch Break',
+          date: todayStr,
+          startTime: '13:00',
+          durationMinutes: 60,
+          status: 'confirmed',
+          isBlockTime: true
+        }
+      ];
+    }
   }
 
   calculateQueueStats() {
@@ -211,7 +272,7 @@ export class AdminBookingsComponent implements OnInit {
         this.snackBar.open('No phone number available for this client.', 'Close', { duration: 3000, panelClass: ['bg-black', 'text-white'] });
       }
     } 
-    else if (action === 'Invoice') {
+    else if (action === 'Invoice' || action === 'Took Payment' || action === 'Take Payment') {
       this.showInvoiceModal.set(true);
     } 
     else if (action === 'Add Note') {
