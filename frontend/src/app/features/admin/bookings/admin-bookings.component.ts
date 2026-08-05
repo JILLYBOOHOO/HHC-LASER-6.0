@@ -160,8 +160,11 @@ export class AdminBookingsComponent implements OnInit {
         const date = b.appointment_date || todayStr;
         
         let paymentStatus = 'Balance Due';
-        if (b.payment_status === 'paid') paymentStatus = 'Paid Online';
-        else if (b.payment_status === 'partially_paid') paymentStatus = 'Pay In Person';
+        if (b.payment_status === 'paid' || b.payment_status === 'paid_in_store' || b.payment_status === 'paid_online') {
+          paymentStatus = 'Paid Online';
+        } else if (b.payment_status === 'partially_paid') {
+          paymentStatus = 'Pay In Person';
+        }
 
         return {
           id: String(b.id),

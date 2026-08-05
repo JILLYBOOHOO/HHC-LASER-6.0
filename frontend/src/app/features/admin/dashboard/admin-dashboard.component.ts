@@ -341,16 +341,16 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
               locationClass,
               status: statusLabel,
               statusClass,
-              rawDate: b.appointment_date || b.scheduled_date || todayStr
+              rawDate: String(b.appointment_date || b.scheduled_date || todayStr).split('T')[0]
             };
           });
 
           // Show today's active appointments or fallback to latest appointments
-          const todaysOnly = mapped.filter(item => item.rawDate === todayStr && item.status !== 'CANCELLED');
-          const activeList = todaysOnly.length > 0 ? todaysOnly : mapped.filter(i => i.status !== 'CANCELLED').slice(0, 10);
+          const todaysOnly = mapped.filter(item => item.rawDate === todayStr);
+          const activeList = todaysOnly.length > 0 ? todaysOnly : mapped.slice(0, 10);
           
           this.todayAppointments.set(activeList);
-          this.todayAppointmentCount.set(activeList.length);
+          this.todayAppointmentCount.set(todaysOnly.length > 0 ? todaysOnly.length : mapped.length);
           this.pendingCount.set(mapped.filter(i => i.status === 'PENDING').length);
 
           // Generate dynamic recent activity feed from latest bookings

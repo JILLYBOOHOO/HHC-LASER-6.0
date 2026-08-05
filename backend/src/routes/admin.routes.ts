@@ -242,12 +242,14 @@ router.get('/transactions',
 
       let sql = `
         SELECT t.*, 
-               u.first_name as customer_first_name, u.last_name as customer_last_name, u.email as customer_email,
+               COALESCE(u.first_name, 'Client') as customer_first_name, 
+               COALESCE(u.last_name, '') as customer_last_name, 
+               COALESCE(u.email, 'In-Store Payment') as customer_email,
                a.scheduled_date as appointment_date, a.start_time as appointment_time,
                s.name as service_name
         FROM transactions t
-        LEFT JOIN users u ON t.customer_user_id = u.id
         LEFT JOIN appointments a ON t.appointment_id = a.id
+        LEFT JOIN users u ON (t.customer_user_id = u.id OR a.customer_user_id = u.id)
         LEFT JOIN appointment_services aps ON a.id = aps.appointment_id
         LEFT JOIN services s ON aps.service_id = s.id
       `;
