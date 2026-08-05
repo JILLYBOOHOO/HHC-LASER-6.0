@@ -14,11 +14,10 @@ import { AuthService } from '../../../core/services/auth.service';
       <aside class="hidden md:flex flex-col w-64 flex-shrink-0 border-r border-slate-800 bg-slate-950 text-white shadow-xl">
         <!-- Header -->
         <div class="px-6 py-5 border-b border-slate-800 flex flex-col gap-1">
-          <div class="font-serif font-black text-xl text-white tracking-tight flex items-center gap-2">
-            <span class="text-amber-400">⚡</span>
-            <span>HHC LASER</span>
+          <div class="font-serif font-black text-xl text-white tracking-tight">
+            HHC LASER
           </div>
-          <div class="text-amber-400 text-[10px] font-extrabold uppercase tracking-widest">Specialist Portal</div>
+          <div class="text-amber-400 text-[10px] font-extrabold uppercase tracking-widest">Staff Dashboard</div>
         </div>
 
         <!-- Navigation Links -->
