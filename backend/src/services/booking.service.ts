@@ -487,13 +487,18 @@ export class BookingService {
       [employeeId, locationId, dayOfWeek]
     );
 
-    if (!schedule || !schedule.is_available) return [];
+    const parseTime = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+    const eStart = schedule ? parseTime(schedule.start_time) : 9 * 60; // 09:00 AM (540 mins)
+    const eEnd = schedule ? parseTime(schedule.end_time) : 17 * 60; // 05:00 PM (1020 mins)
+    const isAvailable = schedule ? Boolean(schedule.is_available) : true;
+
+    if (!isAvailable) return [];
 
     // 5. Get dynamic interval setting
     const intervalSetting = await executeQueryOne<{ setting_value: string }>(
       `SELECT setting_value FROM business_settings WHERE setting_key = 'booking_slot_interval'`
     );
-    let interval = 15; // default to 15 mins
+    let interval = 15; // 15 mins default
     if (intervalSetting) {
       try {
         const parsed = parseInt(intervalSetting.setting_value.replace(/['"]/g, ''), 10);
@@ -511,18 +516,16 @@ export class BookingService {
     );
 
     // 7. Calculate bounds (intersect business hours with employee schedule)
-    const parseTime = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
     const bOpen = bizHours && bizHours.open_time ? parseTime(bizHours.open_time) : 9 * 60; // default 9 AM
     const bClose = bizHours && bizHours.close_time ? parseTime(bizHours.close_time) : 17 * 60; // default 5 PM
-    const eStart = parseTime(schedule.start_time);
-    const eEnd = parseTime(schedule.end_time);
 
     let startMinutes = Math.max(bOpen, eStart);
     const endMinutes = Math.min(bClose, eEnd);
+    const maxStartMinutes = 16 * 60 + 30; // 4:30 PM (990 mins)
 
-    // 8. Generate slots dynamically
+    // 8. Generate slots dynamically from 9:00 AM to 4:30 PM in 15 min intervals
     const slots: string[] = [];
-    while (startMinutes + durationMinutes <= endMinutes) {
+    while (startMinutes <= maxStartMinutes && startMinutes + Math.min(durationMinutes, 15) <= endMinutes) {
       const sh = Math.floor(startMinutes / 60);
       const sm = startMinutes % 60;
       const slotStart = `${String(sh).padStart(2, '0')}:${String(sm).padStart(2, '0')}`;
