@@ -5,8 +5,8 @@
     <div class="w-[75px] shrink-0 border-r border-slate-200 flex items-center justify-center bg-slate-50">
       <mat-icon class="!text-[18px] text-slate-400">schedule</mat-icon>
     </div>
-    <div class="flex-1 grid grid-cols-7">
-      <div *ngFor="let day of days" class="py-2.5 text-center border-r border-slate-200 last:border-r-0 relative" [class.bg-amber-50]="day.isToday">
+    <div class="flex-1 grid" [ngClass]="viewMode === 'day' ? 'grid-cols-1' : 'grid-cols-7'">
+      <div *ngFor="let day of (viewMode === 'month' ? days.slice(0,7) : days)" class="py-2.5 text-center border-r border-slate-200 last:border-r-0 relative" [class.bg-amber-50]="day.isToday">
         <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">{{ day.label }}</div>
         <div class="text-sm font-black flex items-center justify-center gap-1">
           <span [class.bg-[#B36A17]]="day.isToday" [class.text-white]="day.isToday" [class.w-7]="day.isToday" [class.h-7]="day.isToday" [class.rounded-full]="day.isToday" [class.flex]="day.isToday" [class.items-center]="day.isToday" [class.justify-center]="day.isToday" [class.text-slate-800]="!day.isToday">

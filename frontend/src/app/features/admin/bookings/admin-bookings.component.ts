@@ -48,6 +48,12 @@ export class AdminBookingsComponent implements OnInit {
   showClientProfileModal = signal<boolean>(false);
   clientProfileData = signal<any>(null);
 
+  showFilterModal = signal<boolean>(false);
+  selectedStaffFilter = 'all';
+  selectedStatusFilter = 'all';
+  selectedPaymentFilter = 'all';
+  selectedServiceFilter = 'all';
+
   allBookings: any[] = [];
   calendarEvents: CalendarEvent[] = [];
   
@@ -154,7 +160,32 @@ export class AdminBookingsComponent implements OnInit {
   }
 
   openFilterMenu() {
-    this.snackBar.open('Showing all clinic specialists & locations', 'Close', { duration: 3000, panelClass: ['bg-black', 'text-white'] });
+    this.showFilterModal.set(true);
+  }
+
+  resetFilters() {
+    this.selectedStaffFilter = 'all';
+    this.selectedStatusFilter = 'all';
+    this.selectedPaymentFilter = 'all';
+    this.selectedServiceFilter = 'all';
+    this.showFilterModal.set(false);
+    this.snackBar.open('Filters reset to show all appointments', 'Close', { duration: 2500, panelClass: ['bg-black', 'text-white'] });
+  }
+
+  applyFilters() {
+    this.showFilterModal.set(false);
+    const count = this.filteredCalendarEvents().length;
+    this.snackBar.open(`Filters applied (${count} appointments found)`, 'Close', { duration: 2500, panelClass: ['bg-black', 'text-white'] });
+  }
+
+  filteredCalendarEvents(): CalendarEvent[] {
+    return this.calendarEvents.filter(ev => {
+      if (this.selectedStaffFilter !== 'all' && ev.staffName !== this.selectedStaffFilter) return false;
+      if (this.selectedStatusFilter !== 'all' && ev.status !== this.selectedStatusFilter) return false;
+      if (this.selectedPaymentFilter !== 'all' && ev.paymentStatus !== this.selectedPaymentFilter) return false;
+      if (this.selectedServiceFilter !== 'all' && !ev.title.toLowerCase().includes(this.selectedServiceFilter.toLowerCase())) return false;
+      return true;
+    });
   }
 
   addBlockTime(category: string) {
