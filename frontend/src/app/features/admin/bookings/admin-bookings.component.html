@@ -25,6 +25,11 @@
         <span>New Appointment</span>
       </button>
       
+      <button (click)="openBlockTimeModal()" class="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold transition-colors shadow-2xs">
+        <mat-icon class="!text-[18px] text-amber-400">lock</mat-icon>
+        <span>Block Time</span>
+      </button>
+      
       <div class="w-px h-6 bg-slate-200 mx-1"></div>
       
       <button (click)="goToToday()" class="px-4 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold transition-colors">Today</button>
@@ -34,9 +39,13 @@
         <button (click)="nextWeek()" class="p-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-600 transition-colors"><mat-icon class="!text-[18px]">chevron_right</mat-icon></button>
       </div>
       
-      <div class="text-sm font-extrabold tracking-tight min-w-[140px] text-center flex items-center justify-center gap-2">
-        <span>{{ dateRangeText }}</span>
-        <mat-icon class="!text-[16px] text-slate-400">calendar_today</mat-icon>
+      <div class="relative">
+        <button (click)="datePickerInput.click()" class="text-sm font-black tracking-tight px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-900 flex items-center gap-2 cursor-pointer transition-colors shadow-2xs">
+          <mat-icon class="!text-[18px] text-[#B36A17]">calendar_today</mat-icon>
+          <span>{{ dateRangeText }}</span>
+          <mat-icon class="!text-[16px] text-slate-400">chevron_right</mat-icon>
+        </button>
+        <input #datePickerInput type="date" [ngModel]="currentDate | date:'yyyy-MM-dd'" (ngModelChange)="onDatePicked($event)" class="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10" />
       </div>
     </div>
 
@@ -48,7 +57,7 @@
         <button (click)="setView('month')" [ngClass]="activeView === 'month' ? 'font-extrabold bg-[#fef3c7] text-[#92400e] shadow-sm' : 'font-bold text-slate-600 hover:text-slate-900'" class="px-4 py-1.5 rounded-lg text-xs transition-colors">Month</button>
       </div>
       
-      <button class="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors">
+      <button (click)="openFilterMenu()" class="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors">
         <mat-icon class="!text-[16px]">filter_list</mat-icon>
         <span>Filters</span>
       </button>
@@ -137,7 +146,7 @@
       </div>
 
       <div class="min-w-[700px] h-full" [style.zoom]="zoomLevel / 100">
-        <app-weekly-calendar [startDate]="currentDate" [events]="calendarEvents" (eventClick)="openReschedule($event)" (actionTriggered)="handleCalendarAction($event)"></app-weekly-calendar>
+        <app-weekly-calendar [startDate]="currentDate" [viewMode]="activeView" [events]="filteredCalendarEvents()" (eventClick)="openReschedule($event)" (actionTriggered)="handleCalendarAction($event)"></app-weekly-calendar>
       </div>
     </div>
 
@@ -220,6 +229,34 @@
           </div>
         </div>
 
+        <!-- Cancellations Queue Section -->
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <div class="w-2.5 h-2.5 rounded-full bg-rose-500"></div>
+              <span class="text-xs font-black text-slate-800 uppercase tracking-wide">Cancellations ({{ cancelledCount }})</span>
+            </div>
+            <span class="text-[9px] font-black text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200 uppercase">Today</span>
+          </div>
+          
+          <div class="space-y-2">
+            <div *ngFor="let q of cancelledList" class="p-2.5 border border-rose-200 rounded-xl bg-rose-50/70 flex flex-col gap-1 shadow-2xs">
+              <div class="flex justify-between items-center text-xs font-black text-rose-950">
+                <span class="truncate">{{ q.patient }}</span>
+                <span class="font-mono text-[10px] text-rose-700 font-bold bg-white/90 px-1.5 py-0.5 rounded">{{ q.startTime }}</span>
+              </div>
+              <div class="text-[10px] font-bold text-rose-800/80 flex items-center justify-between">
+                <span class="truncate max-w-[140px]">{{ q.title }}</span>
+                <span class="uppercase font-black text-[9px] bg-rose-200 text-rose-900 px-1.5 py-0.5 rounded">CANCELLED</span>
+              </div>
+            </div>
+
+            <div *ngIf="cancelledList.length === 0" class="p-3 text-center border border-dashed border-slate-200 rounded-xl text-[11px] text-slate-400 font-semibold bg-slate-50/50">
+              No cancelled appointments today
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -240,3 +277,374 @@
   (close)="showInvoiceModal.set(false)"
   (paymentUpdated)="fetchAppointments()">
 </app-invoice-modal>
+
+<!-- Modern Glassmorphic Cancel Confirmation Modal Overlay -->
+<div *ngIf="showCancelConfirmModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 font-sans animate-fade-in">
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 relative overflow-hidden animate-scale-up">
+    
+    <!-- Top Danger Icon Badge -->
+    <div class="w-14 h-14 rounded-full bg-rose-50 border border-rose-200 text-rose-500 flex items-center justify-center mx-auto mb-4 shadow-xs">
+      <mat-icon class="!text-2xl">warning_amber</mat-icon>
+    </div>
+
+    <!-- Modal Header & Body Text -->
+    <div class="text-center space-y-2 mb-6">
+      <h3 class="text-xl font-black text-slate-900 tracking-tight">Cancel Appointment?</h3>
+      <p class="text-xs text-slate-600 leading-relaxed font-semibold">
+        Are you sure you want to cancel the booking for 
+        <strong class="text-slate-900 font-black">{{ appointmentToCancel()?.patient || 'this client' }}</strong> 
+        ({{ appointmentToCancel()?.title || 'Service' }} at {{ appointmentToCancel()?.startTime }})?
+      </p>
+      
+      <div class="bg-amber-50 border border-amber-200/80 rounded-xl p-3 text-[11px] font-bold text-amber-900 text-left flex items-start gap-2.5 mt-3">
+        <span class="text-amber-600 text-base shrink-0">💡</span>
+        <span>Cancelling will immediately remove the card from the weekly calendar grid, freeing up the time slot for other clients.</span>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+      <button type="button" 
+              (click)="closeCancelModal()" 
+              class="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs rounded-xl transition-all">
+        Keep Appointment
+      </button>
+      <button type="button" 
+              (click)="confirmCancelAppointment()" 
+              class="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5">
+        <mat-icon class="!text-base">cancel</mat-icon>
+        <span>Yes, Cancel Booking</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modern Client Quick Profile Popup Modal -->
+<div *ngIf="showClientProfileModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 font-sans animate-fade-in">
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden flex flex-col animate-scale-up">
+    
+    <!-- Top Dark Header Card -->
+    <div class="px-6 py-5 bg-slate-900 text-white flex items-center justify-between relative overflow-hidden">
+      <div class="flex items-center gap-3.5 z-10">
+        <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-[#B36A17] to-[#d4b982] text-white flex items-center justify-center font-black text-lg shadow-md border-2 border-white/20">
+          {{ (clientProfileData()?.name || 'C').slice(0,2).toUpperCase() }}
+        </div>
+        <div>
+          <h3 class="text-base font-black tracking-tight text-white">{{ clientProfileData()?.name }}</h3>
+          <div class="flex items-center gap-2 mt-0.5">
+            <span class="px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-[9px] font-black uppercase tracking-wider border border-amber-400/30">VIP Client</span>
+            <span class="text-[10px] text-slate-400 font-semibold">Ref #{{ clientProfileData()?.id }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <button (click)="showClientProfileModal.set(false)" class="text-slate-400 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-xl transition-colors z-10">
+        <mat-icon class="!text-lg">close</mat-icon>
+      </button>
+
+      <!-- Decorative subtle background circle -->
+      <div class="absolute -right-8 -bottom-8 w-28 h-28 bg-[#B36A17]/10 rounded-full blur-xl pointer-events-none"></div>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="p-6 space-y-4 bg-white">
+      
+      <!-- Contact Info Cards -->
+      <div class="grid grid-cols-1 gap-2.5">
+        
+        <!-- Phone Number -->
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
+              <mat-icon class="!text-base">phone</mat-icon>
+            </div>
+            <div>
+              <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider">Phone Number</p>
+              <p class="text-xs font-black text-slate-900">{{ clientProfileData()?.phone }}</p>
+            </div>
+          </div>
+          <a *ngIf="clientProfileData()?.phone && clientProfileData()?.phone !== 'No phone number available'" [href]="'tel:' + clientProfileData()?.phone" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors shadow-2xs">
+            Call
+          </a>
+        </div>
+
+        <!-- Email Address -->
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center">
+              <mat-icon class="!text-base">email</mat-icon>
+            </div>
+            <div>
+              <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider">Email Address</p>
+              <p class="text-xs font-black text-slate-900 truncate max-w-[180px]">{{ clientProfileData()?.email }}</p>
+            </div>
+          </div>
+          <a *ngIf="clientProfileData()?.email && clientProfileData()?.email !== 'No email address available'" [href]="'mailto:' + clientProfileData()?.email" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors shadow-2xs">
+            Email
+          </a>
+        </div>
+
+      </div>
+
+      <!-- Notes & Special Instructions Section -->
+      <div class="p-3.5 bg-amber-50/70 border border-amber-200/80 rounded-xl">
+        <div class="flex items-center gap-2 mb-1.5">
+          <mat-icon class="!text-base text-amber-700">notes</mat-icon>
+          <span class="text-[10px] font-black text-amber-900 uppercase tracking-wider">Client Notes & Medical History</span>
+        </div>
+        <p class="text-xs text-slate-700 leading-relaxed font-bold italic">
+          "{{ clientProfileData()?.notes }}"
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Footer Action -->
+    <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3">
+      <button (click)="showClientProfileModal.set(false)" class="px-4 py-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-xl transition-colors">
+        Close
+      </button>
+      <button (click)="viewFullClientProfile()" class="px-5 py-2.5 bg-[#B36A17] hover:bg-[#965713] text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2">
+        <mat-icon class="!text-base">account_box</mat-icon>
+        <span>View Full Profile</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modern Glassmorphic Calendar Filters Modal Overlay -->
+<div *ngIf="showFilterModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 font-sans animate-fade-in">
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden flex flex-col animate-scale-up">
+    
+    <!-- Top Header -->
+    <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-400/30">
+          <mat-icon class="!text-lg">filter_list</mat-icon>
+        </div>
+        <div>
+          <h3 class="text-base font-black tracking-tight text-white">Calendar Filters</h3>
+          <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Filter schedule by specialist, status, service, or payment</p>
+        </div>
+      </div>
+      
+      <button (click)="showFilterModal.set(false)" class="text-slate-400 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 rounded-xl transition-colors">
+        <mat-icon class="!text-lg">close</mat-icon>
+      </button>
+    </div>
+
+    <!-- Filter Form Fields Grid -->
+    <div class="p-6 space-y-4 bg-white">
+      
+      <div class="grid grid-cols-2 gap-4">
+        
+        <!-- 1. Specialist / Staff -->
+        <div>
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Provider / Specialist</label>
+          <select [(ngModel)]="selectedStaffFilter" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-black text-slate-900 focus:outline-none focus:border-slate-800">
+            <option value="all">All Specialists</option>
+            <option value="Amanda">Amanda</option>
+            <option value="Dr. Sarah">Dr. Sarah</option>
+            <option value="Dr. Marcus">Dr. Marcus</option>
+          </select>
+        </div>
+
+        <!-- 2. Treatment Service -->
+        <div>
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Treatment Service</label>
+          <select [(ngModel)]="selectedServiceFilter" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-black text-slate-900 focus:outline-none focus:border-slate-800">
+            <option value="all">All Services</option>
+            <option value="Laser">Laser Hair Removal</option>
+            <option value="Wood">Wood Therapy</option>
+            <option value="Fillers">Dermal Fillers</option>
+            <option value="Peel">Chemical Peel</option>
+          </select>
+        </div>
+
+        <!-- 3. Appointment Status -->
+        <div>
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Appointment Status</label>
+          <select [(ngModel)]="selectedStatusFilter" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-black text-slate-900 focus:outline-none focus:border-slate-800">
+            <option value="all">All Statuses</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="checked_in">Checked In</option>
+            <option value="in_treatment">In Room / Treatment</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+
+        <!-- 4. Payment Status -->
+        <div>
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Payment Status</label>
+          <select [(ngModel)]="selectedPaymentFilter" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-black text-slate-900 focus:outline-none focus:border-slate-800">
+            <option value="all">All Payment Statuses</option>
+            <option value="Paid Online">💳 Deposit Paid / Paid</option>
+            <option value="Pay In Person">🏥 Pay at Location</option>
+            <option value="Balance Due">⚠️ Balance Due</option>
+          </select>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Footer Action Buttons -->
+    <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3">
+      <button (click)="resetFilters()" class="px-4 py-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-xl transition-colors">
+        Reset Filters
+      </button>
+      <button (click)="applyFilters()" class="px-6 py-2.5 bg-[#B36A17] hover:bg-[#965713] text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2">
+        <mat-icon class="!text-base">check</mat-icon>
+        <span>Apply Filters</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modern Glassmorphic Time Blocking Modal Overlay -->
+<div *ngIf="showBlockTimeModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 font-sans animate-fade-in">
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden flex flex-col animate-scale-up">
+    
+    <!-- Header -->
+    <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-400/30">
+          <mat-icon class="!text-lg">lock</mat-icon>
+        </div>
+        <div>
+          <h3 class="text-base font-black tracking-tight text-white">Block Out Calendar Time</h3>
+          <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Block time slots, full days, or an entire month</p>
+        </div>
+      </div>
+      
+      <button (click)="closeBlockTimeModal()" class="text-slate-400 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 rounded-xl transition-colors">
+        <mat-icon class="!text-lg">close</mat-icon>
+      </button>
+    </div>
+
+    <!-- Form Content -->
+    <div class="p-6 space-y-4 bg-white">
+      
+      <!-- 1. Category / Reason Title -->
+      <div>
+        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Block Title / Category</label>
+        <select [(ngModel)]="blockForm.title" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-black text-slate-900 focus:outline-none focus:border-slate-800">
+          <option value="Machine Maintenance">🔒 Machine Maintenance</option>
+          <option value="Staff Lunch Break">☕ Staff Lunch Break</option>
+          <option value="Vacation / Holiday">🏖️ Vacation / Clinic Holiday</option>
+          <option value="Cleaning & Sanitization">🧹 Cleaning & Sanitization</option>
+          <option value="Staff Training">📚 Staff Training</option>
+          <option value="Private Event">🔑 Private Event</option>
+        </select>
+      </div>
+
+      <!-- 2. Block Scope / Type -->
+      <div>
+        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Blockout Scope</label>
+        <div class="grid grid-cols-3 gap-2">
+          <button type="button" (click)="blockForm.scope = 'single'" [ngClass]="blockForm.scope === 'single' ? 'bg-[#B36A17] text-white font-black' : 'bg-slate-50 border border-slate-200 text-slate-700 font-bold'" class="py-2 px-2 text-xs rounded-xl text-center transition-all">
+            Single Day
+          </button>
+          <button type="button" (click)="blockForm.scope = 'range'" [ngClass]="blockForm.scope === 'range' ? 'bg-[#B36A17] text-white font-black' : 'bg-slate-50 border border-slate-200 text-slate-700 font-bold'" class="py-2 px-2 text-xs rounded-xl text-center transition-all">
+            Date Range
+          </button>
+          <button type="button" (click)="blockForm.scope = 'month'" [ngClass]="blockForm.scope === 'month' ? 'bg-[#B36A17] text-white font-black' : 'bg-slate-50 border border-slate-200 text-slate-700 font-bold'" class="py-2 px-2 text-xs rounded-xl text-center transition-all">
+            Entire Month
+          </button>
+        </div>
+      </div>
+
+      <!-- Date Inputs based on Scope -->
+      <div *ngIf="blockForm.scope === 'single'" class="grid grid-cols-1">
+        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Target Date</label>
+        <input type="date" [(ngModel)]="blockForm.startDate" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none" />
+      </div>
+
+      <div *ngIf="blockForm.scope === 'range'" class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Start Date</label>
+          <input type="date" [(ngModel)]="blockForm.startDate" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none" />
+        </div>
+        <div>
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">End Date</label>
+          <input type="date" [(ngModel)]="blockForm.endDate" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none" />
+        </div>
+      </div>
+
+      <div *ngIf="blockForm.scope === 'month'" class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Select Month</label>
+          <select [(ngModel)]="blockForm.selectedMonth" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-black text-slate-900 focus:outline-none">
+            <option [value]="1">January</option>
+            <option [value]="2">February</option>
+            <option [value]="3">March</option>
+            <option [value]="4">April</option>
+            <option [value]="5">May</option>
+            <option [value]="6">June</option>
+            <option [value]="7">July</option>
+            <option [value]="8">August</option>
+            <option [value]="9">September</option>
+            <option [value]="10">October</option>
+            <option [value]="11">November</option>
+            <option [value]="12">December</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Select Year</label>
+          <select [(ngModel)]="blockForm.selectedYear" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-black text-slate-900 focus:outline-none">
+            <option [value]="2026">2026</option>
+            <option [value]="2027">2027</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Time Settings (Hidden if Entire Month is selected) -->
+      <div *ngIf="blockForm.scope !== 'month'" class="space-y-3 pt-1 border-t border-slate-100">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-black text-slate-800">Block Full Day (8:00 AM - 5:00 PM)</span>
+          <input type="checkbox" [(ngModel)]="blockForm.isAllDay" class="w-4 h-4 text-[#B36A17] rounded focus:ring-0 cursor-pointer" />
+        </div>
+
+        <div *ngIf="!blockForm.isAllDay" class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Start Time</label>
+            <input type="time" [(ngModel)]="blockForm.startTime" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Duration (Minutes)</label>
+            <select [(ngModel)]="blockForm.durationMinutes" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-black text-slate-900 focus:outline-none">
+              <option [value]="30">30 Minutes</option>
+              <option [value]="60">1 Hour</option>
+              <option [value]="120">2 Hours</option>
+              <option [value]="240">4 Hours</option>
+              <option [value]="540">Full Day (9 Hours)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes / Description -->
+      <div>
+        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Reason / Notes (Optional)</label>
+        <input type="text" [(ngModel)]="blockForm.reason" placeholder="e.g., Annual laser machine calibration..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none" />
+      </div>
+
+    </div>
+
+    <!-- Footer Actions -->
+    <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3">
+      <button type="button" (click)="closeBlockTimeModal()" class="px-4 py-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-xl transition-colors">
+        Cancel
+      </button>
+      <button type="button" (click)="submitBlockTime()" [disabled]="isSavingBlockTime" class="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2">
+        <span *ngIf="isSavingBlockTime" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+        <mat-icon *ngIf="!isSavingBlockTime" class="!text-base text-amber-400">lock</mat-icon>
+        <span>{{ isSavingBlockTime ? 'Saving Block...' : 'Save Blocked Time' }}</span>
+      </button>
+    </div>
+
+  </div>
+</div>

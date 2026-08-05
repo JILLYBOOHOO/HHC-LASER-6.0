@@ -48,7 +48,7 @@
         <button (click)="setView('month')" [ngClass]="activeView === 'month' ? 'font-extrabold bg-[#fef3c7] text-[#92400e] shadow-sm' : 'font-bold text-slate-600 hover:text-slate-900'" class="px-4 py-1.5 rounded-lg text-xs transition-colors">Month</button>
       </div>
       
-      <button class="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors">
+      <button (click)="openFilterMenu()" class="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors">
         <mat-icon class="!text-[16px]">filter_list</mat-icon>
         <span>Filters</span>
       </button>
@@ -137,7 +137,7 @@
       </div>
 
       <div class="min-w-[700px] h-full" [style.zoom]="zoomLevel / 100">
-        <app-weekly-calendar [startDate]="currentDate" [events]="calendarEvents" (eventClick)="openReschedule($event)" (actionTriggered)="handleCalendarAction($event)"></app-weekly-calendar>
+        <app-weekly-calendar [startDate]="currentDate" [viewMode]="activeView" [events]="filteredCalendarEvents()" (eventClick)="openReschedule($event)" (actionTriggered)="handleCalendarAction($event)"></app-weekly-calendar>
       </div>
     </div>
 
@@ -220,6 +220,34 @@
           </div>
         </div>
 
+        <!-- Cancellations Queue Section -->
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <div class="w-2.5 h-2.5 rounded-full bg-rose-500"></div>
+              <span class="text-xs font-black text-slate-800 uppercase tracking-wide">Cancellations ({{ cancelledCount }})</span>
+            </div>
+            <span class="text-[9px] font-black text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200 uppercase">Today</span>
+          </div>
+          
+          <div class="space-y-2">
+            <div *ngFor="let q of cancelledList" class="p-2.5 border border-rose-200 rounded-xl bg-rose-50/70 flex flex-col gap-1 shadow-2xs">
+              <div class="flex justify-between items-center text-xs font-black text-rose-950">
+                <span class="truncate">{{ q.patient }}</span>
+                <span class="font-mono text-[10px] text-rose-700 font-bold bg-white/90 px-1.5 py-0.5 rounded">{{ q.startTime }}</span>
+              </div>
+              <div class="text-[10px] font-bold text-rose-800/80 flex items-center justify-between">
+                <span class="truncate max-w-[140px]">{{ q.title }}</span>
+                <span class="uppercase font-black text-[9px] bg-rose-200 text-rose-900 px-1.5 py-0.5 rounded">CANCELLED</span>
+              </div>
+            </div>
+
+            <div *ngIf="cancelledList.length === 0" class="p-3 text-center border border-dashed border-slate-200 rounded-xl text-[11px] text-slate-400 font-semibold bg-slate-50/50">
+              No cancelled appointments today
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -240,3 +268,135 @@
   (close)="showInvoiceModal.set(false)"
   (paymentUpdated)="fetchAppointments()">
 </app-invoice-modal>
+
+<!-- Modern Glassmorphic Cancel Confirmation Modal Overlay -->
+<div *ngIf="showCancelConfirmModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 font-sans animate-fade-in">
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 relative overflow-hidden animate-scale-up">
+    
+    <!-- Top Danger Icon Badge -->
+    <div class="w-14 h-14 rounded-full bg-rose-50 border border-rose-200 text-rose-500 flex items-center justify-center mx-auto mb-4 shadow-xs">
+      <mat-icon class="!text-2xl">warning_amber</mat-icon>
+    </div>
+
+    <!-- Modal Header & Body Text -->
+    <div class="text-center space-y-2 mb-6">
+      <h3 class="text-xl font-black text-slate-900 tracking-tight">Cancel Appointment?</h3>
+      <p class="text-xs text-slate-600 leading-relaxed font-semibold">
+        Are you sure you want to cancel the booking for 
+        <strong class="text-slate-900 font-black">{{ appointmentToCancel()?.patient || 'this client' }}</strong> 
+        ({{ appointmentToCancel()?.title || 'Service' }} at {{ appointmentToCancel()?.startTime }})?
+      </p>
+      
+      <div class="bg-amber-50 border border-amber-200/80 rounded-xl p-3 text-[11px] font-bold text-amber-900 text-left flex items-start gap-2.5 mt-3">
+        <span class="text-amber-600 text-base shrink-0">💡</span>
+        <span>Cancelling will immediately remove the card from the weekly calendar grid, freeing up the time slot for other clients.</span>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+      <button type="button" 
+              (click)="closeCancelModal()" 
+              class="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs rounded-xl transition-all">
+        Keep Appointment
+      </button>
+      <button type="button" 
+              (click)="confirmCancelAppointment()" 
+              class="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5">
+        <mat-icon class="!text-base">cancel</mat-icon>
+        <span>Yes, Cancel Booking</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modern Glassmorphic Calendar Filters Modal Overlay -->
+<div *ngIf="showFilterModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 font-sans animate-fade-in">
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden flex flex-col animate-scale-up">
+    
+    <!-- Top Header -->
+    <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-400/30">
+          <mat-icon class="!text-lg">filter_list</mat-icon>
+        </div>
+        <div>
+          <h3 class="text-base font-black tracking-tight text-white">Calendar Filters</h3>
+          <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Filter schedule by specialist, status, service, or payment</p>
+        </div>
+      </div>
+      
+      <button (click)="showFilterModal.set(false)" class="text-slate-400 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 rounded-xl transition-colors">
+        <mat-icon class="!text-lg">close</mat-icon>
+      </button>
+    </div>
+
+    <!-- Filter Form Fields Grid -->
+    <div class="p-6 space-y-4 bg-white">
+      
+      <div class="grid grid-cols-2 gap-4">
+        
+        <!-- 1. Specialist / Staff -->
+        <div>
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Provider / Specialist</label>
+          <select [(ngModel)]="selectedStaffFilter" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-black text-slate-900 focus:outline-none focus:border-slate-800">
+            <option value="all">All Specialists</option>
+            <option value="Amanda">Amanda</option>
+            <option value="Dr. Sarah">Dr. Sarah</option>
+            <option value="Dr. Marcus">Dr. Marcus</option>
+          </select>
+        </div>
+
+        <!-- 2. Treatment Service -->
+        <div>
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Treatment Service</label>
+          <select [(ngModel)]="selectedServiceFilter" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-black text-slate-900 focus:outline-none focus:border-slate-800">
+            <option value="all">All Services</option>
+            <option value="Laser">Laser Hair Removal</option>
+            <option value="Wood">Wood Therapy</option>
+            <option value="Fillers">Dermal Fillers</option>
+            <option value="Peel">Chemical Peel</option>
+          </select>
+        </div>
+
+        <!-- 3. Appointment Status -->
+        <div>
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Appointment Status</label>
+          <select [(ngModel)]="selectedStatusFilter" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-black text-slate-900 focus:outline-none focus:border-slate-800">
+            <option value="all">All Statuses</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="checked_in">Checked In</option>
+            <option value="in_treatment">In Room / Treatment</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+
+        <!-- 4. Payment Status -->
+        <div>
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Payment Status</label>
+          <select [(ngModel)]="selectedPaymentFilter" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-black text-slate-900 focus:outline-none focus:border-slate-800">
+            <option value="all">All Payment Statuses</option>
+            <option value="Paid Online">💳 Deposit Paid / Paid</option>
+            <option value="Pay In Person">🏥 Pay at Location</option>
+            <option value="Balance Due">⚠️ Balance Due</option>
+          </select>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Footer Action Buttons -->
+    <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3">
+      <button (click)="resetFilters()" class="px-4 py-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-xl transition-colors">
+        Reset Filters
+      </button>
+      <button (click)="applyFilters()" class="px-6 py-2.5 bg-[#B36A17] hover:bg-[#965713] text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2">
+        <mat-icon class="!text-base">check</mat-icon>
+        <span>Apply Filters</span>
+      </button>
+    </div>
+
+  </div>
+</div>

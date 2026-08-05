@@ -152,6 +152,7 @@ export interface CalendarEvent {
 export class WeeklyCalendarComponent implements OnInit, OnDestroy, OnChanges, AfterViewInit {
   @Input() events: CalendarEvent[] = [];
   @Input() startDate: Date = new Date();
+  @Input() viewMode: string = 'week';
   @Output() eventClick = new EventEmitter<CalendarEvent>();
   @Output() actionTriggered = new EventEmitter<{action: string, event: CalendarEvent}>();
   
@@ -178,7 +179,7 @@ export class WeeklyCalendarComponent implements OnInit, OnDestroy, OnChanges, Af
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['startDate']) {
+    if (changes['startDate'] || changes['viewMode']) {
       this.generateDays();
     }
   }
@@ -191,24 +192,54 @@ export class WeeklyCalendarComponent implements OnInit, OnDestroy, OnChanges, Af
 
   generateDays() {
     this.days = [];
-    const start = new Date(this.startDate);
-    const day = start.getDay();
-    const diff = start.getDate() - day + (day === 0 ? -6 : 1);
-    start.setDate(diff);
-    
-    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const todayStr = new Date().toISOString().split('T')[0];
-    
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(start);
-      d.setDate(start.getDate() + i);
+    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    if (this.viewMode === 'day') {
+      const d = new Date(this.startDate);
+      const dayIdx = (d.getDay() + 6) % 7;
       const dateStr = d.toISOString().split('T')[0];
       this.days.push({
         date: d,
-        label: dayNames[i],
+        label: dayNames[dayIdx],
         dayNum: d.getDate(),
         isToday: dateStr === todayStr
       });
+    } else if (this.viewMode === 'month') {
+      const start = new Date(this.startDate.getFullYear(), this.startDate.getMonth(), 1);
+      const day = start.getDay();
+      const diff = start.getDate() - day + (day === 0 ? -6 : 1);
+      start.setDate(diff);
+      
+      for (let i = 0; i < 35; i++) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + i);
+        const dayIdx = (d.getDay() + 6) % 7;
+        const dateStr = d.toISOString().split('T')[0];
+        this.days.push({
+          date: d,
+          label: dayNames[dayIdx],
+          dayNum: d.getDate(),
+          isToday: dateStr === todayStr
+        });
+      }
+    } else {
+      const start = new Date(this.startDate);
+      const day = start.getDay();
+      const diff = start.getDate() - day + (day === 0 ? -6 : 1);
+      start.setDate(diff);
+      
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + i);
+        const dateStr = d.toISOString().split('T')[0];
+        this.days.push({
+          date: d,
+          label: dayNames[i],
+          dayNum: d.getDate(),
+          isToday: dateStr === todayStr
+        });
+      }
     }
   }
 

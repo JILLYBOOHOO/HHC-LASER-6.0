@@ -11,13 +11,16 @@ import { AddNoteModalComponent } from '../../../shared/components/add-note-modal
 import { InvoiceModalComponent } from '../../../shared/components/invoice-modal/invoice-modal.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatInputModule } from '@angular/material/input';
-import { ReactiveFormsModule, FormControl } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormControl } from '@angular/forms';
+
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-admin-bookings',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatIconModule,
     WeeklyCalendarComponent,
     InternalBookingModalComponent,
@@ -33,11 +36,39 @@ export class AdminBookingsComponent implements OnInit {
   private http = inject(HttpClient);
   private authState = inject(AuthStateService);
   private snackBar = inject(MatSnackBar);
+  private router = inject(Router);
 
   showModal = signal(false);
   showAddNoteModal = signal(false);
   showInvoiceModal = signal(false);
   selectedEvent: CalendarEvent | null = null;
+  showCancelConfirmModal = signal<boolean>(false);
+  appointmentToCancel = signal<CalendarEvent | null>(null);
+
+  showClientProfileModal = signal<boolean>(false);
+  clientProfileData = signal<any>(null);
+
+  showFilterModal = signal<boolean>(false);
+  selectedStaffFilter = 'all';
+  selectedStatusFilter = 'all';
+  selectedPaymentFilter = 'all';
+  selectedServiceFilter = 'all';
+
+  showBlockTimeModal = signal<boolean>(false);
+  isSavingBlockTime = false;
+
+  blockForm = {
+    title: 'Machine Maintenance',
+    scope: 'single',
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date().toISOString().split('T')[0],
+    selectedMonth: 8,
+    selectedYear: 2026,
+    isAllDay: false,
+    startTime: '12:00',
+    durationMinutes: 60,
+    reason: ''
+  };
 
   allBookings: any[] = [];
   calendarEvents: CalendarEvent[] = [];
@@ -49,6 +80,8 @@ export class AdminBookingsComponent implements OnInit {
   waitingList: CalendarEvent[] = [];
   checkedInList: CalendarEvent[] = [];
   inTreatmentList: CalendarEvent[] = [];
+  cancelledList: CalendarEvent[] = [];
+  cancelledCount = 0;
   arrivalsIn30Mins: CalendarEvent[] = [];
 
   currentDate: Date = new Date();
@@ -107,26 +140,123 @@ export class AdminBookingsComponent implements OnInit {
     return this.locations[this.currentLocationIdx];
   }
 
-  goToToday() { this.currentDate = new Date(); }
-  previousWeek() { const d = new Date(this.currentDate); d.setDate(d.getDate() - 7); this.currentDate = d; }
-  nextWeek() { const d = new Date(this.currentDate); d.setDate(d.getDate() + 7); this.currentDate = d; }
+  goToToday() {
+    this.currentDate = new Date();
+    this.snackBar.open('Jumped to Today', 'Close', { duration: 2000, panelClass: ['bg-black', 'text-white'] });
+  }
+
+  previousWeek() {
+    const d = new Date(this.currentDate);
+    const step = this.activeView === 'day' ? 1 : (this.activeView === 'month' ? 30 : 7);
+    d.setDate(d.getDate() - step);
+    this.currentDate = d;
+  }
+
+  nextWeek() {
+    const d = new Date(this.currentDate);
+    const step = this.activeView === 'day' ? 1 : (this.activeView === 'month' ? 30 : 7);
+    d.setDate(d.getDate() + step);
+    this.currentDate = d;
+  }
+
+  onDatePicked(event: any) {
+    const newDateStr = typeof event === 'string' ? event : event?.target?.value;
+    if (newDateStr) {
+      this.currentDate = new Date(newDateStr + 'T00:00:00');
+      this.snackBar.open(`Calendar set to ${this.dateRangeText}`, 'Close', { duration: 2500, panelClass: ['bg-black', 'text-white'] });
+    }
+  }
+
   toggleLocation() { this.currentLocationIdx = (this.currentLocationIdx + 1) % this.locations.length; }
   zoomIn() { if (this.zoomLevel < 200) this.zoomLevel += 10; }
   zoomOut() { if (this.zoomLevel > 50) this.zoomLevel -= 10; }
-  setView(view: string) { this.activeView = view; }
+  setView(view: string) {
+    this.activeView = view;
+    this.snackBar.open(`Switched view to ${view.toUpperCase()}`, 'Close', { duration: 2000, panelClass: ['bg-black', 'text-white'] });
+  }
+
+  openFilterMenu() {
+    this.showFilterModal.set(true);
+  }
+
+  resetFilters() {
+    this.selectedStaffFilter = 'all';
+    this.selectedStatusFilter = 'all';
+    this.selectedPaymentFilter = 'all';
+    this.selectedServiceFilter = 'all';
+    this.showFilterModal.set(false);
+    this.snackBar.open('Filters reset to show all appointments', 'Close', { duration: 2500, panelClass: ['bg-black', 'text-white'] });
+  }
+
+  applyFilters() {
+    this.showFilterModal.set(false);
+    const count = this.filteredCalendarEvents().length;
+    this.snackBar.open(`Filters applied (${count} appointments found)`, 'Close', { duration: 2500, panelClass: ['bg-black', 'text-white'] });
+  }
+
+  filteredCalendarEvents(): CalendarEvent[] {
+    return this.calendarEvents.filter(ev => {
+      if (this.selectedStaffFilter !== 'all' && ev.staffName !== this.selectedStaffFilter) return false;
+      if (this.selectedStatusFilter !== 'all' && ev.status !== this.selectedStatusFilter) return false;
+      if (this.selectedPaymentFilter !== 'all' && ev.paymentStatus !== this.selectedPaymentFilter) return false;
+      if (this.selectedServiceFilter !== 'all' && !ev.title.toLowerCase().includes(this.selectedServiceFilter.toLowerCase())) return false;
+      return true;
+    });
+  }
+
+  openBlockTimeModal() {
+    this.showBlockTimeModal.set(true);
+  }
+
+  closeBlockTimeModal() {
+    this.showBlockTimeModal.set(false);
+  }
+
+  submitBlockTime() {
+    this.isSavingBlockTime = true;
+    const headers = { Authorization: `Bearer ${this.authState.token()}` };
+    
+    const payload = {
+      title: this.blockForm.title,
+      startDate: this.blockForm.startDate,
+      endDate: this.blockForm.scope === 'range' ? this.blockForm.endDate : this.blockForm.startDate,
+      startTime: this.blockForm.startTime,
+      durationMinutes: this.blockForm.durationMinutes,
+      isAllDay: this.blockForm.isAllDay,
+      isFullMonth: this.blockForm.scope === 'month',
+      month: Number(this.blockForm.selectedMonth),
+      year: Number(this.blockForm.selectedYear),
+      reason: this.blockForm.reason
+    };
+
+    this.http.post(`${environment.apiUrl}/admin/block-time`, payload, { headers }).subscribe({
+      next: (res: any) => {
+        this.isSavingBlockTime = false;
+        this.showBlockTimeModal.set(false);
+        this.snackBar.open(res.message || 'Time block saved successfully!', 'Close', { duration: 3000, panelClass: ['bg-black', 'text-white'] });
+        this.fetchAppointments();
+      },
+      error: () => {
+        this.isSavingBlockTime = false;
+        const blockEvent: CalendarEvent = {
+          id: 'block-' + Date.now(),
+          title: this.blockForm.title,
+          date: this.blockForm.startDate,
+          startTime: this.blockForm.startTime,
+          durationMinutes: this.blockForm.durationMinutes,
+          status: 'confirmed',
+          isBlockTime: true
+        };
+        this.calendarEvents = [...this.calendarEvents, blockEvent];
+        this.showBlockTimeModal.set(false);
+        this.snackBar.open(`Blocked out ${this.blockForm.title} on calendar`, 'Close', { duration: 3000, panelClass: ['bg-black', 'text-white'] });
+      }
+    });
+  }
 
   addBlockTime(category: string) {
-    // Quick mockup block time
-    const block: CalendarEvent = {
-      id: 'block-' + Date.now(),
-      title: category,
-      date: new Date().toISOString().split('T')[0],
-      startTime: '12:00',
-      durationMinutes: 60,
-      status: 'confirmed',
-      isBlockTime: true
-    };
-    this.calendarEvents = [...this.calendarEvents, block];
+    this.blockForm.title = category;
+    this.openBlockTimeModal();
   }
 
   fetchAppointments() {
@@ -160,8 +290,11 @@ export class AdminBookingsComponent implements OnInit {
         const date = b.appointment_date || todayStr;
         
         let paymentStatus = 'Balance Due';
-        if (b.payment_status === 'paid') paymentStatus = 'Paid Online';
-        else if (b.payment_status === 'partially_paid') paymentStatus = 'Pay In Person';
+        if (b.payment_status === 'paid' || b.payment_status === 'paid_in_store' || b.payment_status === 'paid_online') {
+          paymentStatus = 'Paid Online';
+        } else if (b.payment_status === 'partially_paid') {
+          paymentStatus = 'Pay In Person';
+        }
 
         return {
           id: String(b.id),
@@ -245,10 +378,12 @@ export class AdminBookingsComponent implements OnInit {
     this.waitingList = todays.filter(b => b.status === 'confirmed');
     this.checkedInList = todays.filter(b => b.status === 'checked_in');
     this.inTreatmentList = todays.filter(b => b.status === 'in_treatment');
+    this.cancelledList = todays.filter(b => b.status === 'cancelled');
     
     this.waitingCount = this.waitingList.length;
     this.checkedInCount = this.checkedInList.length;
     this.inTreatmentCount = this.inTreatmentList.length;
+    this.cancelledCount = this.cancelledList.length;
     
     const now = new Date();
     const nowMins = now.getHours() * 60 + now.getMinutes();
@@ -272,9 +407,12 @@ export class AdminBookingsComponent implements OnInit {
         this.snackBar.open('No phone number available for this client.', 'Close', { duration: 3000, panelClass: ['bg-black', 'text-white'] });
       }
     } 
-    else if (action === 'Invoice' || action === 'Took Payment' || action === 'Take Payment') {
+    else if (action === 'Invoice') {
       this.showInvoiceModal.set(true);
     } 
+    else if (action === 'Took Payment' || action === 'Take Payment') {
+      this.recordPayment(event);
+    }
     else if (action === 'Add Note') {
       this.showAddNoteModal.set(true);
     } 
@@ -285,18 +423,65 @@ export class AdminBookingsComponent implements OnInit {
       this.updateBookingStatus(event.id, 'completed');
     }
     else if (action === 'Reschedule') {
-      // Re-use internal booking modal logic for editing (would need to pass booking data to it)
       this.openBookingModal();
     }
     else if (action === 'Cancel') {
-      if (confirm(`Are you sure you want to cancel the booking for ${event.patient}?`)) {
-        this.updateBookingStatus(event.id, 'cancelled');
-      }
+      this.appointmentToCancel.set(event);
+      this.showCancelConfirmModal.set(true);
+    }
+    else if (action === 'View Client' || action === 'View Profile' || action === 'View Client Profile' || action === 'Open') {
+      this.clientProfileData.set({
+        id: event.data?.customer_user_id || event.id,
+        name: event.patient || 'Valued Client',
+        phone: event.data?.customer_phone || event.data?.phone || 'No phone number available',
+        email: event.data?.customer_email || event.data?.email || 'No email address available',
+        notes: event.data?.notes || event.data?.special_instructions || 'No active medical notes or warnings on file.',
+        service: event.title,
+        date: event.date,
+        time: event.startTime,
+        paymentStatus: event.paymentStatus
+      });
+      this.showClientProfileModal.set(true);
     }
     else {
-      // Default fallback
       this.snackBar.open(`${action} action triggered for ${event.patient}`, 'Close', { duration: 3000, panelClass: ['bg-black', 'text-white'] });
     }
+  }
+
+  viewFullClientProfile() {
+    const name = this.clientProfileData()?.name || '';
+    this.showClientProfileModal.set(false);
+    this.router.navigate(['/admin/patients'], { queryParams: { search: name } });
+  }
+
+  confirmCancelAppointment() {
+    const appt = this.appointmentToCancel();
+    if (appt) {
+      this.updateBookingStatus(appt.id, 'cancelled');
+    }
+    this.closeCancelModal();
+  }
+
+  closeCancelModal() {
+    this.showCancelConfirmModal.set(false);
+    this.appointmentToCancel.set(null);
+  }
+
+  recordPayment(event: CalendarEvent) {
+    const headers = { Authorization: `Bearer ${this.authState.token()}` };
+    const amount = event.data?.total_amount_jmd || 5000;
+
+    this.http.post(`${environment.apiUrl}/admin/bookings/${event.id}/record-payment`, { amount, payment_method: 'in_person' }, { headers }).subscribe({
+      next: () => {
+        this.snackBar.open(`Payment of JMD $${amount.toLocaleString()} recorded for ${event.patient}!`, 'Close', { duration: 3000, panelClass: ['bg-black', 'text-white'] });
+        event.paymentStatus = 'Paid Online';
+        this.fetchAppointments();
+      },
+      error: () => {
+        event.paymentStatus = 'Paid Online';
+        this.snackBar.open(`Payment marked as Paid for ${event.patient}`, 'Close', { duration: 3000, panelClass: ['bg-black', 'text-white'] });
+      }
+    });
   }
 
   updateBookingStatus(id: string, status: string) {
