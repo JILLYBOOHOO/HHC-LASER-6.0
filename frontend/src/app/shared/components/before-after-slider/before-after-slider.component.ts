@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ElementRef, ViewChild, HostListener, signal } from '@angular/core';
+import { Component, Input, OnInit, ElementRef, ViewChild, HostListener, HostBinding, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 
@@ -8,15 +8,13 @@ import { MatIconModule } from '@angular/material/icon';
   imports: [CommonModule, MatIconModule],
   template: `
     <div
-      class="relative w-full overflow-hidden rounded-3xl border border-white/5 bg-surface shadow-lg select-none"
-      [class.cursor-col-resize]="isDragging || animationComplete()"
+      #container
+      class="relative w-full overflow-hidden select-none"
+      [ngClass]="rootClasses"
       (mousedown)="startDrag($event)"
       (touchstart)="startDrag($event)"
-      #container
     >
-      <!-- Before/After Images Container -->
-      <div class="relative aspect-[4/3] w-full overflow-hidden bg-background">
-        <!-- Before Image (Base) -->
+      <div class="relative w-full overflow-hidden bg-background" [ngClass]="mediaClasses">
         <img
           [src]="beforeImage"
           alt="Before treatment outcome"
@@ -24,7 +22,6 @@ import { MatIconModule } from '@angular/material/icon';
           loading="lazy"
         />
 
-        <!-- After Image (Overlay, Clipped) -->
         <div
           class="absolute inset-0 w-full h-full pointer-events-none"
           [style.clip-path]="'inset(0 0 0 ' + sliderPos() + '%)'"
@@ -37,7 +34,6 @@ import { MatIconModule } from '@angular/material/icon';
           />
         </div>
 
-        <!-- Mobile hint after animation completes -->
         @if (animationComplete() && !hasInteracted()) {
           <div
             class="absolute inset-0 z-30 flex items-center justify-center pointer-events-none md:hidden"
@@ -52,7 +48,6 @@ import { MatIconModule } from '@angular/material/icon';
           </div>
         }
 
-        <!-- Floating Labels -->
         <span
           class="absolute top-4 left-4 z-10 glass px-3 py-1.5 rounded-full text-[10px] tracking-[0.2em] font-semibold text-gold uppercase pointer-events-none"
         >
@@ -64,7 +59,6 @@ import { MatIconModule } from '@angular/material/icon';
           AFTER
         </span>
 
-        <!-- Draggable Handle Bar -->
         <div
           class="absolute top-0 bottom-0 z-20"
           [style.left]="sliderPos() + '%'"
@@ -78,7 +72,6 @@ import { MatIconModule } from '@angular/material/icon';
             class="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-0.5 bg-gradient-to-b from-gold/50 via-gold to-gold/50 pointer-events-none"
           ></div>
 
-          <!-- Champagne Gold Circular frosted glass handle -->
           <div
             class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full border border-gold/40 flex items-center justify-center shadow-lg transition-transform duration-200"
             [style.background]="'rgba(18, 18, 20, 0.65)'"
@@ -111,59 +104,70 @@ import { MatIconModule } from '@angular/material/icon';
         </div>
       </div>
 
-      <!-- Card text details -->
-      <div class="p-6 space-y-4">
-        <div class="flex justify-between items-start">
-          <div>
-            <div
-              class="text-[10px] tracking-[0.25em] font-semibold text-gold uppercase mb-1"
-            >
-              {{ duration }}
+      @if (!mediaOnly) {
+        <div class="p-6 space-y-4">
+          <div class="flex justify-between items-start">
+            <div>
+              <div
+                class="text-[10px] tracking-[0.25em] font-semibold text-gold uppercase mb-1"
+              >
+                {{ duration }}
+              </div>
+              <h4 class="font-heading text-2xl text-white">{{ treatmentName }}</h4>
             </div>
-            <h4 class="font-heading text-2xl text-white">{{ treatmentName }}</h4>
+            @if (rating) {
+              <div
+                class="flex items-center gap-0.5 text-gold"
+                [attr.aria-label]="rating + ' out of 5 stars'"
+              >
+                @for (star of [1, 2, 3, 4, 5]; track star) {
+                  <mat-icon
+                    class="!text-sm !w-3.5 !h-3.5 flex items-center justify-center"
+                  >
+                    {{ star <= rating ? 'star' : 'star_border' }}
+                  </mat-icon>
+                }
+              </div>
+            }
           </div>
-          @if (rating) {
-            <div
-              class="flex items-center gap-0.5 text-gold"
-              [attr.aria-label]="rating + ' out of 5 stars'"
-            >
-              @for (star of [1, 2, 3, 4, 5]; track star) {
-                <mat-icon
-                  class="!text-sm !w-3.5 !h-3.5 flex items-center justify-center"
-                >
-                  {{ star <= rating ? 'star' : 'star_border' }}
-                </mat-icon>
-              }
+
+          @if (description) {
+            <p class="text-text-muted text-sm font-light leading-relaxed">
+              {{ description }}
+            </p>
+          }
+
+          @if (testimonial) {
+            <div class="pt-4 border-t border-white/5">
+              <p class="italic text-text-muted text-xs font-light leading-relaxed">
+                "{{ testimonial.quote }}"
+              </p>
+              <div
+                class="text-[9px] tracking-widest font-semibold text-white/60 uppercase mt-2"
+              >
+                — {{ testimonial.author }}
+              </div>
             </div>
           }
-        </div>
 
-        @if (description) {
-          <p class="text-text-muted text-sm font-light leading-relaxed">
-            {{ description }}
+          <p class="text-[9px] tracking-wider text-text-muted/40 uppercase">
+            Results may vary.
           </p>
-        }
-
-        @if (testimonial) {
-          <div class="pt-4 border-t border-white/5">
-            <p class="italic text-text-muted text-xs font-light leading-relaxed">
-              "{{ testimonial.quote }}"
-            </p>
-            <div
-              class="text-[9px] tracking-widest font-semibold text-white/60 uppercase mt-2"
-            >
-              — {{ testimonial.author }}
-            </div>
-          </div>
-        }
-
-        <p class="text-[9px] tracking-wider text-text-muted/40 uppercase">
-          Results may vary.
-        </p>
-      </div>
+        </div>
+      }
     </div>
   `,
-  styles: [],
+  styles: [
+    `
+      :host {
+        display: block;
+      }
+      :host.media-only {
+        width: 100%;
+        height: 100%;
+      }
+    `,
+  ],
 })
 export class BeforeAfterSliderComponent implements OnInit {
   @Input() beforeImage!: string;
@@ -173,8 +177,15 @@ export class BeforeAfterSliderComponent implements OnInit {
   @Input() description?: string;
   @Input() testimonial?: { quote: string; author: string };
   @Input() rating?: number;
+  /** Renders only the comparison media (no card chrome / copy). */
+  @Input() mediaOnly = false;
   /** @deprecated lightbox enlarge removed */
   @Input() isLightbox = false;
+
+  @HostBinding('class.media-only')
+  get hostMediaOnly(): boolean {
+    return this.mediaOnly;
+  }
 
   @ViewChild('container') containerRef!: ElementRef<HTMLElement>;
 
@@ -183,6 +194,21 @@ export class BeforeAfterSliderComponent implements OnInit {
   hasInteracted = signal<boolean>(false);
   animationComplete = signal<boolean>(false);
   private hasAnimated = false;
+
+  get rootClasses(): Record<string, boolean> {
+    return {
+      'h-full': this.mediaOnly,
+      'rounded-3xl border border-white/5 bg-surface shadow-lg': !this.mediaOnly,
+      'cursor-col-resize': this.isDragging || this.animationComplete(),
+    };
+  }
+
+  get mediaClasses(): Record<string, boolean> {
+    return {
+      'absolute inset-0 h-full': this.mediaOnly,
+      'aspect-[4/3]': !this.mediaOnly,
+    };
+  }
 
   ngOnInit() {
     this.initIntersectionObserver();
@@ -239,7 +265,6 @@ export class BeforeAfterSliderComponent implements OnInit {
   }
 
   startDrag(event: MouseEvent | TouchEvent) {
-    // Manual drag only after intro animation finishes
     if (!this.animationComplete()) return;
 
     event.preventDefault();

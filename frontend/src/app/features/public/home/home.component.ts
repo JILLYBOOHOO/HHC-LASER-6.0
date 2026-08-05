@@ -1,40 +1,30 @@
 import {
   Component,
-  signal,
-  inject,
-  computed,
   ViewChild,
   ElementRef,
   AfterViewInit,
 } from '@angular/core';
-import { CommonModule, NgClass } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialog } from '@angular/material/dialog';
 import {
   trigger,
   transition,
   style,
   animate,
-  query,
-  stagger,
 } from '@angular/animations';
 import { BeforeAfterSliderComponent } from '../../../shared/components/before-after-slider/before-after-slider.component';
-import { ContactPurchaseDialogComponent } from '../../../shared/components/contact-purchase-dialog/contact-purchase-dialog.component';
-import { CheckoutComponent } from '../../../shared/components/checkout/checkout.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
   imports: [
     CommonModule,
-    NgClass,
     RouterModule,
     MatButtonModule,
     MatIconModule,
     BeforeAfterSliderComponent,
-    CheckoutComponent,
   ],
   animations: [
     trigger('fadeUp', [
@@ -43,23 +33,6 @@ import { CheckoutComponent } from '../../../shared/components/checkout/checkout.
         animate(
           '1000ms cubic-bezier(0.16, 1, 0.3, 1)',
           style({ opacity: 1, transform: 'translateY(0)' }),
-        ),
-      ]),
-    ]),
-    trigger('staggerList', [
-      transition(':enter', [
-        query(
-          '.stagger-item',
-          [
-            style({ opacity: 0, transform: 'translateY(30px)' }),
-            stagger(150, [
-              animate(
-                '800ms cubic-bezier(0.16, 1, 0.3, 1)',
-                style({ opacity: 1, transform: 'translateY(0)' }),
-              ),
-            ]),
-          ],
-          { optional: true },
         ),
       ]),
     ]),
@@ -133,24 +106,6 @@ import { CheckoutComponent } from '../../../shared/components/checkout/checkout.
               style="background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);"
               >View All Services</a
             >
-          </div>
-
-          <!-- Fiserv / Scotiabank certification test buttons -->
-          <div
-            class="flex flex-col sm:flex-row flex-wrap gap-4 mb-8 drop-shadow-lg"
-          >
-            <app-checkout
-              orderTotal="1.00"
-              buttonText="Test $1.00 Approve"
-            ></app-checkout>
-            <app-checkout
-              orderTotal="2.00"
-              buttonText="Test $2.00 Approve"
-            ></app-checkout>
-            <app-checkout
-              orderTotal="8.99"
-              buttonText="Test $8.99 Decline"
-            ></app-checkout>
           </div>
 
           <!-- Trust Badges -->
@@ -301,121 +256,102 @@ import { CheckoutComponent } from '../../../shared/components/checkout/checkout.
       </div>
     </section>
 
-    <!-- Before & After Comparison Slider Section -->
-    <section class="section bg-surface-light border-y border-white/5">
-      <div class="container-luxury px-6">
-        <div class="text-center max-w-2xl mx-auto mb-16" @fadeUp>
+    <!-- Featured Treatments Section -->
+    <section class="section bg-surface-light border-y border-white/5 relative overflow-hidden">
+      <div
+        class="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[42rem] h-[42rem] rounded-full opacity-40"
+        style="background: radial-gradient(circle, rgba(214,179,106,0.08) 0%, transparent 68%);"
+      ></div>
+
+      <div class="container-luxury px-6 relative z-10">
+        <div class="text-center max-w-2xl mx-auto mb-14" @fadeUp>
           <span class="section-label">Clinical Outcomes</span>
           <h2 class="mt-4 font-heading text-white">Proven Transformation</h2>
           <div class="divider-gold"></div>
           <p class="text-text-muted text-base font-light">
-            Explore actual treatment results. Select a category below and drag
-            the handle to compare outcomes.
+            Explore featured treatments clients love. Drag the laser comparison
+            to see real results, then view details or book your session.
           </p>
         </div>
 
-        <!-- Luxury Category Filter Bar -->
         <div
-          class="flex flex-wrap justify-center items-center gap-3 mb-16 max-w-3xl mx-auto"
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-7 max-w-6xl mx-auto"
           @fadeUp
         >
-          @for (cat of filterCategories; track cat.id) {
-            <button
-              (click)="activeCategory.set(cat.id)"
-              [ngClass]="
-                activeCategory() === cat.id
-                  ? 'bg-gold text-black border-gold'
-                  : 'bg-transparent text-text-muted border-white/10 hover:border-gold hover:text-white'
-              "
-              class="px-6 py-2.5 rounded-full text-xs font-semibold tracking-wider uppercase transition-all duration-300 border cursor-pointer"
-            >
-              {{ cat.name }}
-            </button>
-          }
-        </div>
-
-        <!-- Animated Filter Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          @for (item of filteredComparisons(); track item.treatmentName) {
-            <div class="transition-all duration-500 animate-fade-in">
-              <app-before-after-slider
-                [beforeImage]="item.beforeImage"
-                [afterImage]="item.afterImage"
-                [treatmentName]="item.treatmentName"
-                [duration]="item.duration"
-                [description]="item.description"
-                [rating]="item.rating"
-                [testimonial]="item.testimonial"
-              >
-              </app-before-after-slider>
-            </div>
-          }
-        </div>
-      </div>
-    </section>
-
-    <!-- Featured Products Section -->
-    <section class="section bg-surface-light border-t border-white/5">
-      <div class="container-luxury px-6">
-        <div class="text-center max-w-2xl mx-auto mb-20" @fadeUp>
-          <span class="section-label">Professional Skincare</span>
-          <h2 class="mt-4 font-heading text-white">Featured Products</h2>
-          <div class="divider-gold"></div>
-          <p class="text-text-muted text-base font-light">
-            Maintain your results at home with our clinical-grade skincare
-            collection.
-          </p>
-        </div>
-
-        <div
-          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8"
-          @staggerList
-        >
-          @for (product of featuredProducts; track product.name) {
-            <div
-              class="stagger-item group flex flex-col h-full rounded-2xl overflow-hidden bg-surface border border-white/10 hover:border-gold/35 transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
+          @for (service of featuredTreatments; track service.id) {
+            <article
+              class="group relative flex flex-col h-full rounded-2xl overflow-hidden border border-white/10 bg-[#141416] transition-all duration-500 hover:-translate-y-1.5 hover:border-[rgba(214,179,106,0.45)] hover:shadow-[0_24px_60px_rgba(0,0,0,0.45)]"
             >
               <div
-                class="relative aspect-square w-full bg-gradient-to-b from-[#F7F3EC] to-[#EDE7DC] flex items-center justify-center p-5 md:p-6"
+                class="relative block aspect-[4/5] sm:aspect-[5/6] overflow-hidden bg-black"
               >
-                <img
-                  [src]="product.image"
-                  [alt]="product.name"
-                  class="max-w-full max-h-full w-auto h-auto object-contain transition-transform duration-500 group-hover:scale-[1.03]"
-                />
+                @if (service.beforeImage && service.afterImage) {
+                  <app-before-after-slider
+                    class="absolute inset-0 block h-full w-full"
+                    [mediaOnly]="true"
+                    [beforeImage]="service.beforeImage"
+                    [afterImage]="service.afterImage"
+                    [treatmentName]="service.name"
+                    [duration]="service.duration"
+                  >
+                  </app-before-after-slider>
+                } @else {
+                  <a [routerLink]="service.detailsLink" class="absolute inset-0 block">
+                    <img
+                      loading="lazy"
+                      [src]="service.image"
+                      [alt]="service.name"
+                      class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
+                    />
+                  </a>
+                }
+
+                <div
+                  class="absolute inset-0 bg-gradient-to-t from-[#141416] via-[#141416]/45 to-transparent pointer-events-none z-[25]"
+                ></div>
+                <div class="absolute inset-x-0 bottom-0 p-5 md:p-6 pointer-events-none z-[26]">
+                  <div class="text-[10px] tracking-[0.22em] uppercase text-[var(--gold)] mb-2 font-semibold">
+                    Featured Treatment
+                  </div>
+                  <h3 class="font-heading text-white text-2xl md:text-[1.65rem] leading-tight">
+                    {{ service.name }}
+                  </h3>
+                </div>
               </div>
 
-              <div class="p-5 md:p-6 flex flex-col flex-1">
-                <h3
-                  class="font-heading text-lg text-white mb-2 leading-snug group-hover:text-gold transition-colors duration-300"
-                >
-                  {{ product.name }}
-                </h3>
-                <p class="text-text-muted text-xs font-light mb-5 flex-1 leading-relaxed">
-                  {{ product.description }}
+              <div class="px-5 md:px-6 pb-5 md:pb-6 pt-1 flex flex-col flex-1">
+                @if (service.priceLabel) {
+                  <div class="text-[var(--gold-light)] font-medium text-sm mb-3 tracking-wide">
+                    {{ service.priceLabel }}
+                    @if (service.duration) {
+                      <span class="text-white/35 mx-2">·</span>
+                      <span class="text-text-muted font-light">{{ service.duration }}</span>
+                    }
+                  </div>
+                }
+
+                <p class="text-text-muted text-sm font-light leading-relaxed mb-6 flex-1 line-clamp-3">
+                  {{ service.description }}
                 </p>
 
-                <div class="mb-5">
-                  <span class="text-white font-medium text-base font-body">{{
-                    product.price
-                  }}</span>
-                </div>
-
-                <div class="flex flex-col gap-2.5 mt-auto">
+                <div class="grid grid-cols-2 gap-2.5 mt-auto">
                   <a
-                    [routerLink]="['/products']"
-                    class="btn-outline w-full text-center text-xs py-2.5 !border-white/20"
-                    >View Product</a
+                    [routerLink]="service.detailsLink"
+                    class="inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-white/15 text-white/85 text-xs font-semibold tracking-wide hover:border-[var(--gold)] hover:text-[var(--gold-light)] transition-colors duration-300"
                   >
-                  <button
-                    (click)="openPurchaseDialog(product.name)"
-                    class="btn-primary w-full text-center text-xs py-2.5"
+                    Details
+                  </a>
+                  <a
+                    [routerLink]="['/customer/book']"
+                    [queryParams]="service.bookParams"
+                    class="inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-black text-xs font-bold tracking-wide transition-all duration-300 hover:brightness-110"
+                    style="background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 55%, var(--gold-dark) 100%);"
                   >
-                    Contact for Purchase
-                  </button>
+                    Book Now
+                  </a>
                 </div>
               </div>
-            </div>
+            </article>
           }
         </div>
       </div>
@@ -452,79 +388,69 @@ import { CheckoutComponent } from '../../../shared/components/checkout/checkout.
     </section>
 
     <!-- Instagram Section -->
-    <section class="bg-white py-24 border-t border-gray-100">
-      <div class="container-luxury px-6 max-w-7xl mx-auto" @fadeUp>
-        <div class="text-center max-w-3xl mx-auto mb-16">
-          <span
-            class="text-xs font-semibold tracking-[0.2em] uppercase text-gold"
-            >Follow Our Journey</span
-          >
-          <h2 class="mt-4 font-heading text-4xl text-charcoal-900 mb-6">
-            Stay connected with HHC Laser
-          </h2>
-          <div class="h-px w-16 bg-gold mx-auto mb-6"></div>
-          <p class="text-charcoal-500 font-light leading-relaxed">
-            Stay connected with Havendale Healthcare (HHC Laser) and explore our
-            latest treatments, client transformations, wellness tips, skincare
-            education, and behind-the-scenes moments from our clinic in
-            Kingston, Jamaica.
+    <section class="section bg-surface border-t border-white/5">
+      <div class="container-luxury px-6 max-w-5xl mx-auto" @fadeUp>
+        <div class="text-center max-w-xl mx-auto mb-14">
+          <span class="section-label">Social</span>
+          <h2 class="mt-4 font-heading text-white">Stay connected with HHC Laser</h2>
+          <div class="divider-gold"></div>
+          <p class="text-text-muted text-sm font-light leading-relaxed mt-1">
+            Clinical results and clinic life from Havendale Healthcare.
           </p>
         </div>
 
-        <!-- Instagram Gallery Grid -->
         <div
-          class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3 md:gap-4 mb-12 max-w-6xl mx-auto place-items-stretch"
+          class="flex md:grid md:grid-cols-4 gap-3 md:gap-4 mb-12 overflow-x-auto pb-2 md:overflow-visible snap-x snap-mandatory"
         >
           @for (post of instagramPosts; track post.url) {
             <a
               [href]="post.link"
               target="_blank"
               rel="noopener noreferrer"
-              class="group relative aspect-square w-full rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 bg-neutral-100 block"
+              class="group relative block shrink-0 w-[42vw] max-w-[200px] md:w-auto md:max-w-none snap-center aspect-[3/4] overflow-hidden rounded-xl border border-white/10 bg-[#1a1a1d] transition-colors duration-300 hover:border-[rgba(214,179,106,0.45)]"
             >
-              @if (post.type === 'video') {
-                <video
-                  [src]="post.url"
-                  autoplay
-                  [muted]="true"
-                  loop
-                  playsinline
-                  preload="metadata"
-                  class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 pointer-events-none"
-                  (loadeddata)="playFeedVideo($event)"
-                  (canplay)="playFeedVideo($event)"
-                ></video>
-              } @else {
-                <img
-                  [src]="post.url"
-                  alt="Instagram Post from HHC Laser"
-                  loading="lazy"
-                  class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              }
+              <video
+                [src]="post.url"
+                autoplay
+                [muted]="true"
+                loop
+                playsinline
+                preload="metadata"
+                class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03] pointer-events-none"
+                (loadeddata)="playFeedVideo($event)"
+                (canplay)="playFeedVideo($event)"
+              ></video>
+
               <div
-                class="absolute inset-0 bg-black/0 group-hover:bg-black/35 transition-colors duration-300 flex items-center justify-center"
+                class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-60 group-hover:opacity-90 transition-opacity duration-300"
+              ></div>
+
+              <div
+                class="absolute inset-x-0 bottom-0 p-4 md:p-5 flex items-center justify-between gap-3"
               >
+                <span
+                  class="text-[10px] md:text-[11px] tracking-[0.18em] uppercase font-semibold text-white/80 group-hover:text-[var(--gold-light)] transition-colors"
+                >
+                  View on Instagram
+                </span>
                 <mat-icon
-                  class="text-white opacity-0 group-hover:opacity-100 transform translate-y-3 group-hover:translate-y-0 transition-all duration-300 !text-3xl !w-9 !h-9"
-                  >{{ post.type === 'video' ? 'play_circle' : 'photo_camera' }}</mat-icon
+                  class="!text-lg !w-5 !h-5 text-white/70 group-hover:text-[var(--gold)] transition-colors"
+                  >arrow_outward</mat-icon
                 >
               </div>
             </a>
           }
         </div>
 
-        <!-- Call-to-Action -->
         <div class="text-center">
           <a
             href="https://www.instagram.com/havendale_healthcare"
             target="_blank"
             rel="noopener noreferrer"
-            class="btn-primary hover:!text-black inline-flex items-center gap-2"
+            class="btn-outline inline-flex items-center gap-2"
           >
             Follow &#64;havendale_healthcare
-            <mat-icon
-              class="!w-4 !h-4 !text-sm flex items-center justify-center"
+            <mat-icon class="!w-4 !h-4 !text-sm flex items-center justify-center"
               >open_in_new</mat-icon
             >
           </a>
@@ -534,8 +460,6 @@ import { CheckoutComponent } from '../../../shared/components/checkout/checkout.
   `,
 })
 export class HomeComponent implements AfterViewInit {
-  private dialog = inject(MatDialog);
-
   @ViewChild('heroVideo') heroVideo!: ElementRef<HTMLVideoElement>;
 
   instagramPosts = [
@@ -551,22 +475,12 @@ export class HomeComponent implements AfterViewInit {
     },
     {
       type: 'video' as const,
-      url: '/instagram/beforeandafter.mp4',
-      link: 'https://www.instagram.com/havendale_healthcare',
-    },
-    {
-      type: 'video' as const,
-      url: '/instagram/skin-update-youtube.mp4',
+      url: '/instagram/skin-update-clip.mp4',
       link: 'https://www.instagram.com/havendale_healthcare',
     },
     {
       type: 'video' as const,
       url: '/instagram/keloid-results.mp4',
-      link: 'https://www.instagram.com/havendale_healthcare',
-    },
-    {
-      type: 'video' as const,
-      url: '/instagram/laser-hair-results.mp4',
       link: 'https://www.instagram.com/havendale_healthcare',
     },
   ];
@@ -590,115 +504,74 @@ export class HomeComponent implements AfterViewInit {
     }
   }
 
-  featuredProducts = [
+  featuredTreatments = [
     {
-      category: 'Skin Supplement',
-      name: 'Lemon Wash',
-      description: 'Lemon Acne Cleanser',
-      price: 'J$1,500.00',
-      stock: 'In Stock (500 available)',
-      image: '/assets/products/img_1.png',
-    },
-    {
-      category: 'Skin Supplement',
-      name: 'Bikini & Body Cream',
-      description:
-        'Reduces dead skin, rough and bumpy texture, smooths skin, and helps reduce hyperpigmentation.',
-      price: 'J$4,500.00',
-      stock: 'In Stock (200 available)',
-      image: '/assets/products/img_2.png',
-    },
-    {
-      category: 'Skin Supplement',
-      name: 'COCO Bean & Coconut Cleanser & Moisturizer',
-      description:
-        'Facial cleanser and moisturizer formulated for healthy, hydrated skin.',
-      price: 'J$4,500.00',
-      stock: 'In Stock (200 available)',
-      image: '/assets/products/img_3.png',
-    },
-    {
-      category: 'Skin Supplement',
-      name: 'Toner & Collagen Moisturizer Set',
-      description: 'Best combination for clear and smooth skin.',
-      price: 'J$5,000.00',
-      stock: 'In Stock (200 available)',
-      image: '/assets/products/img_4.png',
-    },
-  ];
-
-  openPurchaseDialog(productName: string) {
-    this.dialog.open(ContactPurchaseDialogComponent, {
-      width: '90%',
-      maxWidth: '450px',
-      data: { productName },
-      panelClass: 'luxury-dialog',
-    });
-  }
-
-  // Active Category Filter Signal
-  activeCategory = signal<string>('all');
-
-  filterCategories = [
-    { id: 'all', name: 'All Treatments' },
-    { id: 'laser-hair-removal', name: 'Laser Hair Removal' },
-    { id: 'folliculitis', name: 'Folliculitis' },
-    { id: 'stretch-marks', name: 'Stretch Marks' },
-  ];
-
-  // Raw Case Studies Datastore
-  comparisons = [
-    {
-      beforeImage: '/images/before-after/laser-hair-removal-before.png',
-      afterImage: '/images/before-after/laser-hair-removal-after.png',
-      treatmentName: 'Laser Hair Removal',
-      duration: '8 Sessions • 10 Months',
+      id: 8,
+      name: 'Laser Hair Removal',
       description:
         'Reduced coarse facial hair and ingrown bumps along the chin and neck, leaving skin smoother and clearer.',
-      category: 'laser-hair-removal',
-      rating: 5,
-      testimonial: {
-        quote:
-          'No more ingrown hairs. My chin and neck feel so much smoother after laser.',
-        author: 'Client Result',
-      },
+      priceLabel: 'JMD $ 10,000',
+      duration: '10 mins',
+      image: '/images/before-after/laser-hair-removal-after.png',
+      beforeImage: '/images/before-after/laser-hair-removal-before.png',
+      afterImage: '/images/before-after/laser-hair-removal-after.png',
+      detailsLink: '/services/8',
+      bookParams: { service: 8 },
     },
     {
-      beforeImage: '/images/before-after/folliculitis-before.png',
-      afterImage: '/images/before-after/folliculitis-after.png',
-      treatmentName: 'Folliculitis',
-      duration: 'Multiple Sessions • Ongoing Care',
+      id: 60,
+      name: 'Stretch Marks',
       description:
-        'Treated inflamed hair follicles and dark spots for clearer, smoother skin with reduced bumps and irritation.',
-      category: 'folliculitis',
-      rating: 5,
-      testimonial: {
-        quote:
-          'The bumps and dark spots improved so much. I finally feel comfortable again.',
-        author: 'Client Result',
-      },
+        'Laser, radiofrequency, and growth factors stimulate collagen to soften stretch marks and improve skin texture over time.',
+      priceLabel: 'JMD $ 16,000',
+      duration: '45 mins',
+      image: '/hhclaser_img/hhclaser_images/live/60_STRETCH MARKS.jpg',
+      detailsLink: '/services/60',
+      bookParams: { service: 60 },
     },
     {
-      beforeImage: '/images/before-after/stretch-marks-before.png',
-      afterImage: '/images/before-after/stretch-marks-after.png',
-      treatmentName: 'Stretch Mark Treatment',
-      duration: '6 Sessions • 8 Months',
+      id: 55,
+      name: 'Wood Therapy',
       description:
-        'Softened and lightened prominent stretch marks, reducing deep reddish-purple striae to thinner, less visible marks with smoother skin texture.',
-      category: 'stretch-marks',
-      rating: 5,
-      testimonial: {
-        quote:
-          'The stretch marks faded so much. My skin looks smoother and more even.',
-        author: 'Client Result',
-      },
+        'Improves circulation, reduces cellulite and fat deposits, and supports lymphatic drainage to flush toxins.',
+      priceLabel: 'JMD $ 9,000',
+      duration: '45 mins',
+      image: '/hhclaser_img/hhclaser_images/live/55_WOOD THERAPY.jpg',
+      detailsLink: '/services/55',
+      bookParams: { service: 55 },
+    },
+    {
+      id: 50,
+      name: 'Folliculitis',
+      description:
+        'A consultation-led treatment plan to calm inflamed follicles, reduce bumps, and improve skin clarity.',
+      priceLabel: 'JMD $ 12,000',
+      duration: '10 mins',
+      image: '/hhclaser_img/hhclaser_images/live/50_FOLLICULITIS.jpg',
+      detailsLink: '/services/50',
+      bookParams: { service: 50 },
+    },
+    {
+      id: 35,
+      name: 'Acne / Dark Spots',
+      description:
+        'Targets hormonal acne, blackheads, whiteheads, pustules, and milia — with skin resurfacing support included.',
+      priceLabel: 'JMD $ 12,000',
+      duration: '25 mins',
+      image: '/hhclaser_img/hhclaser_images/live/35_ACNE _ DARK SPOTS.jpg',
+      detailsLink: '/services/35',
+      bookParams: { service: 35 },
+    },
+    {
+      id: 58,
+      name: 'Skin Resurfacing',
+      description:
+        'Advanced laser resurfacing to reduce hyperpigmentation, spots, pores, scars, wrinkles, and fine lines.',
+      priceLabel: 'JMD $ 14,000',
+      duration: '25 mins',
+      image: '/hhclaser_img/hhclaser_images/live/58_SKIN RESURFACING.jpg',
+      detailsLink: '/services/58',
+      bookParams: { service: 58 },
     },
   ];
-
-  // Reactively Filtered Comparisons
-  filteredComparisons = computed(() => {
-    const active = this.activeCategory();
-    if (active === 'all') return this.comparisons;
-    return this.comparisons.filter((item) => item.category === active);
-  });
 }

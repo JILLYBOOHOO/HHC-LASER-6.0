@@ -58,7 +58,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
           </form>
 
           <div class="mt-8 text-center border-t border-white/10 pt-6">
-            <a routerLink="/auth/login" class="text-gold-400 hover:text-gold-300 font-semibold transition-colors flex items-center justify-center gap-1">
+            <a routerLink="/auth/login" class="text-gold-400 hover:text-white font-semibold transition-colors flex items-center justify-center gap-1">
               <mat-icon class="!text-sm">arrow_back</mat-icon> Back to Login
             </a>
           </div>

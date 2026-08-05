@@ -12,7 +12,7 @@ import { TreatmentNote } from '../../../core/models/models';
   imports: [CommonModule, RouterModule, MatIconModule, MatProgressSpinnerModule],
   template: `
     <div class="p-6 max-w-4xl mx-auto space-y-6">
-      <a routerLink="/employee/clients" class="inline-flex items-center text-slate-500 hover:text-amber-600 text-sm font-medium">
+      <a routerLink="/employee/clients" class="inline-flex items-center text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors">
         <mat-icon class="!text-sm !w-4 !h-4 mr-1">arrow_back</mat-icon> Back to Clients
       </a>
 

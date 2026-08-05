@@ -12,7 +12,7 @@ import { Appointment } from '../../../core/models/models';
   imports: [CommonModule, RouterModule, MatIconModule, MatProgressSpinnerModule],
   template: `
     <div class="p-6 max-w-3xl mx-auto space-y-6">
-      <a routerLink="/customer/bookings" class="inline-flex items-center text-charcoal-500 hover:text-gold-600 text-sm font-medium">
+      <a routerLink="/customer/bookings" class="inline-flex items-center text-neutral-600 hover:text-black text-sm font-medium transition-colors">
         <mat-icon class="!text-sm !w-4 !h-4 mr-1">arrow_back</mat-icon> Back to Appointments
       </a>
 
