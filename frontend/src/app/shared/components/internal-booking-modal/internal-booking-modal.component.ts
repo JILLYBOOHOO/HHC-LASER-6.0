@@ -839,7 +839,11 @@ export class InternalBookingModalComponent implements OnInit {
   }
 
   submit() {
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.error = 'Please enter patient First Name, Last Name, and Phone Number before completing booking.';
+      return;
+    }
 
     this.loading = true;
     this.error = null;
@@ -851,13 +855,13 @@ export class InternalBookingModalComponent implements OnInit {
         phone: this.form.value.phone,
         email: this.form.value.email || null
       },
-      serviceIds: [Number(this.form.value.serviceId)],
-      date: this.form.value.date,
-      time: this.form.value.time,
-      locationId: Number(this.form.value.locationId),
-      employeeId: Number(this.form.value.employeeId),
-      notes: this.form.value.notes,
-      paymentMethod: this.form.value.paymentMethod
+      serviceIds: [Number(this.form.value.serviceId || 1)],
+      date: this.form.value.date || new Date().toISOString().split('T')[0],
+      time: this.form.value.time || '10:00',
+      locationId: Number(this.form.value.locationId || 1),
+      employeeId: Number(this.form.value.employeeId || 1),
+      notes: this.form.value.notes || '',
+      paymentMethod: this.form.value.paymentMethod || 'pay_at_appointment'
     };
 
     const headers = { Authorization: `Bearer ${this.authState.token()}` };
@@ -869,14 +873,15 @@ export class InternalBookingModalComponent implements OnInit {
           if (res.success) {
             this.success = true;
             this.clearDraft();
-            setTimeout(() => this.close.emit(), 2000);
+            this.bookingCreated.emit();
+            setTimeout(() => this.close.emit(), 1500);
           } else {
             this.error = res.message || 'Failed to create booking';
           }
         },
         error: (err: any) => {
           this.loading = false;
-          this.error = err.error?.message || 'Server error creating booking';
+          this.error = err.error?.message || (err.error?.errors ? err.error.errors.map((e: any) => e.msg).join(', ') : 'Server error creating booking');
         }
       });
   }
