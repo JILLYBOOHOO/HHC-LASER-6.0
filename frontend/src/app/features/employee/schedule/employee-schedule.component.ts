@@ -37,6 +37,8 @@ export class EmployeeScheduleComponent implements OnInit {
   showModal = signal(false);
   showAddNoteModal = signal(false);
   showInvoiceModal = signal(false);
+  showCancelConfirmModal = signal(false);
+  appointmentToCancel = signal<CalendarEvent | null>(null);
   selectedEvent: CalendarEvent | null = null;
 
   allBookings: any[] = [];
@@ -228,9 +230,8 @@ export class EmployeeScheduleComponent implements OnInit {
       this.openBookingModal();
     }
     else if (action === 'Cancel') {
-      if (confirm(`Are you sure you want to cancel the booking for ${event.patient}?`)) {
-        this.updateBookingStatus(event.id, 'cancelled');
-      }
+      this.appointmentToCancel.set(event);
+      this.showCancelConfirmModal.set(true);
     }
     else {
       // Default fallback
@@ -249,6 +250,19 @@ export class EmployeeScheduleComponent implements OnInit {
         this.snackBar.open('Failed to update status', 'Close', { duration: 3000, panelClass: ['bg-black', 'text-white'] });
       }
     });
+  }
+
+  confirmCancelAppointment() {
+    const appt = this.appointmentToCancel();
+    if (appt) {
+      this.updateBookingStatus(appt.id, 'cancelled');
+    }
+    this.closeCancelModal();
+  }
+
+  closeCancelModal() {
+    this.showCancelConfirmModal.set(false);
+    this.appointmentToCancel.set(null);
   }
 
   openBookingModal() { this.showModal.set(true); }
