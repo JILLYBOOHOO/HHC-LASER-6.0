@@ -21,7 +21,9 @@ import {
   WelcomeEmailData,
   PasswordResetData,
   EmailVerificationData,
-  AdminNotificationData
+  AdminNotificationData,
+  getBirthdayEmailTemplate,
+  BirthdayEmailData
 } from './email.templates';
 
 export type DedicatedSender = 'appointments' | 'support' | 'billing' | 'noreply';
@@ -410,6 +412,28 @@ export class NotificationService {
       subject: `[Admin Alert] ${data.title}`,
       html,
       category: 'noreply'
+    });
+  }
+
+  /**
+   * 9. Birthday Email (noreply@hhclaser.com)
+   */
+  async sendBirthdayEmail(user: { id: number; email: string; first_name: string }): Promise<void> {
+    if (!user.email) return;
+
+    const html = getBirthdayEmailTemplate({
+      frontendUrl: env.FRONTEND_URL,
+      customerName: user.first_name || 'Valued Client'
+    });
+
+    const currentYear = new Date().getFullYear();
+
+    this.queueEmail({
+      to: user.email,
+      subject: `Happy Birthday, ${user.first_name}! 🎈`,
+      html,
+      category: 'noreply',
+      idempotencyKey: `birthday:${user.id}:${currentYear}`
     });
   }
 

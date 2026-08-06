@@ -1,6 +1,6 @@
 /**
  * HHC Laser & Co - Luxury Email Templates
- * Fully responsive, branded HTML templates matching the MedSpa design palette.
+ * Black, White, and Brushed Gold Aesthetic.
  */
 export interface BaseEmailData {
     frontendUrl: string;
@@ -76,6 +76,9 @@ export interface AdminNotificationData extends BaseEmailData {
         value: string;
     }[];
 }
+export interface BirthdayEmailData extends BaseEmailData {
+    customerName: string;
+}
 export declare function getBookingConfirmationTemplate(data: BookingConfirmationData): string;
 export declare function getAppointmentReminderTemplate(data: AppointmentReminderData): string;
 export declare function getAppointmentRescheduledTemplate(data: RescheduledData): string;
@@ -85,4 +88,5 @@ export declare function getWelcomeEmailTemplate(data: WelcomeEmailData): string;
 export declare function getPasswordResetTemplate(data: PasswordResetData): string;
 export declare function getEmailVerificationTemplate(data: EmailVerificationData): string;
 export declare function getAdminNotificationTemplate(data: AdminNotificationData): string;
+export declare function getBirthdayEmailTemplate(data: BirthdayEmailData): string;
 //# sourceMappingURL=email.templates.d.ts.map

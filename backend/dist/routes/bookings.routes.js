@@ -7,6 +7,7 @@ const validation_middleware_1 = require("../middleware/validation.middleware");
 const express_validator_1 = require("express-validator");
 const booking_service_1 = require("../services/booking.service");
 const payment_flow_service_1 = require("../payments/fiserv/payment-flow.service");
+const notification_service_1 = require("../services/notification.service");
 const socket_service_1 = require("../services/socket.service");
 const types_1 = require("../models/types");
 const error_middleware_1 = require("../middleware/error.middleware");
@@ -190,7 +191,7 @@ async function normalizeAdminBookingPayload(req, res, next) {
                 const insertId = await (0, database_1.withTransaction)(async (conn) => {
                     const finalEmail = email ? email.toLowerCase().trim() : `guest_${Date.now()}_${Math.floor(Math.random() * 1000)}@hhclaser.com`;
                     const [userResult] = await conn.execute(`INSERT INTO users (email, password_hash, first_name, last_name, phone, token_version, is_active, email_verified)
-             VALUES (?, NULL, ?, ?, ?, 0, 1, 0)`, [
+             VALUES (?, NULL, ?, ?, ?, 0, true, false)`, [
                         finalEmail,
                         first_name.trim(),
                         last_name.trim(),
@@ -210,7 +211,7 @@ async function normalizeAdminBookingPayload(req, res, next) {
     }
 }
 // Admin can create bookings for customers
-router.post('/admin', auth_middleware_1.authenticate, (0, rbac_middleware_1.requireRole)('admin', 'manager', 'owner'), (req, res, next) => { normalizeAdminBookingPayload(req, res, next); }, [
+router.post('/admin', auth_middleware_1.authenticate, (0, rbac_middleware_1.requireRole)('admin', 'manager', 'owner', 'specialist'), (req, res, next) => { normalizeAdminBookingPayload(req, res, next); }, [
     (0, express_validator_1.body)('customer_user_id').isInt({ min: 1 }).withMessage('customer_user_id is required'),
     (0, express_validator_1.body)('booking_type').isIn(['self', 'other', 'group']).withMessage('booking_type must be self, other, or group'),
     (0, express_validator_1.body)('employee_id').isInt({ min: 1 }).withMessage('employee_id is required'),
@@ -235,6 +236,24 @@ router.post('/admin', auth_middleware_1.authenticate, (0, rbac_middleware_1.requ
         dto.payment_status = paymentStatus;
         const appointment = await booking_service_1.bookingService.createAdminAppointment(req.user.userId, dto.customer_user_id, dto);
         socket_service_1.socketService.emitBookingEvent('booking_created', { appointment });
+        try {
+            const location = await (0, database_1.executeQueryOne)('SELECT name FROM locations WHERE id = ?', [appointment.location_id]);
+            const employee = await (0, database_1.executeQueryOne)('SELECT u.first_name, u.last_name FROM employees e JOIN users u ON e.user_id = u.id WHERE e.id = ?', [appointment.employee_id]);
+            const servicesRows = await (0, database_1.executeQuery)('SELECT s.name FROM appointment_services as_s JOIN services s ON as_s.service_id = s.id WHERE as_s.appointment_id = ?', [appointment.id]);
+            await notification_service_1.notificationService.sendAppointmentConfirmation(dto.customer_user_id, {
+                date: appointment.scheduled_date,
+                time: appointment.start_time,
+                services: servicesRows.map((s) => s.name).join(', '),
+                location: location?.name || 'HHC Laser Clinic',
+                employeeName: employee ? `${employee.first_name} ${employee.last_name}`.trim() : 'Staff',
+                totalAmount: parseFloat(appointment.total_amount_jmd.toString()),
+                appointmentId: appointment.id,
+                confirmationCode: appointment.confirmation_code || 'N/A',
+            });
+        }
+        catch (err) {
+            console.error('[Admin Booking] Failed to send confirmation email:', err);
+        }
         if (dto.payment_option === 'send_payment_link') {
             const paymentSession = await payment_flow_service_1.paymentFlowService.initiatePayment({
                 appointmentId: appointment.id,
@@ -265,8 +284,7 @@ router.post('/', auth_middleware_1.authenticate, (0, rbac_middleware_1.requireRo
 ], validation_middleware_1.validateRequest, async (req, res, next) => {
     try {
         const appointment = await booking_service_1.bookingService.createAppointment(req.user.userId, req.body);
-        socket_service_1.socketService.emitBookingEvent('booking_created', { appointment });
-        // Initiate payment session
+        // Initiate payment session before socket emit so the client can redirect ASAP
         const paymentSession = await payment_flow_service_1.paymentFlowService.initiatePayment({
             appointmentId: appointment.id,
             amountJmd: appointment.total_amount_jmd,
@@ -274,6 +292,15 @@ router.post('/', auth_middleware_1.authenticate, (0, rbac_middleware_1.requireRo
             description: `Appointment #${appointment.id}`,
         });
         res.status(201).json((0, types_1.successResponse)({ appointment, payment: paymentSession }, 'Appointment created. Proceed to payment.'));
+        // Non-blocking side effects after the client already has the redirect payload
+        setImmediate(() => {
+            try {
+                socket_service_1.socketService.emitBookingEvent('booking_created', { appointment });
+            }
+            catch (err) {
+                console.error('[Booking] Failed to emit booking_created:', err);
+            }
+        });
     }
     catch (e) {
         next(e);

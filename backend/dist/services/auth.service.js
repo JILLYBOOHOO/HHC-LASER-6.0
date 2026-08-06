@@ -149,29 +149,53 @@ class AuthService {
         if (!valid)
             return false;
         const admin = (0, supabase_1.getSupabaseAdmin)();
-        const { data, error } = await admin.auth.admin.createUser({
-            email,
-            password,
-            email_confirm: true,
-            user_metadata: {
-                first_name: user.first_name,
-                last_name: user.last_name,
-            },
-        });
-        if (error || !data.user) {
-            // Already exists in Auth — try linking by email lookup
-            const listed = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-            const match = listed.data.users.find((u) => u.email?.toLowerCase() === email);
-            if (!match) {
-                logger_1.logger.error('[Auth] Legacy migration failed:', error);
+        try {
+            const { data, error } = await admin.auth.admin.createUser({
+                email,
+                password,
+                email_confirm: true,
+                user_metadata: {
+                    first_name: user.first_name,
+                    last_name: user.last_name,
+                },
+            });
+            if (!error && data.user) {
+                await (0, database_1.executeUpdate)('UPDATE users SET auth_uid = ?, password_hash = NULL WHERE id = ?', [
+                    data.user.id,
+                    user.id,
+                ]);
+                logger_1.logger.info(`[Auth] Migrated legacy user ${email} to Supabase Auth`);
+                return true;
+            }
+            // Account already in Supabase Auth — locate it, sync password, then link
+            const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
+                type: 'recovery',
+                email,
+            });
+            const existingAuthUser = linkData?.user;
+            if (linkError || !existingAuthUser) {
+                logger_1.logger.error('[Auth] Legacy migration failed to resolve existing Auth user:', error || linkError);
                 return false;
             }
-            await (0, database_1.executeUpdate)('UPDATE users SET auth_uid = ? WHERE id = ?', [match.id, user.id]);
+            const { error: updateError } = await admin.auth.admin.updateUserById(existingAuthUser.id, {
+                password,
+                email_confirm: true,
+            });
+            if (updateError) {
+                logger_1.logger.error('[Auth] Legacy migration password sync failed:', updateError);
+                return false;
+            }
+            await (0, database_1.executeUpdate)('UPDATE users SET auth_uid = ?, password_hash = NULL WHERE id = ?', [
+                existingAuthUser.id,
+                user.id,
+            ]);
+            logger_1.logger.info(`[Auth] Linked legacy user ${email} to existing Supabase Auth account`);
             return true;
         }
-        await (0, database_1.executeUpdate)('UPDATE users SET auth_uid = ? WHERE id = ?', [data.user.id, user.id]);
-        logger_1.logger.info(`[Auth] Migrated legacy user ${email} to Supabase Auth`);
-        return true;
+        catch (err) {
+            logger_1.logger.error('[Auth] Legacy migration threw unexpectedly:', err);
+            return false;
+        }
     }
     // ─── Legacy local JWT auth ──────────────────────────────────────────────────
     async registerLegacy(dto) {
@@ -406,6 +430,79 @@ class AuthService {
             }
         }
         logger_1.logger.info(`[Auth] User logged out: ID ${userId}`);
+    }
+    /**
+     * Always resolves successfully to avoid email enumeration.
+     * Sends a reset link when an active account exists.
+     */
+    async requestPasswordReset(email) {
+        const normalized = email.toLowerCase().trim();
+        const user = await (0, database_1.executeQueryOne)('SELECT * FROM users WHERE email = ? AND is_active = TRUE', [normalized]);
+        if (!user) {
+            logger_1.logger.info(`[Auth] Password reset requested for unknown email: ${normalized}`);
+            return;
+        }
+        const token = (0, jwt_1.signPasswordResetToken)({
+            userId: user.id,
+            email: user.email,
+        });
+        await notification_service_1.notificationService.sendPasswordReset({ email: user.email, first_name: user.first_name }, token);
+        logger_1.logger.info(`[Auth] Password reset email queued for user ID ${user.id}`);
+    }
+    async resetPasswordWithToken(token, newPassword) {
+        let payload;
+        try {
+            payload = (0, jwt_1.verifyPasswordResetToken)(token);
+        }
+        catch {
+            throw new error_middleware_1.AppError('This reset link is invalid or has expired. Please request a new one.', 400);
+        }
+        const user = await (0, database_1.executeQueryOne)('SELECT * FROM users WHERE id = ? AND email = ? AND is_active = TRUE', [payload.userId, payload.email.toLowerCase()]);
+        if (!user) {
+            throw new error_middleware_1.AppError('This reset link is invalid or has expired. Please request a new one.', 400);
+        }
+        if ((0, supabase_1.isSupabaseAuthEnabled)()) {
+            const admin = (0, supabase_1.getSupabaseAdmin)();
+            let authUid = user.auth_uid || null;
+            if (!authUid) {
+                const { data: created, error: createError } = await admin.auth.admin.createUser({
+                    email: user.email,
+                    password: newPassword,
+                    email_confirm: true,
+                    user_metadata: {
+                        first_name: user.first_name,
+                        last_name: user.last_name,
+                    },
+                });
+                if (createError || !created.user) {
+                    const listed = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+                    const match = listed.data.users.find((u) => u.email?.toLowerCase() === user.email.toLowerCase());
+                    if (!match) {
+                        throw new error_middleware_1.AppError(createError?.message || 'Unable to update password. Please contact support.', 400);
+                    }
+                    authUid = match.id;
+                    const { error: updateError } = await admin.auth.admin.updateUserById(authUid, {
+                        password: newPassword,
+                    });
+                    if (updateError)
+                        throw new error_middleware_1.AppError(updateError.message, 400);
+                }
+                else {
+                    authUid = created.user.id;
+                }
+            }
+            else {
+                const { error } = await admin.auth.admin.updateUserById(authUid, {
+                    password: newPassword,
+                });
+                if (error)
+                    throw new error_middleware_1.AppError(error.message, 400);
+            }
+            await (0, database_1.executeUpdate)('UPDATE users SET password_hash = NULL, auth_uid = ?, token_version = token_version + 1 WHERE id = ?', [authUid, user.id]);
+            return;
+        }
+        const newHash = await bcryptjs_1.default.hash(newPassword, SALT_ROUNDS);
+        await (0, database_1.executeUpdate)('UPDATE users SET password_hash = ?, token_version = token_version + 1 WHERE id = ?', [newHash, user.id]);
     }
     async changePassword(userId, currentPassword, newPassword) {
         const user = await (0, database_1.executeQueryOne)('SELECT * FROM users WHERE id = ?', [userId]);

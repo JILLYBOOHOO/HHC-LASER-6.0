@@ -22,6 +22,10 @@ const authRateLimiter = (0, express_rate_limit_1.default)({
 router.post('/register', authRateLimiter, auth_controller_1.registerValidators, validation_middleware_1.validateRequest, (req, res, next) => auth_controller_1.authController.register(req, res).catch(next));
 // POST /api/auth/login
 router.post('/login', authRateLimiter, auth_controller_1.loginValidators, validation_middleware_1.validateRequest, (req, res, next) => auth_controller_1.authController.login(req, res).catch(next));
+// POST /api/auth/forgot-password
+router.post('/forgot-password', authRateLimiter, auth_controller_1.forgotPasswordValidators, validation_middleware_1.validateRequest, (req, res, next) => auth_controller_1.authController.forgotPassword(req, res).catch(next));
+// POST /api/auth/reset-password
+router.post('/reset-password', authRateLimiter, auth_controller_1.resetPasswordValidators, validation_middleware_1.validateRequest, (req, res, next) => auth_controller_1.authController.resetPassword(req, res).catch(next));
 // GET /api/auth/google
 router.get('/google', authRateLimiter, (req, res, next) => auth_controller_1.authController.googleRedirect(req, res).catch(next));
 // GET /api/auth/google/callback

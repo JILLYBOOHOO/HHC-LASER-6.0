@@ -29,4 +29,13 @@ export declare function verifyRefreshToken(token: string): RefreshTokenPayload;
 /** Verify a Supabase-issued access token (HS256 with project JWT secret). */
 export declare function verifySupabaseAccessToken(token: string): SupabaseJwtPayload;
 export declare function decodeToken(token: string): JwtPayload | null;
+export interface PasswordResetTokenPayload {
+    purpose: 'password_reset';
+    userId: number;
+    email: string;
+    iat?: number;
+    exp?: number;
+}
+export declare function signPasswordResetToken(payload: Omit<PasswordResetTokenPayload, 'iat' | 'exp' | 'purpose'>): string;
+export declare function verifyPasswordResetToken(token: string): PasswordResetTokenPayload;
 //# sourceMappingURL=jwt.d.ts.map

@@ -9,6 +9,7 @@ const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const express_validator_1 = require("express-validator");
 const env_1 = require("../config/env");
 const fiserv_crypto_1 = require("../payments/fiserv/fiserv.crypto");
+const fiserv_return_urls_1 = require("../payments/fiserv/fiserv-return-urls");
 const auth_middleware_1 = require("../middleware/auth.middleware");
 const rbac_middleware_1 = require("../middleware/rbac.middleware");
 const validation_middleware_1 = require("../middleware/validation.middleware");
@@ -104,9 +105,11 @@ router.post('/record-manual', auth_middleware_1.authenticate, (0, rbac_middlewar
     try {
         const txn = await transaction_service_1.transactionService.recordManualPayment({
             appointmentId: req.body.appointment_id,
-            amountJmd: Number(req.body.amount_jmd),
-            paymentMethod: req.body.payment_method,
-            notes: req.body.notes,
+            payments: [{
+                    amountJmd: Number(req.body.amount_jmd),
+                    paymentMethod: req.body.payment_method,
+                    notes: req.body.notes,
+                }],
             staffUserId: req.user.userId,
             customerId: req.body.customer_user_id,
         });
@@ -139,12 +142,11 @@ router.post('/generate-hash', auth_middleware_1.authenticate, (0, rbac_middlewar
             error: 'Fiserv is not configured. Set FISERV_STORE_ID and FISERV_SHARED_SECRET in backend/.env',
         });
     }
-    const timezone = 'America/Jamaica';
+    const timezone = 'America/New_York';
     const txnDateTime = (0, moment_timezone_1.default)().tz(timezone).format('YYYY:MM:DD-HH:mm:ss');
     const oid = crypto_1.default.randomUUID();
-    const apiBase = env_1.env.API_BASE_URL.replace(/\/$/, '');
-    const successUrl = env_1.env.FISERV_SUCCESS_URL || `${apiBase}/api/payments/success`;
-    const failUrl = env_1.env.FISERV_FAILURE_URL || `${apiBase}/api/payments/error`;
+    const successUrl = (0, fiserv_return_urls_1.resolveFiservBrowserReturnUrl)(env_1.env.FISERV_SUCCESS_URL, '/api/payments/success');
+    const failUrl = (0, fiserv_return_urls_1.resolveFiservBrowserReturnUrl)(env_1.env.FISERV_FAILURE_URL, '/api/payments/error');
     const baseFields = {
         chargetotal: chargeTotal.includes('.') ? chargeTotal : `${chargeTotal}.00`,
         checkoutoption: 'combinedpage',
@@ -199,6 +201,12 @@ router.all('/success', (req, res) => {
         chargetotal: p.chargetotal,
         status: p.status,
     });
+    // Best-effort: mark paid if server-to-server callback has not landed yet
+    if (p.oid) {
+        void payment_flow_service_1.paymentFlowService
+            .processValidatedCallback(p.oid, p.status || 'APPROVED', undefined, p.chargetotal || undefined, p.currency || undefined, p.approvalCode || undefined, p.responseCode || undefined, undefined)
+            .catch(() => undefined);
+    }
     const frontendUrl = (env_1.env.FRONTEND_URL || 'http://localhost:4200').replace(/\/$/, '');
     const q = new URLSearchParams({
         approvalCode: p.approvalCode,
@@ -209,7 +217,7 @@ router.all('/success', (req, res) => {
     });
     res.redirect(303, `${frontendUrl}/payment/success?${q.toString()}`);
 });
-router.all('/error', (req, res) => {
+function redirectPaymentFailure(req, res) {
     const p = paymentReturnParams(req);
     console.log('[Fiserv DECLINE]', {
         oid: p.oid,
@@ -217,6 +225,11 @@ router.all('/error', (req, res) => {
         responseCode: p.responseCode,
         chargetotal: p.chargetotal,
     });
+    if (p.oid) {
+        void payment_flow_service_1.paymentFlowService
+            .processValidatedCallback(p.oid, p.status || 'FAILED', undefined, p.chargetotal || undefined, p.currency || undefined, p.approvalCode || undefined, p.responseCode || undefined, p.responseCode || undefined)
+            .catch(() => undefined);
+    }
     const frontendUrl = (env_1.env.FRONTEND_URL || 'http://localhost:4200').replace(/\/$/, '');
     const q = new URLSearchParams({
         approvalCode: p.approvalCode,
@@ -226,6 +239,9 @@ router.all('/error', (req, res) => {
         currency: p.currency || env_1.env.FISERV_CURRENCY || '388',
     });
     res.redirect(303, `${frontendUrl}/payment/failure?${q.toString()}`);
-});
+}
+// Fiserv may POST to /error or /failure depending on merchant config
+router.all('/error', redirectPaymentFailure);
+router.all('/failure', redirectPaymentFailure);
 exports.default = router;
 //# sourceMappingURL=payments.routes.js.map

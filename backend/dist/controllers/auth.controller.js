@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.authController = exports.AuthController = exports.loginValidators = exports.registerValidators = void 0;
+exports.authController = exports.AuthController = exports.resetPasswordValidators = exports.forgotPasswordValidators = exports.loginValidators = exports.registerValidators = void 0;
 const express_validator_1 = require("express-validator");
 const auth_service_1 = require("../services/auth.service");
 const types_1 = require("../models/types");
@@ -27,6 +27,16 @@ exports.registerValidators = [
 exports.loginValidators = [
     (0, express_validator_1.body)('email').isEmail().normalizeEmail().withMessage('A valid email is required.'),
     (0, express_validator_1.body)('password').notEmpty().withMessage('Password is required.'),
+];
+exports.forgotPasswordValidators = [
+    (0, express_validator_1.body)('email').isEmail().normalizeEmail().withMessage('A valid email is required.'),
+];
+exports.resetPasswordValidators = [
+    (0, express_validator_1.body)('token').notEmpty().withMessage('Reset token is required.'),
+    (0, express_validator_1.body)('password')
+        .isLength({ min: 8 }).withMessage('Password must be at least 8 characters.')
+        .matches(/(?=.*[A-Z])(?=.*[a-z])(?=.*\d)/)
+        .withMessage('Password must contain uppercase, lowercase, and a number.'),
 ];
 class AuthController {
     async register(req, res) {
@@ -102,6 +112,16 @@ class AuthController {
         const { current_password, new_password } = req.body;
         await auth_service_1.authService.changePassword(req.user.userId, current_password, new_password);
         res.json((0, types_1.successResponse)(undefined, 'Password changed successfully.'));
+    }
+    async forgotPassword(req, res) {
+        const { email } = req.body;
+        await auth_service_1.authService.requestPasswordReset(email);
+        res.json((0, types_1.successResponse)(undefined, 'If an account exists for that email, a password reset link has been sent.'));
+    }
+    async resetPassword(req, res) {
+        const { token, password } = req.body;
+        await auth_service_1.authService.resetPasswordWithToken(token, password);
+        res.json((0, types_1.successResponse)(undefined, 'Password updated successfully. You can sign in now.'));
     }
     async me(req, res) {
         const rows = await (0, database_1.executeQuery)(`SELECT u.id, u.email, u.first_name, u.last_name, u.phone, u.date_of_birth,

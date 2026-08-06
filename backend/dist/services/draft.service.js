@@ -65,7 +65,7 @@ class DraftService {
     }
     // ─── Dismiss resume prompt ───────────────────────────────────────────────────
     async dismissPrompt(userId) {
-        await (0, database_1.executeUpdate)(`UPDATE booking_drafts SET resume_prompt_dismissed = TRUE WHERE user_id = ?`, [userId]);
+        await (0, database_1.executeUpdate)(`UPDATE booking_drafts SET resume_prompt_dismissed = 1 WHERE user_id = ?`, [userId]);
     }
     // ─── Delete user's draft ────────────────────────────────────────────────────
     async deleteDraft(userId) {

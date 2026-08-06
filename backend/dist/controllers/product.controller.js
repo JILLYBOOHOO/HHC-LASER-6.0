@@ -9,7 +9,7 @@ exports.productController = {
             const rows = await (0, database_1.executeQuery)(`SELECT p.*, c.name as category_name, c.slug as category_slug
          FROM products p
          JOIN product_categories c ON p.category_id = c.id
-         WHERE p.is_active = TRUE
+         WHERE p.is_active = 1
          ORDER BY p.created_at DESC`);
             res.json(rows);
         }
@@ -25,7 +25,7 @@ exports.productController = {
             const rows = await (0, database_1.executeQuery)(`SELECT p.*, c.name as category_name
          FROM products p
          JOIN product_categories c ON p.category_id = c.id
-         WHERE p.slug = ? AND p.is_active = TRUE`, [slug]);
+         WHERE p.slug = ? AND p.is_active = 1`, [slug]);
             if (rows.length === 0) {
                 return res.status(404).json({ message: 'Product not found' });
             }
@@ -39,7 +39,7 @@ exports.productController = {
     // Public - Get categories
     async getCategories(req, res) {
         try {
-            const rows = await (0, database_1.executeQuery)(`SELECT * FROM product_categories WHERE is_active = TRUE ORDER BY sort_order ASC`);
+            const rows = await (0, database_1.executeQuery)(`SELECT * FROM product_categories WHERE is_active = 1 ORDER BY sort_order ASC`);
             res.json(rows);
         }
         catch (error) {
@@ -80,7 +80,7 @@ exports.productController = {
     async deleteProduct(req, res) {
         try {
             const { id } = req.params;
-            await (0, database_1.executeUpdate)(`UPDATE products SET is_active = FALSE WHERE id = ?`, [id]);
+            await (0, database_1.executeUpdate)(`UPDATE products SET is_active = 0 WHERE id = ?`, [id]);
             res.json({ message: 'Product deleted successfully' });
         }
         catch (error) {

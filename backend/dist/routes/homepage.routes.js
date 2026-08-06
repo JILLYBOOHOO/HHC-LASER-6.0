@@ -8,7 +8,7 @@ const router = (0, express_1.Router)();
 // GET /api/homepage
 router.get('/', async (req, res) => {
     try {
-        const rows = await (0, database_1.executeQuery)('SELECT id, section_type, display_order, is_active, config_json FROM homepage_sections WHERE is_active = TRUE ORDER BY display_order ASC');
+        const rows = await (0, database_1.executeQuery)('SELECT id, section_type, display_order, is_active, config_json FROM homepage_sections WHERE is_active = 1 ORDER BY display_order ASC');
         res.json({ success: true, data: rows });
     }
     catch (error) {

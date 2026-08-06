@@ -32,6 +32,7 @@ import developerRoutes from "./routes/developer.routes";
 import developerAuthRoutes from "./routes/developer-auth.routes";
 import draftRoutes from "./routes/drafts.routes";
 import { startDraftCleanupJob } from "./jobs/cleanup-drafts.job";
+import { startBirthdayJob } from "./jobs/birthday.job";
 import { socketService } from "./services/socket.service";
 const app = express();
 
@@ -169,6 +170,7 @@ async function bootstrap(): Promise<void> {
     }
 
     startDraftCleanupJob();
+    startBirthdayJob();
 
     const server = app.listen(env.PORT, () => {
       logger.info(
