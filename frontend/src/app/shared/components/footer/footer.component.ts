@@ -70,7 +70,10 @@ import { DomSanitizer } from '@angular/platform-browser';
             <ul class="space-y-4">
               <li class="flex gap-3 items-start">
                 <mat-icon class="text-gold !text-sm mt-1 flex-shrink-0">location_on</mat-icon>
-                <span class="text-text-muted text-sm font-light whitespace-pre-line">{{ settingsService.settings().address }}</span>
+                <div class="flex flex-col">
+                  <span class="text-text-muted text-sm font-light whitespace-pre-line mb-2">{{ settingsService.settings().address }}</span>
+                  <span class="text-text-muted text-sm font-light whitespace-pre-line">63 Mannings Hill Rd,<br/>Kingston, Jamaica</span>
+                </div>
               </li>
               <li class="flex gap-3 items-start">
                 <mat-icon class="text-gold !text-sm mt-1 flex-shrink-0">phone</mat-icon>
@@ -90,14 +93,17 @@ import { DomSanitizer } from '@angular/platform-browser';
                 <mat-icon class="text-gold !text-sm flex-shrink-0 mt-1">schedule</mat-icon>
                 <div class="flex flex-col text-text-muted text-sm font-light">
                   <span class="font-semibold text-white mb-1">Hours</span>
-                  <span>Mon–Fri: 9:00 AM – 6:00 PM</span>
+                  <span>Mon–Fri: 9:00 AM – 5:00 PM</span>
                   <span>Saturday: 9:00 AM – 5:00 PM</span>
                   <span>Sunday: Closed</span>
                 </div>
               </li>
-              <li class="mt-6 pt-6 border-t border-white/5">
+              <li class="mt-6 pt-6 border-t border-white/5 flex flex-col gap-4">
                 <div class="rounded-xl overflow-hidden border border-white/10 w-full h-48 opacity-80 hover:opacity-100 transition-opacity duration-300">
                   <iframe [src]="mapUrl" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+                </div>
+                <div class="rounded-xl overflow-hidden border border-white/10 w-full h-48 opacity-80 hover:opacity-100 transition-opacity duration-300">
+                  <iframe [src]="mapUrl2" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
                 </div>
               </li>
             </ul>
@@ -126,6 +132,7 @@ export class FooterComponent {
   sanitizer = inject(DomSanitizer);
   currentYear = new Date().getFullYear();
   mapUrl = this.sanitizer.bypassSecurityTrustResourceUrl("https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d7588.136446625609!2d-76.79566539999999!3d18.0220372!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8edb3f0006095985%3A0x22ed8ba295760c21!2sHHC%20LASER!5e0!3m2!1sen!2sjm!4v1785449438222!5m2!1sen!2sjm");
+  mapUrl2 = this.sanitizer.bypassSecurityTrustResourceUrl("https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d7587.05808356879!2d-76.8022852!3d18.0470474!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8edb3e41c8974943%3A0x6d91f8eeba2ae793!2sHavendale%20Healthcare%20Centre!5e0!3m2!1sen!2sjm!4v1785996986964!5m2!1sen!2sjm");
 
   socials = [
     { label: 'Instagram', icon: 'photo_camera', href: 'https://instagram.com/hhclaserjm' },
@@ -152,5 +159,6 @@ export class FooterComponent {
   legalLinks = [
     { path: '/terms-of-service', label: 'Terms of Service' },
     { path: '/refund-policy', label: 'Refund Policy' },
+    { path: '/sitemap', label: 'Sitemap' },
   ];
 }

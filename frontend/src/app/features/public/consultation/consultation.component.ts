@@ -58,9 +58,9 @@ import { RouterModule } from '@angular/router';
               </div>
 
               <div class="text-center pt-8 border-t border-white/10">
-                <a routerLink="/customer/book" [queryParams]="{ service: 'consultation' }"
+                <a routerLink="/contact"
                    class="inline-flex items-center justify-center gap-3 bg-gold hover:bg-gold-light text-background px-8 py-4 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-[0_0_20px_rgba(212,175,55,0.4)]">
-                  <span>Book Your Free Consultation</span>
+                  <span>Contact us for your Free Consultation</span>
                   <mat-icon>arrow_forward</mat-icon>
                 </a>
                 <p class="mt-4 text-xs text-text-muted font-light">

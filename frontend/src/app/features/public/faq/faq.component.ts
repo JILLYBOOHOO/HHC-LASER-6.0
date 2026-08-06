@@ -10,7 +10,7 @@ import { RouterModule } from '@angular/router';
   standalone: true,
   imports: [CommonModule, MatExpansionModule, MatIconModule, MatButtonModule, RouterModule],
   template: `
-    <div class="pt-24 pb-16 min-h-screen" style="background: var(--color-cream)">
+    <div class="pt-24 pb-16 min-h-screen bg-white">
       <div class="max-w-4xl mx-auto px-4">
         
         <!-- Header -->
@@ -46,7 +46,7 @@ import { RouterModule } from '@angular/router';
           <p class="text-charcoal-600 mb-6 text-lg">Still have questions? We're happy to help.</p>
           <div class="flex flex-col sm:flex-row justify-center gap-4">
             <a routerLink="/contact" mat-flat-button class="!bg-charcoal-900 !text-cream-50 px-8 py-2">Contact Us</a>
-            <a routerLink="/customer/book" mat-stroked-button class="!border-charcoal-300 !text-charcoal-800 px-8 py-2">Book Consultation</a>
+            <a routerLink="/customer/book" mat-stroked-button class="!border-charcoal-300 !text-charcoal-800 px-8 py-2">Contact us for Free Consultation</a>
           </div>
         </div>
 

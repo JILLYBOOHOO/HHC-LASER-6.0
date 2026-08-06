@@ -90,7 +90,7 @@ import { FormsModule } from '@angular/forms';
                 <div class="p-3 md:p-3.5 flex flex-col flex-1">
                   <!-- Title & CTA -->
                   <div class="flex justify-between items-start gap-2 mb-1">
-                    <h3 class="text-black font-extrabold text-xs md:text-sm uppercase tracking-wide line-clamp-1 group-hover:text-gold-500 transition-colors flex-1">
+                    <h3 class="text-black font-extrabold text-xs md:text-sm uppercase tracking-wide line-clamp-1 group-hover:text-gold-500 transition-colors flex-1" style="font-family: 'Playfair Display', serif;">
                       {{ service.name }}
                     </h3>
                     <div class="bg-neutral-100 text-neutral-600 border border-neutral-200 text-[9px] uppercase font-bold px-2 py-0.5 rounded-sm whitespace-nowrap group-hover:bg-black group-hover:text-white group-hover:border-black transition-colors">
