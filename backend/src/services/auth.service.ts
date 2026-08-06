@@ -328,6 +328,18 @@ export class AuthService {
     if (!user.is_active) {
       throw new AppError('Your account has been suspended. Please contact support.', 403);
     }
+    if (!user.password_hash) {
+      // Supabase-linked accounts store no local hash. If we reached legacy login,
+      // Supabase Auth env vars are incomplete on this server.
+      logger.error(
+        `[Auth] User ${normEmail} has no password_hash but login fell through to legacy path. ` +
+          'Ensure SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, and SUPABASE_JWT_SECRET are set.'
+      );
+      throw new AppError(
+        'Server authentication is misconfigured. Please contact support.',
+        503
+      );
+    }
 
     const passwordValid = await bcrypt.compare(password, user.password_hash);
     if (!passwordValid) {
