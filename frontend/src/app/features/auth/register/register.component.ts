@@ -108,7 +108,7 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
             <div>
               <div class="relative flex items-center border border-white/20 rounded-xl bg-transparent focus-within:border-gold transition-all px-4 py-3">
                 <mat-icon class="text-gold-400 mr-2 !text-sm !w-5 !h-5">phone</mat-icon>
-                <input type="tel" formControlName="phone" placeholder="Phone Number*" 
+                <input type="tel" formControlName="phone" placeholder="Phone Number*" (input)="onPhoneInput()"
                        class="bg-transparent border-none text-white text-sm font-medium placeholder-neutral-500 outline-none w-full">
               </div>
               <p class="text-red-300 text-xs mt-1 text-left" *ngIf="registerForm.get('phone')?.invalid && registerForm.get('phone')?.touched">
@@ -206,6 +206,7 @@ export class RegisterComponent {
   hideConfirmPassword = signal(true);
   isLoading = signal(false);
   showFormError = signal(false);
+  hasAutoScrolled = false;
 
   constructor(
     private fb: FormBuilder,
@@ -233,6 +234,14 @@ export class RegisterComponent {
         this.showFormError.set(false);
       }
     });
+  }
+
+  onPhoneInput(): void {
+    const phoneVal = this.registerForm.get('phone')?.value;
+    if (phoneVal && phoneVal.length >= 10 && !this.hasAutoScrolled) {
+      this.hasAutoScrolled = true;
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
   }
 
   onSubmit(): void {
