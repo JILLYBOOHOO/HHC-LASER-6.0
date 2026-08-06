@@ -212,6 +212,8 @@ export class LoginComponent {
       this.router.navigate(['/services']);
     } else if (user.roles.some((r: string) => ['owner','admin','manager'].includes(r))) {
       this.router.navigate(['/admin']);
+    } else if (user.roles.includes('developer')) {
+      this.router.navigate(['/developer']);
     } else if (user.roles.includes('specialist')) {
       this.router.navigate(['/employee']);
     } else {
