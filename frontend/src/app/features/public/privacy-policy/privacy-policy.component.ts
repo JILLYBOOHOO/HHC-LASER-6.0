@@ -24,7 +24,7 @@ import { SeoService } from '../../../core/services/seo.service';
 
           <div>
             <h2 class="text-xl font-semibold text-neutral-900 mb-3">Information We Collect</h2>
-            <p class="mb-4">We may collect the following types of information:</p>
+            <p class="mb-4 text-black">We may collect the following types of information:</p>
             <ul class="list-disc list-inside space-y-2 pl-2">
               <li><strong>Personal Information:</strong> Name, email address, phone number, date of birth</li>
               <li><strong>Medical Information:</strong> Health conditions, treatment history, medical photos (with consent)</li>
@@ -58,14 +58,14 @@ import { SeoService } from '../../../core/services/seo.service';
 
           <div>
             <h2 class="text-xl font-semibold text-neutral-900 mb-3">Data Security</h2>
-            <p>
+            <p class="text-black">
               We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.
             </p>
           </div>
 
           <div>
             <h2 class="text-xl font-semibold text-neutral-900 mb-3">Contact Information</h2>
-            <p class="mb-4">For privacy-related questions or concerns, please contact us at:</p>
+            <p class="mb-4 text-black">For privacy-related questions or concerns, please contact us at:</p>
             <ul class="space-y-3 pl-2">
               <li class="flex items-center gap-2">
                 <span class="font-semibold text-neutral-900">Email:</span>
