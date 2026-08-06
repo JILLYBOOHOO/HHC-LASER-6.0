@@ -19,7 +19,7 @@ import { FormsModule } from '@angular/forms';
         
         <!-- Ultra-Compact Hero Header -->
         <div class="text-center pt-0">
-          <span class="text-black tracking-[0.2em] text-xs md:text-sm uppercase block font-extrabold mb-0.5">Our Treatments</span>
+          <span class="text-black tracking-[0.2em] text-xs md:text-sm uppercase block font-extrabold mb-0.5" style="font-family: 'Playfair Display', serif;">Our Treatments</span>
           <h1 class="text-neutral-700 font-heading text-xs md:text-sm font-medium tracking-wide mt-0 mb-1">
             Luxury Medical Aesthetics
           </h1>
