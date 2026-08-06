@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { environment } from '../../../../environments/environment';
 import { AuthStateService } from '../../../core/store/auth-state.service';
 import { CalendarEvent } from '../weekly-calendar/weekly-calendar.component';
@@ -16,7 +17,7 @@ export interface PaymentLine {
 @Component({
   selector: 'app-take-payment-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule],
+  imports: [CommonModule, FormsModule, MatIconModule, MatProgressSpinnerModule],
   templateUrl: './take-payment-modal.component.html'
 })
 export class TakePaymentModalComponent implements OnInit {
