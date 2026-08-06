@@ -41,7 +41,7 @@ import { DomSanitizer } from '@angular/platform-browser';
             
             <div class="space-y-8">
               <div class="flex items-start gap-5">
-                <div class="w-12 h-12 bg-white text-black flex items-center justify-center flex-shrink-0">
+                <div class="w-12 h-12 bg-gold-500 text-black flex items-center justify-center flex-shrink-0">
                   <mat-icon>location_on</mat-icon>
                 </div>
                 <div>
@@ -53,7 +53,7 @@ import { DomSanitizer } from '@angular/platform-browser';
               </div>
 
               <div class="flex items-start gap-5">
-                <div class="w-12 h-12 bg-white text-black flex items-center justify-center flex-shrink-0">
+                <div class="w-12 h-12 bg-gold-500 text-black flex items-center justify-center flex-shrink-0">
                   <mat-icon>phone</mat-icon>
                 </div>
                 <div>
@@ -65,7 +65,7 @@ import { DomSanitizer } from '@angular/platform-browser';
               </div>
 
               <div class="flex items-start gap-5">
-                <div class="w-12 h-12 bg-white text-black flex items-center justify-center flex-shrink-0">
+                <div class="w-12 h-12 bg-gold-500 text-black flex items-center justify-center flex-shrink-0">
                   <mat-icon>email</mat-icon>
                 </div>
                 <div>
@@ -77,7 +77,7 @@ import { DomSanitizer } from '@angular/platform-browser';
               </div>
 
               <div class="flex items-start gap-5">
-                <div class="w-12 h-12 bg-white text-black flex items-center justify-center flex-shrink-0">
+                <div class="w-12 h-12 bg-gold-500 text-black flex items-center justify-center flex-shrink-0">
                   <mat-icon>schedule</mat-icon>
                 </div>
                 <div>
@@ -96,7 +96,7 @@ import { DomSanitizer } from '@angular/platform-browser';
             
             <div class="space-y-8">
               <div class="flex items-start gap-5">
-                <div class="w-12 h-12 bg-white text-black flex items-center justify-center flex-shrink-0">
+                <div class="w-12 h-12 bg-gold-500 text-black flex items-center justify-center flex-shrink-0">
                   <mat-icon>location_on</mat-icon>
                 </div>
                 <div>
@@ -108,7 +108,7 @@ import { DomSanitizer } from '@angular/platform-browser';
               </div>
 
               <div class="flex items-start gap-5">
-                <div class="w-12 h-12 bg-white text-black flex items-center justify-center flex-shrink-0">
+                <div class="w-12 h-12 bg-gold-500 text-black flex items-center justify-center flex-shrink-0">
                   <mat-icon>phone</mat-icon>
                 </div>
                 <div>
@@ -120,7 +120,7 @@ import { DomSanitizer } from '@angular/platform-browser';
               </div>
 
               <div class="flex items-start gap-5">
-                <div class="w-12 h-12 bg-white text-black flex items-center justify-center flex-shrink-0">
+                <div class="w-12 h-12 bg-gold-500 text-black flex items-center justify-center flex-shrink-0">
                   <mat-icon>email</mat-icon>
                 </div>
                 <div>
@@ -132,7 +132,7 @@ import { DomSanitizer } from '@angular/platform-browser';
               </div>
 
               <div class="flex items-start gap-5">
-                <div class="w-12 h-12 bg-white text-black flex items-center justify-center flex-shrink-0">
+                <div class="w-12 h-12 bg-gold-500 text-black flex items-center justify-center flex-shrink-0">
                   <mat-icon>schedule</mat-icon>
                 </div>
                 <div>

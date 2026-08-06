@@ -58,7 +58,7 @@ import { Product } from '../../../core/models/models';
                 <!-- Image -->
                 <a
                   [routerLink]="['/products', product.slug]"
-                  class="relative block aspect-square bg-gradient-to-b from-[#F7F3EC] to-[#EFE9DF] p-3 md:p-4"
+                  class="relative block aspect-[4/3] md:aspect-[3/2] bg-gradient-to-b from-[#F7F3EC] to-[#EFE9DF] p-2 md:p-3"
                 >
                   <img
                     [src]="
@@ -79,7 +79,7 @@ import { Product } from '../../../core/models/models';
                 </a>
 
                 <!-- Details -->
-                <div class="flex flex-col flex-1 px-3 md:px-4 pt-3 pb-3.5">
+                <div class="flex flex-col flex-1 px-3 pt-2 pb-2">
                   @if (product.category_name) {
                     <p
                       class="text-[9px] font-semibold tracking-[0.16em] uppercase text-[#A5813F] mb-1"
@@ -99,18 +99,18 @@ import { Product } from '../../../core/models/models';
 
                   @if (product.description) {
                     <p
-                      class="text-charcoal-500 text-[11px] font-light leading-snug line-clamp-2 mb-2.5"
+                      class="text-charcoal-500 text-[11px] font-light leading-snug line-clamp-1 mb-1.5"
                     >
                       {{ product.description }}
                     </p>
                   }
 
-                  <div class="mt-auto pt-2.5 border-t border-black/10">
-                    <p class="text-sm md:text-base font-medium text-charcoal-900 tabular-nums mb-0.5">
+                  <div class="mt-auto pt-2 border-t border-black/10">
+                    <p class="text-sm md:text-base font-medium text-charcoal-900 tabular-nums mb-0">
                       J$ {{ product.price_jmd | number: '1.2-2' }}
                     </p>
                     <p
-                      class="text-[10px] font-medium mb-2.5"
+                      class="text-[10px] font-medium mb-1.5"
                       [class.text-emerald-600]="product.stock_quantity > 0"
                       [class.text-red-500]="product.stock_quantity <= 0"
                     >

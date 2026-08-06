@@ -104,7 +104,7 @@ import { FormsModule } from '@angular/forms';
                   </div>
 
                   <!-- Description -->
-                  <p class="text-neutral-600 text-[11px] font-normal leading-snug mb-2 flex-1 line-clamp-2">
+                  <p class="text-neutral-600 text-sm font-normal leading-snug mb-2 flex-1 line-clamp-2">
                     {{ service.short_description || service.description }}
                   </p>
                   

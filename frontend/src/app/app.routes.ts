@@ -44,6 +44,12 @@ export const routes: Routes = [
         title: 'Contact HHC Laser Jamaica | Book a Med Spa Consultation Kingston',
       },
       {
+        path: 'consultation',
+        loadComponent: () => import('./features/public/consultation/consultation.component')
+          .then(m => m.ConsultationComponent),
+        title: 'Free Consultation | HHC Laser',
+      },
+      {
         path: 'products',
         loadComponent: () => import('./features/public/products/products.component')
           .then(m => m.ProductsComponent),

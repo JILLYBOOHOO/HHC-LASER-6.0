@@ -16,15 +16,15 @@ interface GalleryItem {
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="min-h-screen pt-28 md:pt-32 pb-16 px-4 bg-charcoal-900">
+    <div class="min-h-screen pt-28 md:pt-32 pb-16 px-4 bg-white">
       <div class="max-w-7xl mx-auto">
         <!-- Header -->
         <div class="text-center mb-12 md:mb-16">
-          <h2 class="text-3xl md:text-5xl font-light text-cream-50 mb-4" style="font-family: var(--font-heading)">
+          <h2 class="text-3xl md:text-5xl font-light text-black mb-4" style="font-family: var(--font-heading)">
             Our <span class="text-gold-500 italic">Gallery</span>
           </h2>
           <div class="divider-gold mx-auto mb-6"></div>
-          <p class="text-cream-400 max-w-2xl mx-auto text-lg leading-relaxed">
+          <p class="text-slate-600 max-w-2xl mx-auto text-lg leading-relaxed">
             See real before-and-after results from Havendale Healthcare (HHC Laser) — laser hair removal, laser resurfacing and skincare treatments in Kingston, Jamaica.
           </p>
         </div>
@@ -75,7 +75,7 @@ interface GalleryItem {
         <!-- Empty State -->
         @if (filteredGallery().length === 0) {
           <div class="text-center py-20">
-            <p class="text-cream-400 text-lg">No images found in this category.</p>
+            <p class="text-slate-600 text-lg">No images found in this category.</p>
           </div>
         }
       </div>
