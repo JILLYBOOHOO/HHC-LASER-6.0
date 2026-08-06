@@ -33,7 +33,7 @@ import { RouterLink } from '@angular/router';
       <section class="container-luxury px-6 mb-32">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div class="relative h-[600px] rounded-3xl overflow-hidden shadow-gold-lg group">
-            <img src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&q=80" alt="HHC Laser Clinic" class="w-full h-full object-cover transition-transform duration-[10000ms] group-hover:scale-110">
+            <img src="/images/about-us-hero.png" alt="HHC Laser Clinic" class="w-full h-full object-cover transition-transform duration-[10000ms] group-hover:scale-110">
             <div class="absolute inset-0 bg-black/20 pointer-events-none"></div>
           </div>
           <div class="space-y-6 animate-fade-in-up" style="animation-delay: 0.2s;">
