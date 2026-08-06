@@ -77,9 +77,12 @@ import { DomSanitizer } from '@angular/platform-browser';
               </li>
               <li class="flex gap-3 items-start">
                 <mat-icon class="text-gold !text-sm mt-1 flex-shrink-0">phone</mat-icon>
-                <div class="flex flex-col">
+                <div class="flex flex-col gap-1">
                   <a [href]="'tel:' + settingsService.settings().phone" class="text-text-muted text-sm hover:text-gold transition-colors duration-300 font-light">
                     {{ settingsService.settings().phone }}
+                  </a>
+                  <a href="tel:+18766318134" class="text-text-muted text-sm hover:text-gold transition-colors duration-300 font-light">
+                    (876) 631-8134
                   </a>
                 </div>
               </li>

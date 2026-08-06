@@ -241,10 +241,10 @@ import { DomSanitizer } from '@angular/platform-browser';
           </div>
           
           <div class="max-w-3xl mx-auto space-y-4">
-            @for (faq of faqs; track faq.q) {
+            @for (faq of faqs; track faq.question) {
               <div class="bg-black border border-black p-6 rounded-xl">
-                <h4 class="font-heading text-lg text-white mb-2">{{ faq.q }}</h4>
-                <p class="text-white/60 text-sm leading-relaxed">{{ faq.a }}</p>
+                <h4 class="font-heading text-lg text-white mb-2">{{ faq.question }}</h4>
+                <p class="text-white/60 text-sm leading-relaxed">{{ faq.answer }}</p>
               </div>
             }
           </div>
@@ -263,9 +263,46 @@ export class ContactComponent {
 
   
   faqs = [
-    { q: 'What is the preparation for Laser Hair Removal?', a: 'Please shave the area 24 hours before your appointment. Do not wax or pluck for 4 weeks prior.' },
-    { q: 'Is there any downtime after a chemical peel?', a: 'Depending on the depth of the peel, you may experience mild peeling for 3-5 days. Sun protection is mandatory.' },
-    { q: 'How do I cancel or reschedule?', a: 'You can manage your bookings in the customer portal. We require 24 hours notice for cancellations.' }
+    {
+      question: "Do you offer free consultations?",
+      answer: "Yes, we offer complimentary consultations to help you understand your options and create a personalized treatment plan based on your goals. During your consultation, our certified professionals will assess your needs, answer your questions, and recommend the most suitable treatments to help you achieve your desired results."
+    },
+    {
+      question: "Are your treatments safe?",
+      answer: "Absolutely. Your safety is our highest priority. We use advanced, FDA-approved equipment and follow strict safety protocols to ensure every treatment is performed with the highest level of care. Our certified practitioners are highly trained in the latest aesthetic techniques to provide safe, effective, and natural-looking results."
+    },
+    {
+      question: "How long do results last?",
+      answer: "Results vary depending on the treatment, lifestyle factors, and individual response. During your consultation, we will explain what you can expect and discuss the expected duration of your results. Many treatments provide long-lasting improvements when combined with proper maintenance and follow-up care."
+    },
+    {
+      question: "Do you accept insurance?",
+      answer: "Most aesthetic treatments are considered elective procedures and are typically not covered by insurance. However, we offer flexible payment options and financing solutions to make treatments more accessible. Please ask about our current payment options during your consultation."
+    },
+    {
+      question: "How long does each treatment session take?",
+      answer: "Treatment times vary depending on the procedure and the area being treated. Most appointments range from 30 minutes to 2 hours. During your consultation, we will provide an estimated treatment time and explain what to expect during your visit."
+    },
+    {
+      question: "What should I expect during my first visit?",
+      answer: "Your first visit begins with a comprehensive consultation where we discuss your aesthetic goals, medical history, and expectations. Our professionals will evaluate the treatment area, explain recommended procedures, discuss your treatment plan, timeline, and costs. There is never any pressure to make a decision immediately — our goal is to ensure you feel confident and informed."
+    },
+    {
+      question: "Is there any downtime after treatments?",
+      answer: "Downtime depends on the specific treatment performed. Many of our procedures are minimally invasive and require little to no downtime, allowing you to return to your normal activities quickly. For treatments requiring additional recovery time, we will provide detailed aftercare instructions to support your healing and results."
+    },
+    {
+      question: "How many sessions will I need?",
+      answer: "The number of sessions required depends on your individual goals, the treatment selected, and how your skin responds. During your consultation, we will create a customized treatment plan outlining the recommended number of sessions needed to achieve optimal results."
+    },
+    {
+      question: "What makes HHC Laser different from other clinics?",
+      answer: "HHC Laser combines advanced technology with personalized, patient-focused care. Our certified professionals stay up to date with the latest aesthetic techniques, use FDA-approved technology, and focus on delivering natural-looking results that enhance your confidence and overall appearance."
+    },
+    {
+      question: "Can I combine multiple treatments?",
+      answer: "Yes. Many treatments can be safely combined to address multiple concerns and enhance your overall results. Our specialists will evaluate your needs and recommend the most effective combination of treatments during your consultation."
+    }
   ];
 
   constructor(private fb: FormBuilder) {

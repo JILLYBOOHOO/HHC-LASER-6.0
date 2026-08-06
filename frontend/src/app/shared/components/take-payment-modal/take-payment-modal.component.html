@@ -1,0 +1,232 @@
+<div class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm p-4 flex items-center justify-center font-sans animate-fadeIn">
+  
+  <div class="rounded-3xl shadow-2xl w-full max-w-[500px] flex flex-col relative bg-neutral-950/80 backdrop-blur-2xl border border-[#D6B36A]/20 overflow-hidden text-white">
+    
+    <!-- Header -->
+    <div class="p-6 border-b border-white/5 flex flex-col items-center relative">
+      <button (click)="closeModal()" class="absolute top-6 right-6 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
+        <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-neutral-400">close</mat-icon>
+      </button>
+      
+      <div class="w-12 h-12 rounded-full border border-[#D6B36A]/50 flex items-center justify-center shadow-[0_0_15px_rgba(214,179,106,0.3)] mb-3">
+        <mat-icon class="text-[#D6B36A]">credit_card</mat-icon>
+      </div>
+      <h2 class="text-xl font-serif text-white tracking-wide">Take Payment</h2>
+      <p class="text-sm text-neutral-400 mt-1">Record payment for this appointment</p>
+    </div>
+
+    <!-- Appointment Info Card -->
+    <div class="px-6 pt-6">
+      <div class="bg-white/5 rounded-2xl p-4 border border-white/5 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-full bg-neutral-800 flex items-center justify-center text-[#D6B36A] font-bold text-lg shrink-0">
+          {{ getInitials(appointment.patient || '') }}
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="text-base font-bold text-white truncate">{{ appointment.patient }}</h3>
+          <p class="text-xs text-neutral-400 truncate">{{ appointment.title }}</p>
+          <p class="text-xs text-neutral-500 mt-0.5">{{ appointment.date | date:'mediumDate' }} &bull; {{ appointment.startTime }}</p>
+        </div>
+        <div class="text-right shrink-0">
+          <p class="text-xs text-neutral-400">Total</p>
+          <p class="text-lg font-bold text-white">J${{ totalAmount() | number }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Steps Indicator -->
+    <div class="px-10 py-6 flex justify-between items-center relative">
+      <div class="absolute top-1/2 left-14 right-14 h-[1px] bg-white/10 -translate-y-1/2 z-0"></div>
+      
+      <div class="relative z-10 flex flex-col items-center gap-2">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors"
+             [ngClass]="step() >= 1 ? 'bg-[#D6B36A] text-neutral-950 shadow-[0_0_10px_rgba(214,179,106,0.4)]' : 'bg-neutral-800 text-neutral-500 border border-white/10'">1</div>
+        <span class="text-[10px] uppercase tracking-wider" [ngClass]="step() >= 1 ? 'text-[#D6B36A]' : 'text-neutral-500'">Method</span>
+      </div>
+      <div class="relative z-10 flex flex-col items-center gap-2">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors"
+             [ngClass]="step() >= 2 && !isSplitPayment() ? 'bg-[#D6B36A] text-neutral-950 shadow-[0_0_10px_rgba(214,179,106,0.4)]' : 'bg-neutral-800 text-neutral-500 border border-white/10'">2</div>
+        <span class="text-[10px] uppercase tracking-wider" [ngClass]="step() >= 2 && !isSplitPayment() ? 'text-[#D6B36A]' : 'text-neutral-500'">Amount</span>
+      </div>
+      <div class="relative z-10 flex flex-col items-center gap-2">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors"
+             [ngClass]="step() >= 3 && !isSplitPayment() ? 'bg-[#D6B36A] text-neutral-950 shadow-[0_0_10px_rgba(214,179,106,0.4)]' : 'bg-neutral-800 text-neutral-500 border border-white/10'">3</div>
+        <span class="text-[10px] uppercase tracking-wider" [ngClass]="step() >= 3 && !isSplitPayment() ? 'text-[#D6B36A]' : 'text-neutral-500'">Details</span>
+      </div>
+      <div class="relative z-10 flex flex-col items-center gap-2">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors"
+             [ngClass]="step() >= 4 ? 'bg-[#D6B36A] text-neutral-950 shadow-[0_0_10px_rgba(214,179,106,0.4)]' : 'bg-neutral-800 text-neutral-500 border border-white/10'">4</div>
+        <span class="text-[10px] uppercase tracking-wider" [ngClass]="step() >= 4 ? 'text-[#D6B36A]' : 'text-neutral-500'">Confirm</span>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="px-8 pb-8 flex-1">
+      
+      <!-- Error Message -->
+      <div *ngIf="errorMessage()" class="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm text-center">
+        {{ errorMessage() }}
+      </div>
+
+      <!-- Step 1: Payment Method -->
+      <div *ngIf="step() === 1" class="animate-fadeIn">
+        <h3 class="text-lg font-medium text-center mb-6">How did the client pay?</h3>
+        
+        <div class="grid grid-cols-2 gap-3">
+          <button *ngFor="let m of paymentMethods" (click)="selectMethod(m)"
+                  class="p-4 rounded-2xl border transition-all flex flex-col items-center justify-center gap-2 relative"
+                  [ngClass]="currentMethod() === m ? 'border-[#D6B36A] bg-[#D6B36A]/10 shadow-[0_0_15px_rgba(214,179,106,0.15)]' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/20'">
+            <div *ngIf="currentMethod() === m" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#D6B36A] flex items-center justify-center text-neutral-950">
+              <mat-icon class="!text-[14px] !w-[14px] !h-[14px] font-bold">check</mat-icon>
+            </div>
+            <mat-icon class="text-3xl" [ngClass]="currentMethod() === m ? 'text-[#D6B36A]' : 'text-neutral-400'">
+              {{ m === 'Cash' ? 'payments' : m === 'Card (POS)' ? 'credit_card' : m === 'Bank Transfer' ? 'account_balance' : m === 'Gift Card / Voucher' ? 'redeem' : 'more_horiz' }}
+            </mat-icon>
+            <span class="font-medium text-sm" [ngClass]="currentMethod() === m ? 'text-white' : 'text-neutral-300'">{{ m }}</span>
+          </button>
+
+          <!-- Split Payment Option -->
+          <button (click)="selectSplitPayment()"
+                  class="p-4 rounded-2xl border transition-all flex flex-col items-center justify-center gap-2 relative"
+                  [ngClass]="isSplitPayment() ? 'border-[#D6B36A] bg-[#D6B36A]/10 shadow-[0_0_15px_rgba(214,179,106,0.15)]' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/20'">
+            <div *ngIf="isSplitPayment()" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#D6B36A] flex items-center justify-center text-neutral-950">
+              <mat-icon class="!text-[14px] !w-[14px] !h-[14px] font-bold">check</mat-icon>
+            </div>
+            <mat-icon class="text-3xl" [ngClass]="isSplitPayment() ? 'text-[#D6B36A]' : 'text-neutral-400'">call_split</mat-icon>
+            <span class="font-medium text-sm" [ngClass]="isSplitPayment() ? 'text-white' : 'text-neutral-300'">Split Payment</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2: Amount -->
+      <div *ngIf="step() === 2" class="animate-fadeIn">
+        <h3 class="text-lg font-medium text-center mb-6">Enter Amount Received</h3>
+        
+        <div class="space-y-4">
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-neutral-400">Paid So Far</span>
+            <span class="text-white font-medium">J${{ paidSoFar() | number }}</span>
+          </div>
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-neutral-400">Remaining Balance</span>
+            <span class="text-[#D6B36A] font-bold">J${{ remainingBalance() | number }}</span>
+          </div>
+
+          <div class="mt-6">
+            <label class="block text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">Amount Received (J$)</label>
+            <input type="number" [(ngModel)]="currentAmount" 
+                   class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-4 text-2xl font-bold text-white focus:outline-none focus:border-[#D6B36A] transition-colors"
+                   placeholder="0">
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Details -->
+      <div *ngIf="step() === 3" class="animate-fadeIn">
+        <h3 class="text-lg font-medium text-center mb-6">Payment Details</h3>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">Reference / Notes (Optional)</label>
+            <textarea [(ngModel)]="currentNotes" rows="3"
+                   class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#D6B36A] transition-colors"
+                   placeholder="Enter POS reference, bank transfer ID, etc."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 5: Split Payment Hub -->
+      <div *ngIf="step() === 5" class="animate-fadeIn">
+        <h3 class="text-lg font-medium text-center mb-6">Split Payment</h3>
+        
+        <div class="space-y-3 mb-6">
+          <div *ngFor="let p of payments(); let i = index" class="bg-white/5 rounded-xl p-3 border border-white/5 flex items-center justify-between">
+            <div>
+              <p class="font-bold text-white">{{ p.method }}</p>
+              <p class="text-xs text-neutral-400" *ngIf="p.notes">{{ p.notes }}</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="font-bold text-[#D6B36A]">J${{ p.amount | number }}</span>
+              <button (click)="removePayment(i)" class="w-8 h-8 rounded-full hover:bg-red-500/20 text-neutral-400 hover:text-red-400 flex items-center justify-center transition-colors">
+                <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">delete</mat-icon>
+              </button>
+            </div>
+          </div>
+          
+          <div *ngIf="payments().length === 0" class="text-center py-4 text-neutral-500 text-sm italic">
+            No payments added yet.
+          </div>
+        </div>
+
+        <div class="flex justify-between items-center text-sm bg-neutral-900 rounded-xl p-4 border border-neutral-800 mb-6">
+          <span class="text-neutral-400">Remaining Balance</span>
+          <span class="font-bold text-lg" [ngClass]="remainingBalance() > 0 ? 'text-white' : 'text-emerald-400'">J${{ remainingBalance() | number }}</span>
+        </div>
+
+        <div *ngIf="remainingBalance() > 0">
+          <p class="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-3 text-center">Add Payment</p>
+          <div class="grid grid-cols-3 gap-2">
+            <button *ngFor="let m of ['Cash', 'Card (POS)', 'Other']" (click)="startSplitLine(m)"
+                    class="p-2 rounded-lg border border-white/5 bg-white/5 hover:bg-white/10 transition-colors flex flex-col items-center justify-center gap-1">
+              <span class="text-xs font-medium">{{ m }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Confirm -->
+      <div *ngIf="step() === 4" class="animate-fadeIn">
+        <h3 class="text-lg font-medium text-center mb-6">Confirm Payment</h3>
+        
+        <div class="bg-neutral-900 rounded-2xl p-5 border border-neutral-800 space-y-4">
+          
+          <div *ngFor="let p of payments()" class="flex justify-between items-center border-b border-white/5 pb-3 last:border-0 last:pb-0">
+            <div>
+              <p class="text-sm text-neutral-400">{{ p.method }}</p>
+              <p class="text-xs text-neutral-500" *ngIf="p.notes">{{ p.notes }}</p>
+            </div>
+            <p class="font-bold text-white text-lg">J${{ p.amount | number }}</p>
+          </div>
+
+        </div>
+        
+        <div class="mt-6 flex justify-between items-center px-2 text-sm">
+          <span class="text-neutral-400">Remaining Balance After</span>
+          <span class="font-bold" [ngClass]="remainingBalance() > 0 ? 'text-[#D6B36A]' : 'text-emerald-400'">J${{ remainingBalance() | number }}</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="mt-8 flex gap-3" *ngIf="!success()">
+        <button (click)="step() === 1 ? closeModal() : prevStep()" [disabled]="loading()"
+                class="flex-1 py-3.5 rounded-xl border border-white/10 bg-transparent text-white font-medium hover:bg-white/5 transition-colors disabled:opacity-50">
+          {{ step() === 1 ? 'Cancel' : 'Back' }}
+        </button>
+        
+        <button *ngIf="step() < 4 && step() !== 5" (click)="nextStepHandled()" [disabled]="loading() || (step() === 2 && currentAmount() <= 0)"
+                class="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-[#D6B36A] to-[#B39355] text-neutral-950 font-bold shadow-[0_4px_15px_rgba(214,179,106,0.3)] hover:shadow-[0_4px_25px_rgba(214,179,106,0.5)] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+          Next <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">arrow_forward</mat-icon>
+        </button>
+
+        <button *ngIf="step() === 5" (click)="step.set(4)" [disabled]="loading() || payments().length === 0"
+                class="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-[#D6B36A] to-[#B39355] text-neutral-950 font-bold shadow-[0_4px_15px_rgba(214,179,106,0.3)] hover:shadow-[0_4px_25px_rgba(214,179,106,0.5)] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+          Review <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">arrow_forward</mat-icon>
+        </button>
+
+        <button *ngIf="step() === 4" (click)="recordPayment()" [disabled]="loading()"
+                class="flex-[2] py-3.5 rounded-xl bg-gradient-to-r from-[#D6B36A] to-[#B39355] text-neutral-950 font-bold shadow-[0_4px_15px_rgba(214,179,106,0.3)] hover:shadow-[0_4px_25px_rgba(214,179,106,0.5)] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+          <mat-spinner *ngIf="loading()" diameter="20" class="!stroke-neutral-950"></mat-spinner>
+          <span *ngIf="!loading()">Record Payment</span>
+        </button>
+      </div>
+
+      <!-- Success State -->
+      <div *ngIf="success()" class="mt-8 flex flex-col items-center justify-center py-6 animate-scaleIn">
+        <div class="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center text-emerald-400 mb-4 shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+          <mat-icon class="text-4xl">check</mat-icon>
+        </div>
+        <h3 class="text-xl font-bold text-white">Payment Recorded!</h3>
+      </div>
+
+    </div>
+  </div>
+</div>

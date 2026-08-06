@@ -648,3 +648,10 @@
 
   </div>
 </div>
+
+<app-take-payment-modal
+  *ngIf="showTakePaymentModal() && selectedEventForPayment()"
+  [appointment]="selectedEventForPayment()!"
+  (close)="showTakePaymentModal.set(false); selectedEventForPayment.set(null)"
+  (paymentSuccess)="onPaymentSuccess()">
+</app-take-payment-modal>

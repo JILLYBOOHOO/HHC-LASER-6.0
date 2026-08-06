@@ -23,31 +23,52 @@ export class TransactionService {
     );
   }
 
-  async recordManualPayment(dto: { appointmentId: number, amountJmd: number, paymentMethod: string, notes?: string, staffUserId: number, customerId: number }): Promise<Transaction> {
-    const idempotencyKey = uuidv4();
+  async recordManualPayment(dto: { appointmentId: number, payments: { amountJmd: number, paymentMethod: string, notes?: string }[], staffUserId: number, customerId: number }): Promise<Transaction[]> {
     return withTransaction(async (conn) => {
-      const [result] = await conn.execute(
-        `INSERT INTO transactions 
-         (appointment_id, customer_user_id, recorded_by_user_id, idempotency_key, amount_jmd, currency, status, payment_method, notes)
-         VALUES (?, ?, ?, ?, ?, 'JMD', 'completed', ?, ?)`,
-        [dto.appointmentId, dto.customerId, dto.staffUserId, idempotencyKey, dto.amountJmd, dto.paymentMethod, dto.notes || null]
-      ) as any;
+      const transactions: Transaction[] = [];
+      
+      for (const p of dto.payments) {
+        const idempotencyKey = uuidv4();
+        const [result] = await conn.execute(
+          `INSERT INTO transactions 
+           (appointment_id, customer_user_id, recorded_by_user_id, idempotency_key, amount_jmd, currency, status, payment_method, notes)
+           VALUES (?, ?, ?, ?, ?, 'JMD', 'completed', ?, ?) RETURNING *`,
+          [dto.appointmentId, dto.customerId, dto.staffUserId, idempotencyKey, p.amountJmd, p.paymentMethod, p.notes || null]
+        ) as any;
+        
+        const transactionId = result.insertId || result.rows?.[0]?.id;
+        if (transactionId) {
+          const [rows] = await conn.execute('SELECT * FROM transactions WHERE id = ?', [transactionId]) as any;
+          if (rows && rows.length > 0) {
+            transactions.push(rows[0]);
+          }
+        }
+      }
 
-      const transactionId = result.insertId;
+      // Check total paid against total amount
+      const [apptRows] = await conn.execute('SELECT total_amount_jmd FROM appointments WHERE id = ?', [dto.appointmentId]) as any;
+      const apptTotal = parseFloat(apptRows[0]?.total_amount_jmd || '0');
+      
+      const [sumRows] = await conn.execute("SELECT COALESCE(SUM(amount_jmd), 0) as total FROM transactions WHERE appointment_id = ? AND status = 'completed'", [dto.appointmentId]) as any;
+      const totalPaid = parseFloat(sumRows[0]?.total || '0');
+      
+      let newPaymentStatus = 'pending_payment';
+      if (totalPaid >= apptTotal && apptTotal > 0) {
+        newPaymentStatus = 'paid_in_store';
+      }
 
       await conn.execute(
-        `UPDATE appointments SET payment_status = 'paid_in_store', status = 'confirmed', updated_at = NOW() WHERE id = ?`,
-        [dto.appointmentId]
+        `UPDATE appointments SET payment_status = ?, status = 'confirmed', updated_at = NOW() WHERE id = ?`,
+        [newPaymentStatus, dto.appointmentId]
       );
 
       await conn.execute(
         `INSERT INTO appointment_status_log (appointment_id, new_status, changed_by_user_id, notes)
-         VALUES (?, 'confirmed', ?, 'Manual payment recorded in store')`,
-        [dto.appointmentId, dto.staffUserId]
+         VALUES (?, 'confirmed', ?, ?)`,
+        [dto.appointmentId, dto.staffUserId, `Payment(s) recorded. Total paid: JMD ${totalPaid}. Status: ${newPaymentStatus}`]
       );
 
-      const [rows] = await conn.execute('SELECT * FROM transactions WHERE id = ?', [transactionId]) as any;
-      return rows[0];
+      return transactions;
     });
   }
 

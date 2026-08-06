@@ -46,7 +46,7 @@ import { RouterModule } from '@angular/router';
           <p class="text-charcoal-600 mb-6 text-lg">Still have questions? We're happy to help.</p>
           <div class="flex flex-col sm:flex-row justify-center gap-4">
             <a routerLink="/contact" mat-flat-button class="!bg-charcoal-900 !text-cream-50 px-8 py-2">Contact Us</a>
-            <a routerLink="/customer/book" mat-stroked-button class="!border-charcoal-300 !text-charcoal-800 px-8 py-2">Contact us for Free Consultation</a>
+            <a routerLink="/consultation" mat-stroked-button class="!border-charcoal-300 !text-charcoal-800 px-8 py-2">Contact us for Free Consultation</a>
           </div>
         </div>
 
