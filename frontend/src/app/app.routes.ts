@@ -68,6 +68,12 @@ export const routes: Routes = [
         title: 'FAQ | Laser Hair Removal, Botox & Med Spa Questions | HHC Laser Jamaica',
       },
       {
+        path: 'sitemap',
+        loadComponent: () => import('./features/public/sitemap/sitemap.component')
+          .then(m => m.SitemapComponent),
+        title: 'Sitemap | HHC Laser Jamaica',
+      },
+      {
         path: 'refund-policy',
         loadComponent: () => import('./features/public/refund-policy/refund-policy.component')
           .then(m => m.RefundPolicyComponent),
