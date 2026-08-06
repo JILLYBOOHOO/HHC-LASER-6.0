@@ -24,6 +24,18 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
       confirmPassword.setErrors(Object.keys(errors).length ? errors : null);
     }
   }
+};
+
+export const pastDateValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  if (!control.value) return null;
+  const [year, month, day] = control.value.split('-').map(Number);
+  const selectedDate = new Date(year, month - 1, day);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (selectedDate >= today) {
+    return { futureDate: true };
+  }
   return null;
 };
 
@@ -121,11 +133,12 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
               <div class="relative flex items-center border border-white/20 rounded-xl bg-transparent focus-within:border-gold transition-all px-4 py-3">
                 <mat-icon class="text-gold-400 mr-3 !text-sm !w-5 !h-5">calendar_today</mat-icon>
                 <span class="text-neutral-400 text-sm font-medium mr-auto">Date of Birth*</span>
-                <input type="date" formControlName="dateOfBirth" 
+                <input type="date" formControlName="dateOfBirth" [max]="maxDate"
                        class="bg-transparent border-none text-white text-sm font-medium outline-none cursor-pointer w-32 text-right">
               </div>
               <p class="text-red-300 text-xs mt-1 text-left" *ngIf="registerForm.get('dateOfBirth')?.invalid && registerForm.get('dateOfBirth')?.touched">
-                Please enter your date of birth.
+                <span *ngIf="registerForm.get('dateOfBirth')?.hasError('required')">Please enter your date of birth.</span>
+                <span *ngIf="registerForm.get('dateOfBirth')?.hasError('futureDate')">Date of birth must be in the past.</span>
               </p>
             </div>
 
@@ -207,6 +220,7 @@ export class RegisterComponent {
   isLoading = signal(false);
   showFormError = signal(false);
   hasAutoScrolled = false;
+  maxDate: string;
 
   constructor(
     private fb: FormBuilder,
@@ -215,12 +229,16 @@ export class RegisterComponent {
     private router: Router,
     private snackBar: MatSnackBar
   ) {
+    const today = new Date();
+    today.setDate(today.getDate() - 1);
+    this.maxDate = today.toISOString().split('T')[0];
+
     this.registerForm = this.fb.group({
       firstName: ['', Validators.required],
       lastName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       phone: ['', Validators.required],
-      dateOfBirth: ['', Validators.required],
+      dateOfBirth: ['', [Validators.required, pastDateValidator]],
       password: ['', [
         Validators.required,
         Validators.minLength(8),
