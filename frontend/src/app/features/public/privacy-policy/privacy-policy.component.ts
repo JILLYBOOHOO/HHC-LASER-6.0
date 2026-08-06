@@ -17,7 +17,7 @@ import { SeoService } from '../../../core/services/seo.service';
 
           <div>
             <h2 class="text-xl font-semibold text-neutral-900 mb-3">Information Collection and Use</h2>
-            <p>
+            <p class="text-black">
               At HHC Laser, we are committed to protecting your privacy and personal information. We collect information to provide better services to our clients and ensure the highest quality of care.
             </p>
           </div>
