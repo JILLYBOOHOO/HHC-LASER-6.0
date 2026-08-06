@@ -20,7 +20,7 @@ import { RouterLink } from '@angular/router';
           <div class="divider-gold mx-auto"></div>
           <div class="mt-8 space-y-6 text-text-muted text-lg font-light leading-relaxed max-w-3xl mx-auto">
             <p>
-              At Havendale Healthcare (HHC Laser), we believe confidence begins with exceptional care. Our mission is to help every client look and feel their best through advanced medical aesthetics, personalized treatment plans, and a commitment to safety, excellence, and natural-looking results.
+              At HHC Laser, we believe confidence begins with exceptional care. Our mission is to help every client look and feel their best through advanced medical aesthetics, personalized treatment plans, and a commitment to safety, excellence, and natural-looking results.
             </p>
             <p>
               From your first consultation to your final treatment, our experienced team is dedicated to delivering a professional, comfortable, and results-driven experience in a welcoming environment.
@@ -42,7 +42,7 @@ import { RouterLink } from '@angular/router';
             <div class="divider-gold-left"></div>
             <div class="space-y-6 text-text-muted text-base font-light leading-relaxed">
               <p>
-                Located in the heart of Kingston, Jamaica, Havendale Healthcare (HHC Laser) has become a trusted destination for individuals seeking advanced medical spa treatments using modern technology and evidence-based techniques.
+                Located in the heart of Kingston, Jamaica, HHC Laser has become a trusted destination for individuals seeking advanced medical spa treatments using modern technology and evidence-based techniques.
               </p>
               <div class="border-l-2 border-gold pl-6 py-2 my-8">
                 <p class="text-xl text-white font-heading italic leading-relaxed">

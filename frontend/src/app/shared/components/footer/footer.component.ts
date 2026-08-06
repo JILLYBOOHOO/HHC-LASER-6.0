@@ -49,9 +49,9 @@ import { DomSanitizer } from '@angular/platform-browser';
             </ul>
           </div>
 
-          <!-- Company -->
+          <!-- Quick Links -->
           <div>
-            <h6 class="text-white mb-6 tracking-[0.2em] uppercase text-[11px] font-semibold">Company</h6>
+            <h6 class="text-white mb-6 tracking-[0.2em] uppercase text-[11px] font-semibold">Quick Links</h6>
             <ul class="space-y-4">
               @for (link of companyLinks; track link.path) {
                 <li>
@@ -146,6 +146,7 @@ export class FooterComponent {
     { path: '/gallery',     label: 'Gallery' },
     { path: '/faq',         label: 'FAQ' },
     { path: '/contact',     label: 'Contact' },
+    { path: '/consultation', label: 'Free Consultation' },
   ];
 
   legalLinks = [
