@@ -17,13 +17,15 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
   if (password && confirmPassword && password.value !== confirmPassword.value) {
     confirmPassword.setErrors({ ...confirmPassword.errors, passwordMismatch: true });
     return { passwordMismatch: true };
-  } else {
-    if (confirmPassword?.hasError('passwordMismatch')) {
-      const errors = { ...confirmPassword.errors };
-      delete errors['passwordMismatch'];
-      confirmPassword.setErrors(Object.keys(errors).length ? errors : null);
-    }
   }
+
+  if (confirmPassword?.hasError('passwordMismatch')) {
+    const errors = { ...confirmPassword.errors };
+    delete errors['passwordMismatch'];
+    confirmPassword.setErrors(Object.keys(errors).length ? errors : null);
+  }
+
+  return null;
 };
 
 export const pastDateValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
@@ -36,8 +38,10 @@ export const pastDateValidator: ValidatorFn = (control: AbstractControl): Valida
   if (selectedDate >= today) {
     return { futureDate: true };
   }
+
   return null;
 };
+
 
 @Component({
   selector: 'app-register',
