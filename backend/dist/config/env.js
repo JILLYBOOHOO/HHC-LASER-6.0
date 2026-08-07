@@ -77,15 +77,16 @@ const envSchema = zod_1.z.object({
     FISERV_CALLBACK_URL: zod_1.z
         .string()
         .url()
-        .default("http://localhost:3000/api/payments/callback"),
+        .default("http://localhost:3004/api/payments/callback"),
+    // Browser return URLs MUST hit the API (Fiserv POSTs). SPA routes cannot accept POST.
     FISERV_SUCCESS_URL: zod_1.z
         .string()
         .url()
-        .default("http://localhost:4200/payment/success"),
+        .default("http://localhost:3004/api/payments/success"),
     FISERV_FAILURE_URL: zod_1.z
         .string()
         .url()
-        .default("http://localhost:4200/payment/failure"),
+        .default("http://localhost:3004/api/payments/error"),
     GOOGLE_CLIENT_ID: zod_1.z.string().optional(),
     GOOGLE_CLIENT_SECRET: zod_1.z.string().optional(),
     ALLOWED_ORIGINS: zod_1.z.string().default("http://localhost:4200"),

@@ -22,6 +22,12 @@ export declare class AuthService {
         refreshToken: string;
     }>;
     logout(userId: number): Promise<void>;
+    /**
+     * Always resolves successfully to avoid email enumeration.
+     * Sends a reset link when an active account exists.
+     */
+    requestPasswordReset(email: string): Promise<void>;
+    resetPasswordWithToken(token: string, newPassword: string): Promise<void>;
     changePassword(userId: number, currentPassword: string, newPassword: string): Promise<void>;
     private findUserWithRoles;
     private generateTokens;

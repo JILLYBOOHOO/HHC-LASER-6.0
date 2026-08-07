@@ -264,6 +264,7 @@ export interface ApiResponse<T = void> {
     data?: T;
     message?: string;
     errors?: Record<string, string[]>;
+    meta?: any;
     pagination?: {
         page: number;
         limit: number;
@@ -273,5 +274,5 @@ export interface ApiResponse<T = void> {
 }
 export declare function successResponse<T>(data: T, message?: string): ApiResponse<T>;
 export declare function errorResponse(message: string, errors?: Record<string, string[]>): ApiResponse;
-export declare function paginatedResponse<T>(data: T, page: number, limit: number, total: number): ApiResponse<T>;
+export declare function paginatedResponse<T>(data: T, page: number, limit: number, total: number, meta?: any): ApiResponse<T>;
 //# sourceMappingURL=types.d.ts.map

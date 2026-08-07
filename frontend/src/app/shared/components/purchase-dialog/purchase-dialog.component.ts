@@ -70,7 +70,7 @@ import { Product } from '../../../core/models/models';
           <mat-icon class="!text-sm !w-4 !h-4 text-gold-500">storefront</mat-icon> Clinic Hours
         </div>
         <div class="text-charcoal-500 grid grid-cols-2 gap-1">
-          <div>Mon – Fri:</div><div>9:00 AM – 6:00 PM</div>
+          <div>Mon – Fri:</div><div>9:00 AM – 5:00 PM</div>
           <div>Saturday:</div><div>9:00 AM – 5:00 PM</div>
         </div>
       </div>

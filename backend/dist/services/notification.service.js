@@ -1,9 +1,43 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.notificationService = exports.NotificationService = void 0;
 const database_1 = require("../config/database");
 const env_1 = require("../config/env");
 const logger_1 = require("../utils/logger");
+const nodemailer = __importStar(require("nodemailer"));
 const email_templates_1 = require("./email.templates");
 class NotificationService {
     constructor() {
@@ -17,78 +51,65 @@ class NotificationService {
         // 1. Idempotency Check (Prevent duplicate emails for the same event)
         const eventHash = idempotencyKey || `${to}:${subject}`;
         if (this.sentEmailHashes.has(eventHash)) {
-            logger_1.logger.info(`[Resend Email] Duplicate email suppressed for key: ${eventHash}`);
+            logger_1.logger.info(`[Email] Duplicate email suppressed for key: ${eventHash}`);
             return true;
         }
         try {
-            const apiKey = env_1.env.RESEND_API_KEY || process.env.RESEND_API_KEY;
-            if (!apiKey) {
-                logger_1.logger.warn(`[Resend Email] RESEND_API_KEY not configured. Simulated send to ${to}: "${subject}"`);
+            const smtpUser = env_1.env.SMTP_USER || process.env.SMTP_USER;
+            const smtpPass = env_1.env.SMTP_PASS || process.env.SMTP_PASS;
+            if (!smtpUser || !smtpPass) {
+                logger_1.logger.warn(`[Email] SMTP_USER or SMTP_PASS not configured. Simulated send to ${to}: "${subject}"`);
                 await this.logNotification('email', to, subject, 'simulated');
                 this.sentEmailHashes.add(eventHash);
                 return true;
             }
             // 2. Sender email calculation based on production domain flag
-            let fromEmail = `HHC Laser & Co <${env_1.env.EMAIL_DEV_SENDER}>`; // Default sandbox sender during domain transfer
+            let fromEmail = `HHC Laser & Co <${smtpUser}>`;
             if (env_1.env.EMAIL_ENABLE_PRODUCTION_DOMAIN) {
                 switch (category) {
                     case 'appointments':
-                        fromEmail = `HHC Laser & Co <${env_1.env.EMAIL_FROM_APPOINTMENTS}>`;
+                        fromEmail = `HHC Laser & Co <${env_1.env.EMAIL_FROM_APPOINTMENTS || smtpUser}>`;
                         break;
                     case 'support':
-                        fromEmail = `HHC Laser & Co <${env_1.env.EMAIL_FROM_SUPPORT}>`;
+                        fromEmail = `HHC Laser & Co <${env_1.env.EMAIL_FROM_SUPPORT || smtpUser}>`;
                         break;
                     case 'billing':
-                        fromEmail = `HHC Laser & Co <${env_1.env.EMAIL_FROM_BILLING}>`;
+                        fromEmail = `HHC Laser & Co <${env_1.env.EMAIL_FROM_BILLING || smtpUser}>`;
                         break;
                     case 'noreply':
                     default:
-                        fromEmail = `HHC Laser & Co <${env_1.env.EMAIL_FROM_NOREPLY}>`;
+                        fromEmail = `HHC Laser & Co <${env_1.env.EMAIL_FROM_NOREPLY || smtpUser}>`;
                         break;
                 }
             }
-            // 3. Dispatch via Resend API
-            const response = await fetch('https://api.resend.com/emails', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    from: fromEmail,
-                    to: [to],
-                    subject: subject,
-                    html: html,
-                    reply_to: env_1.env.EMAIL_FROM_SUPPORT
-                })
-            });
-            const resData = await response.json();
-            if (response.ok) {
-                this.sentEmailHashes.add(eventHash);
-                await this.logNotification('email', to, subject, 'sent');
-                logger_1.logger.info(`[Resend Email] Sent successfully to ${to} (Resend ID: ${resData.id}): "${subject}"`);
-                return true;
-            }
-            else {
-                // Retry logic for 5xx errors or network glitches (up to 2 retries)
-                if (response.status >= 500 && retryCount < 2) {
-                    logger_1.logger.warn(`[Resend Email] Provider status ${response.status}. Retrying attempt ${retryCount + 1}...`);
-                    await new Promise(r => setTimeout(r, 1500 * (retryCount + 1)));
-                    return this.sendEmail(params, retryCount + 1);
+            // 3. Dispatch via Nodemailer (Gmail SMTP)
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: smtpUser,
+                    pass: smtpPass
                 }
-                await this.logNotification('email', to, subject, 'failed');
-                logger_1.logger.warn(`[Resend Email] Provider status ${response.status} for ${to}: ${JSON.stringify(resData)}`);
-                return false;
-            }
+            });
+            const info = await transporter.sendMail({
+                from: fromEmail,
+                to: to,
+                subject: subject,
+                html: html,
+                replyTo: env_1.env.EMAIL_FROM_SUPPORT || smtpUser
+            });
+            this.sentEmailHashes.add(eventHash);
+            await this.logNotification('email', to, subject, 'sent');
+            logger_1.logger.info(`[Email] Sent successfully to ${to} (ID: ${info.messageId}): "${subject}"`);
+            return true;
         }
         catch (error) {
             if (retryCount < 2) {
-                logger_1.logger.warn(`[Resend Email] Network exception. Retrying attempt ${retryCount + 1}...`);
+                logger_1.logger.warn(`[Email] Exception occurred. Retrying attempt ${retryCount + 1}...`);
                 await new Promise(r => setTimeout(r, 1500 * (retryCount + 1)));
                 return this.sendEmail(params, retryCount + 1);
             }
             await this.logNotification('email', to, subject, 'failed');
-            logger_1.logger.error(`[Resend Email] Failed to send email to ${to}:`, error);
+            logger_1.logger.error(`[Email] Failed to send email to ${to}:`, error);
             return false;
         }
     }
@@ -327,6 +348,25 @@ class NotificationService {
         });
     }
     /**
+     * 9. Birthday Email (noreply@hhclaser.com)
+     */
+    async sendBirthdayEmail(user) {
+        if (!user.email)
+            return;
+        const html = (0, email_templates_1.getBirthdayEmailTemplate)({
+            frontendUrl: env_1.env.FRONTEND_URL,
+            customerName: user.first_name || 'Valued Client'
+        });
+        const currentYear = new Date().getFullYear();
+        this.queueEmail({
+            to: user.email,
+            subject: `Happy Birthday, ${user.first_name}! 🎈`,
+            html,
+            category: 'noreply',
+            idempotencyKey: `birthday:${user.id}:${currentYear}`
+        });
+    }
+    /**
      * Database Notification Logging
      */
     async logNotification(type, recipient, subject, status) {
@@ -334,7 +374,7 @@ class NotificationService {
             await (0, database_1.executeQuery)(`INSERT INTO notifications_log (type, recipient, subject, status) VALUES (?, ?, ?, ?)`, [type, recipient, subject, status]);
         }
         catch (err) {
-            logger_1.logger.error('[Notification] Failed to write entry to notifications_log table:', err);
+            // Ignore log table missing errors gracefully
         }
     }
 }

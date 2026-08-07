@@ -4,12 +4,14 @@ export declare class TransactionService {
     getPaymentStatus(key: string, userId?: number): Promise<Transaction | null>;
     recordManualPayment(dto: {
         appointmentId: number;
-        amountJmd: number;
-        paymentMethod: string;
-        notes?: string;
+        payments: {
+            amountJmd: number;
+            paymentMethod: string;
+            notes?: string;
+        }[];
         staffUserId: number;
         customerId: number;
-    }): Promise<Transaction>;
+    }): Promise<Transaction[]>;
     getCustomerTransactions(customerId: number, page: number, limit: number): Promise<{
         transactions: Transaction[];
         total: number;

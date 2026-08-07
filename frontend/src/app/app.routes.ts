@@ -44,6 +44,12 @@ export const routes: Routes = [
         title: 'Contact HHC Laser Jamaica | Book a Med Spa Consultation Kingston',
       },
       {
+        path: 'consultation',
+        loadComponent: () => import('./features/public/consultation/consultation.component')
+          .then(m => m.ConsultationComponent),
+        title: 'Free Consultation | HHC Laser',
+      },
+      {
         path: 'products',
         loadComponent: () => import('./features/public/products/products.component')
           .then(m => m.ProductsComponent),
@@ -60,6 +66,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/public/faq/faq.component')
           .then(m => m.FaqComponent),
         title: 'FAQ | Laser Hair Removal, Botox & Med Spa Questions | HHC Laser Jamaica',
+      },
+      {
+        path: 'sitemap',
+        loadComponent: () => import('./features/public/sitemap/sitemap.component')
+          .then(m => m.SitemapComponent),
+        title: 'Sitemap | HHC Laser Jamaica',
       },
       {
         path: 'refund-policy',

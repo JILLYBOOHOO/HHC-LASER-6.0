@@ -5,8 +5,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PUBLIC_ROUTES = void 0;
 exports.isPublicRoute = isPublicRoute;
 exports.PUBLIC_ROUTES = [
-    // Fiserv webhook / transaction notification
+    // Fiserv browser returns (POST) + server notification
     "/api/payments/callback",
+    "/api/payments/success",
+    "/api/payments/error",
+    "/api/payments/failure",
     // Booking availability endpoints
     "/api/bookings/available-slots",
     "/api/bookings/available-dates",

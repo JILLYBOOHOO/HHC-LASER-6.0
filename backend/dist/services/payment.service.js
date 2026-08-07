@@ -7,6 +7,7 @@ const error_middleware_1 = require("../middleware/error.middleware");
 const env_1 = require("../config/env");
 const logger_1 = require("../utils/logger");
 const notification_service_1 = require("./notification.service");
+const fiserv_return_urls_1 = require("../payments/fiserv/fiserv-return-urls");
 class PaymentService {
     /**
      * Initiates a Fiserv hosted payment session.
@@ -45,8 +46,8 @@ class PaymentService {
             currency,
             hash_algorithm: 'HMACSHA256',
             hash,
-            responseSuccessURL: env_1.env.FISERV_SUCCESS_URL,
-            responseFailURL: env_1.env.FISERV_FAILURE_URL,
+            responseSuccessURL: (0, fiserv_return_urls_1.resolveFiservBrowserReturnUrl)(env_1.env.FISERV_SUCCESS_URL, '/api/payments/success'),
+            responseFailURL: (0, fiserv_return_urls_1.resolveFiservBrowserReturnUrl)(env_1.env.FISERV_FAILURE_URL, '/api/payments/error'),
             transactionNotificationURL: env_1.env.FISERV_CALLBACK_URL,
             oid: idempotencyKey,
             mode: 'payonly',

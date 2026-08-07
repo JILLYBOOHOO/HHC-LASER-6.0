@@ -44,8 +44,8 @@ import { treatments } from '../../../core/data/services.data';
                   </div>
                 </div>
 
-                <div class="prose prose-charcoal mb-10 text-charcoal-600 leading-relaxed">
-                  <p class="whitespace-pre-wrap">{{ service()?.description || service()?.short_description }}</p>
+                <div class="prose mb-10 leading-relaxed">
+                  <p class="whitespace-pre-wrap text-black" style="font-family: Georgia, serif;">{{ service()?.description || service()?.short_description }}</p>
                 </div>
 
                 <a routerLink="/customer/book" [queryParams]="{ service: service()?.id }"
@@ -68,10 +68,10 @@ import { treatments } from '../../../core/data/services.data';
                 <span class="inline-block text-[11px] tracking-[0.22em] uppercase font-semibold mb-3"
                       style="color: #b8893f;">Need guidance?</span>
                 <h3 class="font-heading text-2xl md:text-3xl text-black leading-tight mb-3">
-                  Having trouble choosing a treatment?
+                  Need help choosing right treatment?
                 </h3>
                 <p class="text-charcoal-600 text-sm md:text-[15px] leading-relaxed">
-                  Give us a call — our team can help you find the right option for your goals.
+                  Call us for Free Consultation
                 </p>
               </div>
 

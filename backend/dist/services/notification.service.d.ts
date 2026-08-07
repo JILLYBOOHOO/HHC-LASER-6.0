@@ -92,6 +92,14 @@ export declare class NotificationService {
         }[];
     }): Promise<void>;
     /**
+     * 9. Birthday Email (noreply@hhclaser.com)
+     */
+    sendBirthdayEmail(user: {
+        id: number;
+        email: string;
+        first_name: string;
+    }): Promise<void>;
+    /**
      * Database Notification Logging
      */
     private logNotification;

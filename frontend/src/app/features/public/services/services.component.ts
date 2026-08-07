@@ -19,7 +19,7 @@ import { FormsModule } from '@angular/forms';
         
         <!-- Ultra-Compact Hero Header -->
         <div class="text-center pt-0">
-          <span class="text-black tracking-[0.2em] text-xs md:text-sm uppercase block font-extrabold mb-0.5">Our Treatments</span>
+          <span class="text-black tracking-[0.2em] text-xs md:text-sm uppercase block font-extrabold mb-0.5" style="font-family: 'Playfair Display', serif;">Our Treatments</span>
           <h1 class="text-neutral-700 font-heading text-xs md:text-sm font-medium tracking-wide mt-0 mb-1">
             Luxury Medical Aesthetics
           </h1>
@@ -90,7 +90,7 @@ import { FormsModule } from '@angular/forms';
                 <div class="p-3 md:p-3.5 flex flex-col flex-1">
                   <!-- Title & CTA -->
                   <div class="flex justify-between items-start gap-2 mb-1">
-                    <h3 class="text-black font-extrabold text-xs md:text-sm uppercase tracking-wide line-clamp-1 group-hover:text-gold-500 transition-colors flex-1">
+                    <h3 class="text-black font-extrabold text-xs md:text-sm uppercase tracking-wide line-clamp-1 group-hover:text-gold-500 transition-colors flex-1" style="font-family: 'Playfair Display', serif;">
                       {{ service.name }}
                     </h3>
                     <div class="bg-neutral-100 text-neutral-600 border border-neutral-200 text-[9px] uppercase font-bold px-2 py-0.5 rounded-sm whitespace-nowrap group-hover:bg-black group-hover:text-white group-hover:border-black transition-colors">
@@ -104,7 +104,7 @@ import { FormsModule } from '@angular/forms';
                   </div>
 
                   <!-- Description -->
-                  <p class="text-neutral-600 text-[11px] font-normal leading-snug mb-2 flex-1 line-clamp-2">
+                  <p class="text-neutral-600 text-sm font-normal leading-snug mb-2 flex-1 line-clamp-2">
                     {{ service.short_description || service.description }}
                   </p>
                   

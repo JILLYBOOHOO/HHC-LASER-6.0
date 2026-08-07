@@ -123,9 +123,11 @@ router.post(
     try {
       const txn = await transactionService.recordManualPayment({
         appointmentId: req.body.appointment_id,
-        amountJmd: Number(req.body.amount_jmd),
-        paymentMethod: req.body.payment_method,
-        notes: req.body.notes,
+        payments: [{
+          amountJmd: Number(req.body.amount_jmd),
+          paymentMethod: req.body.payment_method,
+          notes: req.body.notes,
+        }],
         staffUserId: req.user!.userId,
         customerId: req.body.customer_user_id,
       });

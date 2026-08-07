@@ -9,6 +9,8 @@ exports.verifyAccessToken = verifyAccessToken;
 exports.verifyRefreshToken = verifyRefreshToken;
 exports.verifySupabaseAccessToken = verifySupabaseAccessToken;
 exports.decodeToken = decodeToken;
+exports.signPasswordResetToken = signPasswordResetToken;
+exports.verifyPasswordResetToken = verifyPasswordResetToken;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const env_1 = require("../config/env");
 const supabase_1 = require("../config/supabase");
@@ -50,5 +52,22 @@ function decodeToken(token) {
     catch {
         return null;
     }
+}
+function signPasswordResetToken(payload) {
+    return jsonwebtoken_1.default.sign({ ...payload, purpose: 'password_reset' }, env_1.env.JWT_SECRET, {
+        expiresIn: '15m',
+        issuer: 'hhc-laser-api',
+        audience: 'hhc-laser-password-reset',
+    });
+}
+function verifyPasswordResetToken(token) {
+    const payload = jsonwebtoken_1.default.verify(token, env_1.env.JWT_SECRET, {
+        issuer: 'hhc-laser-api',
+        audience: 'hhc-laser-password-reset',
+    });
+    if (payload.purpose !== 'password_reset') {
+        throw new jsonwebtoken_1.default.JsonWebTokenError('Invalid password reset token');
+    }
+    return payload;
 }
 //# sourceMappingURL=jwt.js.map

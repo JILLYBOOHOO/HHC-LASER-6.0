@@ -11,6 +11,7 @@ export declare class BookingService {
         startTime: string;
         endTime: string;
         excludeAppointmentId?: number;
+        isAdmin?: boolean;
     }): Promise<{
         available: boolean;
         conflicts: string[];

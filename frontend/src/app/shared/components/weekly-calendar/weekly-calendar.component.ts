@@ -324,6 +324,14 @@ export class WeeklyCalendarComponent implements OnInit, OnDestroy, OnChanges, Af
     if (ev.status === 'no_show') return '🚫';
     
     // Confirmed -> check payment status
+    if (ev.data) {
+      const totalAmount = Number(ev.data.total_amount_jmd) || 0;
+      const totalPaid = Number(ev.data.total_paid) || 0;
+      if (totalPaid >= totalAmount && totalAmount > 0) return '💳'; // Paid
+      if (totalPaid > 0 && totalPaid < totalAmount) return '🟡'; // Partial
+      if (totalPaid === 0 && totalAmount > 0) return '⭕'; // Unpaid
+    }
+
     return '💳';
   }
 
@@ -334,7 +342,15 @@ export class WeeklyCalendarComponent implements OnInit, OnDestroy, OnChanges, Af
     if (ev.status === 'cancelled') return 'Cancelled';
     if (ev.status === 'no_show') return 'No Show';
     
-    // Confirmed -> payment status
+    // Confirmed -> check data.total_paid vs data.total_amount_jmd if available
+    if (ev.data) {
+      const totalAmount = Number(ev.data.total_amount_jmd) || 0;
+      const totalPaid = Number(ev.data.total_paid) || 0;
+      if (totalPaid >= totalAmount && totalAmount > 0) return 'Paid';
+      if (totalPaid > 0 && totalPaid < totalAmount) return 'Partial';
+      if (totalPaid === 0 && totalAmount > 0) return 'Unpaid';
+    }
+
     if (ev.paymentStatus === 'Paid Online') return 'Deposit Paid';
     if (ev.paymentStatus === 'Pay In Person') return 'Pay at Location';
     if (ev.paymentStatus === 'Balance Due') return 'Balance Due';

@@ -118,6 +118,10 @@ import { CustomerBookingsComponent } from '../bookings/customer-bookings.compone
       font-size: 0.75rem;
       font-weight: 600;
       color: #737373;
+      transition: color 0.3s ease;
+    }
+    ::ng-deep .luxury-tabs .mat-mdc-tab:hover {
+      color: #000000;
     }
     ::ng-deep .luxury-tabs .mat-mdc-tab.mdc-tab--active {
       color: #a5813f;

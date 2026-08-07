@@ -12,6 +12,7 @@ import { InvoiceModalComponent } from '../../../shared/components/invoice-modal/
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatInputModule } from '@angular/material/input';
 import { ReactiveFormsModule, FormsModule, FormControl } from '@angular/forms';
+import { TakePaymentModalComponent } from '../../../shared/components/take-payment-modal/take-payment-modal.component';
 
 import { Router } from '@angular/router';
 
@@ -28,7 +29,8 @@ import { Router } from '@angular/router';
     MatInputModule,
     ReactiveFormsModule,
     AddNoteModalComponent,
-    InvoiceModalComponent
+    InvoiceModalComponent,
+    TakePaymentModalComponent
   ],
   templateUrl: './admin-bookings.component.html'
 })
@@ -44,6 +46,9 @@ export class AdminBookingsComponent implements OnInit {
   selectedEvent: CalendarEvent | null = null;
   showCancelConfirmModal = signal<boolean>(false);
   appointmentToCancel = signal<CalendarEvent | null>(null);
+
+  showTakePaymentModal = signal<boolean>(false);
+  selectedEventForPayment = signal<CalendarEvent | null>(null);
 
   showClientProfileModal = signal<boolean>(false);
   clientProfileData = signal<any>(null);
@@ -411,7 +416,8 @@ export class AdminBookingsComponent implements OnInit {
       this.showInvoiceModal.set(true);
     } 
     else if (action === 'Took Payment' || action === 'Take Payment') {
-      this.recordPayment(event);
+      this.selectedEventForPayment.set(event);
+      this.showTakePaymentModal.set(true);
     }
     else if (action === 'Add Note') {
       this.showAddNoteModal.set(true);
@@ -468,20 +474,14 @@ export class AdminBookingsComponent implements OnInit {
   }
 
   recordPayment(event: CalendarEvent) {
-    const headers = { Authorization: `Bearer ${this.authState.token()}` };
-    const amount = event.data?.total_amount_jmd || 5000;
+    // Kept for fallback, replaced by TakePaymentModalComponent
+  }
 
-    this.http.post(`${environment.apiUrl}/admin/bookings/${event.id}/record-payment`, { amount, payment_method: 'in_person' }, { headers }).subscribe({
-      next: () => {
-        this.snackBar.open(`Payment of JMD $${amount.toLocaleString()} recorded for ${event.patient}!`, 'Close', { duration: 3000, panelClass: ['bg-black', 'text-white'] });
-        event.paymentStatus = 'Paid Online';
-        this.fetchAppointments();
-      },
-      error: () => {
-        event.paymentStatus = 'Paid Online';
-        this.snackBar.open(`Payment marked as Paid for ${event.patient}`, 'Close', { duration: 3000, panelClass: ['bg-black', 'text-white'] });
-      }
-    });
+  onPaymentSuccess() {
+    this.showTakePaymentModal.set(false);
+    this.selectedEventForPayment.set(null);
+    this.snackBar.open(`Payment recorded successfully!`, 'Close', { duration: 3000, panelClass: ['bg-black', 'text-white'] });
+    this.fetchAppointments();
   }
 
   updateBookingStatus(id: string, status: string) {

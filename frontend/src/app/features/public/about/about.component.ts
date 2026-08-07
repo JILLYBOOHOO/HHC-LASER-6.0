@@ -20,7 +20,7 @@ import { RouterLink } from '@angular/router';
           <div class="divider-gold mx-auto"></div>
           <div class="mt-8 space-y-6 text-text-muted text-lg font-light leading-relaxed max-w-3xl mx-auto">
             <p>
-              At Havendale Healthcare (HHC Laser), we believe confidence begins with exceptional care. Our mission is to help every client look and feel their best through advanced medical aesthetics, personalized treatment plans, and a commitment to safety, excellence, and natural-looking results.
+              At HHC Laser, we believe confidence begins with exceptional care. Our mission is to help every client look and feel their best through advanced medical aesthetics, personalized treatment plans, and a commitment to safety, excellence, and natural-looking results.
             </p>
             <p>
               From your first consultation to your final treatment, our experienced team is dedicated to delivering a professional, comfortable, and results-driven experience in a welcoming environment.
@@ -33,7 +33,7 @@ import { RouterLink } from '@angular/router';
       <section class="container-luxury px-6 mb-32">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div class="relative h-[600px] rounded-3xl overflow-hidden shadow-gold-lg group">
-            <img src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&q=80" alt="HHC Laser Clinic" class="w-full h-full object-cover transition-transform duration-[10000ms] group-hover:scale-110">
+            <img src="/images/about-us-hero.png" alt="HHC Laser Clinic" class="w-full h-full object-cover transition-transform duration-[10000ms] group-hover:scale-110">
             <div class="absolute inset-0 bg-black/20 pointer-events-none"></div>
           </div>
           <div class="space-y-6 animate-fade-in-up" style="animation-delay: 0.2s;">
@@ -42,7 +42,7 @@ import { RouterLink } from '@angular/router';
             <div class="divider-gold-left"></div>
             <div class="space-y-6 text-text-muted text-base font-light leading-relaxed">
               <p>
-                Located in the heart of Kingston, Jamaica, Havendale Healthcare (HHC Laser) has become a trusted destination for individuals seeking advanced medical spa treatments using modern technology and evidence-based techniques.
+                Located in the heart of Kingston, Jamaica, HHC Laser has become a trusted destination for individuals seeking advanced medical spa treatments using modern technology and evidence-based techniques.
               </p>
               <div class="border-l-2 border-gold pl-6 py-2 my-8">
                 <p class="text-xl text-white font-heading italic leading-relaxed">

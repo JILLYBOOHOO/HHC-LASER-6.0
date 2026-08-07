@@ -97,7 +97,7 @@ import { BeforeAfterSliderComponent } from '../../../shared/components/before-af
           <div class="flex flex-col sm:flex-row gap-4 mb-8 drop-shadow-lg">
             <a
               routerLink="/customer/book"
-              class="btn-primary text-center hover:!text-black"
+              class="inline-flex items-center justify-center h-12 px-8 rounded-full bg-black text-white text-sm font-bold tracking-[0.1em] border border-white/10 hover:bg-neutral-800 transition-all shadow-lg text-center"
               >Book Your Treatment</a
             >
             <a

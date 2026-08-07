@@ -10,10 +10,11 @@ function successResponse(data, message) {
 function errorResponse(message, errors) {
     return { success: false, message, errors };
 }
-function paginatedResponse(data, page, limit, total) {
+function paginatedResponse(data, page, limit, total, meta) {
     return {
         success: true,
         data,
+        meta,
         pagination: {
             page,
             limit,
