@@ -96,8 +96,9 @@ export const routes: Routes = [
       { path: 'free-consultation', redirectTo: 'contact', pathMatch: 'full' },
       { path: 'consultation', redirectTo: 'contact', pathMatch: 'full' },
       { path: 'create-account', redirectTo: '/auth/register', pathMatch: 'full' },
-      { path: 'virtual-tour', redirectTo: 'gallery', pathMatch: 'full' },
       { path: 'book-this-service', redirectTo: 'services', pathMatch: 'full' },
+      { path: 'book this service', redirectTo: 'services', pathMatch: 'full' },
+      { path: 'Book This Service', redirectTo: 'services', pathMatch: 'full' },
 
       {
         path: 'booking/success',

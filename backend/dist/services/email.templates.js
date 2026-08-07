@@ -13,7 +13,6 @@ exports.getWelcomeEmailTemplate = getWelcomeEmailTemplate;
 exports.getPasswordResetTemplate = getPasswordResetTemplate;
 exports.getEmailVerificationTemplate = getEmailVerificationTemplate;
 exports.getAdminNotificationTemplate = getAdminNotificationTemplate;
-exports.getBirthdayEmailTemplate = getBirthdayEmailTemplate;
 /**
  * Shared HTML Email Layout Wrapper - Luxury MedSpa Design
  */
@@ -302,76 +301,5 @@ function getAdminNotificationTemplate(data) {
     </div>
   `;
     return wrapEmailLayout(content, data.title);
-}
-// 10. Birthday Email
-function getBirthdayEmailTemplate(data) {
-    // We use a custom, standalone HTML layout to match the provided birthday card design closely.
-    // This bypasses `wrapEmailLayout` to create the full bleed background effect.
-    return `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Happy Birthday!</title>
-      <style>
-        body { margin: 0; padding: 0; background-color: #FAFAF8; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
-        .wrapper { width: 100%; background-color: #FAFAF8; padding: 40px 16px; background-image: radial-gradient(#d6b36a 1px, transparent 1px); background-size: 30px 30px; text-align: center;}
-        .card { max-w-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #ffffff 0%, #fdfdfd 100%); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05), 0 0 0 1px rgba(214,179,106,0.1); padding: 40px; position: relative; overflow: hidden; }
-        .logo { width: 100px; height: auto; margin-bottom: 24px; }
-        .title { font-size: 32px; font-weight: 300; color: #111111; letter-spacing: 4px; text-transform: uppercase; margin: 0 0 16px 0; font-family: 'Times New Roman', Times, serif; }
-        .subtitle { font-size: 24px; font-style: italic; color: #d6b36a; margin: 0 0 32px 0; font-family: 'Georgia', serif; }
-        .inner-card { background-color: #ffffff; border-radius: 8px; padding: 32px 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid rgba(214,179,106,0.2); margin-bottom: 32px; }
-        .greeting { font-size: 22px; color: #111111; margin-bottom: 24px; font-family: 'Times New Roman', Times, serif; }
-        .message-text { font-size: 14px; color: #555555; line-height: 1.8; margin-bottom: 16px; }
-        .highlight-text { font-size: 13px; font-weight: bold; color: #d6b36a; letter-spacing: 2px; text-transform: uppercase; margin: 16px 0; }
-        .footer-text { font-size: 18px; font-style: italic; color: #d6b36a; margin: 32px 0 8px 0; font-family: 'Georgia', serif; }
-        .signoff { font-size: 14px; color: #111111; font-weight: bold; }
-      </style>
-    </head>
-    <body>
-      <div class="wrapper">
-        <div class="card" style="max-width: 600px;">
-          
-          <img src="https://i.imgur.com/xO7uM9c.png" alt="HHC Laser & Co." class="logo" style="width: 120px;" />
-          
-          <div class="subtitle" style="font-size: 32px;">Happy</div>
-          <h1 class="title">BIRTHDAY</h1>
-          <div class="subtitle">to you!</div>
-          
-          <div class="inner-card">
-            <h2 class="greeting">Happy Birthday, ${data.customerName}!</h2>
-            
-            <p class="message-text" style="margin-bottom: 8px;">
-              Wishing you a beautiful day filled with
-            </p>
-            <div class="highlight-text">JOY, LOVE & WONDERFUL MOMENTS.</div>
-            
-            <p class="message-text" style="margin-top: 24px;">
-              Thank you for being a valued part of the <strong>HHC Laser & Co. Med Spa</strong> family.
-            </p>
-            
-            <p class="message-text">
-              We’re grateful for your trust and can’t wait to continue being part of your self-care journey.
-            </p>
-          </div>
-          
-          <div class="footer-text">Celebrate You Today!</div>
-          <p class="message-text" style="margin-bottom: 32px;">
-            You deserve all the happiness in the world.<br/>Enjoy your special day!
-          </p>
-          
-          <div class="footer-text" style="font-size: 16px;">With love,</div>
-          <div class="signoff">The HHC Laser Team</div>
-          
-          <div style="margin-top: 40px;">
-            <a href="${data.frontendUrl}" style="background-color: #111; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;">Visit Us</a>
-          </div>
-          
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
 }
 //# sourceMappingURL=email.templates.js.map

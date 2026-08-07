@@ -6,7 +6,8 @@ import { env } from '../config/env';
 import { executeQuery } from '../config/database';
 
 export const registerValidators = [
-  body('email').isEmail().normalizeEmail().withMessage('A valid email address is required.'),
+  // Keep Gmail dots — default normalizeEmail() strips them (kake.101… → kake101…)
+  body('email').isEmail().normalizeEmail({ gmail_remove_dots: false }).withMessage('A valid email address is required.'),
   body('password')
     .isLength({ min: 8 }).withMessage('Password must be at least 8 characters.')
     .matches(/(?=.*[A-Z])(?=.*[a-z])(?=.*\d)/)
@@ -25,12 +26,13 @@ export const registerValidators = [
 ];
 
 export const loginValidators = [
-  body('email').isEmail().normalizeEmail().withMessage('A valid email is required.'),
+  // Keep Gmail dots — default normalizeEmail() strips them (kake.101… → kake101…)
+  body('email').isEmail().normalizeEmail({ gmail_remove_dots: false }).withMessage('A valid email is required.'),
   body('password').notEmpty().withMessage('Password is required.'),
 ];
 
 export const forgotPasswordValidators = [
-  body('email').isEmail().normalizeEmail().withMessage('A valid email is required.'),
+  body('email').isEmail().normalizeEmail({ gmail_remove_dots: false }).withMessage('A valid email is required.'),
 ];
 
 export const resetPasswordValidators = [

@@ -19,8 +19,7 @@ router.get('/bookings', auth_middleware_1.authenticate, (0, rbac_middleware_1.re
                 u.phone as customer_phone,
                 s.name as service_name, s.duration_minutes as service_duration_minutes,
                 eu.first_name as employee_first_name, eu.last_name as employee_last_name,
-                l.name as location_name,
-                (SELECT COALESCE(SUM(amount_jmd), 0) FROM transactions t WHERE t.appointment_id = a.id AND t.status = 'completed') as total_paid
+                l.name as location_name
          FROM appointments a
          JOIN users u ON a.customer_user_id = u.id
          JOIN services s ON a.service_id = s.id
@@ -53,18 +52,18 @@ router.get('/appointments/:id/invoice', auth_middleware_1.authenticate, (0, rbac
 // GET /api/admin/dashboard — analytics overview
 router.get('/dashboard', auth_middleware_1.authenticate, (0, rbac_middleware_1.requireRole)('owner', 'admin', 'manager'), async (req, res, next) => {
     try {
-        const [revenueToday] = await (0, database_1.executeQuery)(`SELECT COALESCE(SUM(amount_jmd), 0) as total FROM transactions WHERE DATE(created_at) = CURRENT_DATE AND status = 'completed'`);
-        const [revenueMonth] = await (0, database_1.executeQuery)(`SELECT COALESCE(SUM(amount_jmd), 0) as total FROM transactions WHERE EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM CURRENT_DATE) AND EXTRACT(YEAR FROM created_at) = EXTRACT(YEAR FROM CURRENT_DATE) AND status = 'completed'`);
-        const [appointmentsToday] = await (0, database_1.executeQuery)(`SELECT COUNT(*) as count FROM appointments WHERE scheduled_date = CURRENT_DATE AND status NOT IN ('cancelled', 'no_show')`);
+        const [revenueToday] = await (0, database_1.executeQuery)(`SELECT COALESCE(SUM(amount_jmd), 0) as total FROM transactions WHERE DATE(created_at) = CURDATE() AND status = 'completed'`);
+        const [revenueMonth] = await (0, database_1.executeQuery)(`SELECT COALESCE(SUM(amount_jmd), 0) as total FROM transactions WHERE MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE()) AND status = 'completed'`);
+        const [appointmentsToday] = await (0, database_1.executeQuery)(`SELECT COUNT(*) as count FROM appointments WHERE scheduled_date = CURDATE() AND status NOT IN ('cancelled', 'no_show')`);
         const [totalCustomers] = await (0, database_1.executeQuery)(`SELECT COUNT(*) as count FROM user_roles WHERE role = 'customer'`);
-        const [noShowRate] = await (0, database_1.executeQuery)(`SELECT ROUND(SUM(CASE WHEN status = 'no_show' THEN 1 ELSE 0 END)::numeric / COUNT(*) * 100, 1) as rate FROM appointments WHERE scheduled_date >= CURRENT_DATE - INTERVAL '30 days'`);
+        const [noShowRate] = await (0, database_1.executeQuery)(`SELECT ROUND(SUM(CASE WHEN status = 'no_show' THEN 1 ELSE 0 END) / COUNT(*) * 100, 1) as rate FROM appointments WHERE scheduled_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)`);
         const popularServices = await (0, database_1.executeQuery)(`SELECT s.name, COUNT(aps.id) as bookings FROM appointment_services aps
          JOIN services s ON s.id = aps.service_id
          JOIN appointments a ON a.id = aps.appointment_id
-         WHERE a.created_at >= CURRENT_TIMESTAMP - INTERVAL '30 days'
+         WHERE a.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
          GROUP BY s.id, s.name ORDER BY bookings DESC LIMIT 5`);
         const revenueByDay = await (0, database_1.executeQuery)(`SELECT DATE(created_at) as date, SUM(amount_jmd) as revenue
-         FROM transactions WHERE status = 'completed' AND created_at >= CURRENT_TIMESTAMP - INTERVAL '30 days'
+         FROM transactions WHERE status = 'completed' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
          GROUP BY DATE(created_at) ORDER BY date ASC`);
         res.json((0, types_1.successResponse)({
             revenue: { today: revenueToday?.total || 0, month: revenueMonth?.total || 0 },
@@ -446,30 +445,17 @@ router.post('/bookings/:id/record-payment', auth_middleware_1.authenticate, (0, 
         const appt = await (0, database_1.executeQueryOne)('SELECT * FROM appointments WHERE id = ?', [appointmentId]);
         if (!appt)
             throw new error_middleware_1.AppError('Appointment not found', 404);
-        let payments = req.body.payments;
-        if (!payments || !Array.isArray(payments) || payments.length === 0) {
-            // Fallback for older clients sending single payment
-            const amountJmd = req.body.amount || appt.total_amount_jmd || 5000;
-            const paymentMethod = req.body.payment_method || 'in_person';
-            payments = [{ amountJmd, paymentMethod, notes: req.body.notes }];
-        }
-        else {
-            // Map frontend fields to DTO if necessary, but assume they send amountJmd
-            payments.forEach((p) => {
-                if (p.amount) {
-                    p.amountJmd = p.amount;
-                    delete p.amount;
-                }
-            });
-        }
+        const amountJmd = req.body.amount || appt.total_amount_jmd || 5000;
+        const paymentMethod = req.body.payment_method || 'in_person';
         const transactionService = new transaction_service_1.TransactionService();
-        const transactions = await transactionService.recordManualPayment({
+        const transaction = await transactionService.recordManualPayment({
             appointmentId,
-            payments,
+            amountJmd,
+            paymentMethod,
             staffUserId: req.user.id,
             customerId: appt.customer_user_id
         });
-        res.json((0, types_1.successResponse)(transactions, 'Payment(s) recorded successfully.'));
+        res.json((0, types_1.successResponse)(transaction, 'Payment recorded successfully.'));
     }
     catch (e) {
         next(e);

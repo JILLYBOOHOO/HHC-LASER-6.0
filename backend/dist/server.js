@@ -68,24 +68,10 @@ const developer_routes_1 = __importDefault(require("./routes/developer.routes"))
 const developer_auth_routes_1 = __importDefault(require("./routes/developer-auth.routes"));
 const drafts_routes_1 = __importDefault(require("./routes/drafts.routes"));
 const cleanup_drafts_job_1 = require("./jobs/cleanup-drafts.job");
-const birthday_job_1 = require("./jobs/birthday.job");
 const socket_service_1 = require("./services/socket.service");
 const app = (0, express_1.default)();
 // ─── Trust Proxy (for AWS ALB / EB) ──────────────────────────────────────────
 app.set("trust proxy", 1);
-const allowedOrigins = env_1.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim()).filter(Boolean);
-function isAllowedOrigin(origin) {
-    if (!origin || origin === "null")
-        return true;
-    if (allowedOrigins.includes(origin))
-        return true;
-    // Vercel production + preview deployments
-    if (/^https:\/\/([a-z0-9-]+\.)*vercel\.app$/i.test(origin))
-        return true;
-    if (/^https:\/\/([a-z0-9-]+\.)*hhclaser\.com$/i.test(origin))
-        return true;
-    return false;
-}
 // ─── Security Headers ─────────────────────────────────────────────────────────
 app.use((0, helmet_1.default)({
     contentSecurityPolicy: {
@@ -94,25 +80,24 @@ app.use((0, helmet_1.default)({
             scriptSrc: ["'self'"],
             styleSrc: ["'self'", "'unsafe-inline'"],
             imgSrc: ["'self'", "data:", "https:"],
-            connectSrc: ["'self'", env_1.env.FRONTEND_URL, ...allowedOrigins],
+            connectSrc: ["'self'", env_1.env.FRONTEND_URL],
             frameSrc: ["'none'"],
             objectSrc: ["'none'"],
             upgradeInsecureRequests: [],
         },
     },
-    // SPA (Vercel) → API (Render) cross-origin fetches fail with default same-origin CORP
-    crossOriginResourcePolicy: { policy: "cross-origin" },
     referrerPolicy: { policy: "strict-origin-when-cross-origin" },
 }));
 // ─── CORS ─────────────────────────────────────────────────────────────────────
+const allowedOrigins = env_1.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim());
 app.use((0, cors_1.default)({
     origin: (origin, callback) => {
-        if (isAllowedOrigin(origin)) {
+        // Fiserv / 3-D Secure browser returns often send Origin: null
+        if (!origin || origin === 'null' || allowedOrigins.includes(origin)) {
             callback(null, true);
         }
         else {
-            // Avoid throwing — a thrown error often surfaces in the browser as "Failed to fetch"
-            callback(null, false);
+            callback(new Error(`CORS: Origin not allowed — ${origin}`));
         }
     },
     credentials: true,
@@ -188,7 +173,6 @@ async function bootstrap() {
             logger_1.logger.warn("Storage bucket bootstrap skipped/failed:", err);
         }
         (0, cleanup_drafts_job_1.startDraftCleanupJob)();
-        (0, birthday_job_1.startBirthdayJob)();
         const server = app.listen(env_1.env.PORT, () => {
             logger_1.logger.info(`🚀 HHC LASER API running on port ${env_1.env.PORT} [${env_1.env.NODE_ENV}]`);
         });

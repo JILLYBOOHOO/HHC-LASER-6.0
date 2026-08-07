@@ -15,44 +15,35 @@ class BookingService {
     async checkAvailability(params) {
         const { employeeId, locationId, date, startTime, endTime, excludeAppointmentId, isAdmin } = params;
         const conflicts = [];
-        const [year, month, day] = date.split('-').map(Number);
-        const dayOfWeek = new Date(year, month - 1, day).getDay();
-        // Run independent lookups in parallel to cut redirect latency
-        const [isBlocked, isHoliday, bizHours, schedule, employeeConflict] = await Promise.all([
-            (0, database_1.executeQueryOne)('SELECT id FROM blocked_dates WHERE blocked_date = ?', [date]),
-            (0, database_1.executeQueryOne)('SELECT id FROM location_holidays WHERE location_id = ? AND holiday_date = ?', [locationId, date]),
-            isAdmin
-                ? Promise.resolve(null)
-                : (0, database_1.executeQueryOne)('SELECT is_closed FROM business_hours WHERE location_id = ? AND day_of_week = ?', [locationId, dayOfWeek]),
-            isAdmin
-                ? Promise.resolve(null)
-                : (0, database_1.executeQueryOne)(`SELECT start_time, end_time, is_available FROM employee_schedules
-             WHERE employee_id = ? AND location_id = ? AND day_of_week = ?`, [employeeId, locationId, dayOfWeek]),
-            (0, database_1.executeQueryOne)(`SELECT id FROM appointments 
-         WHERE employee_id = ? AND scheduled_date = ? 
-         AND status NOT IN ('cancelled', 'no_show', 'pending')
-         AND start_time < ? AND end_time > ?
-         ${excludeAppointmentId ? 'AND id != ?' : ''}`, excludeAppointmentId
-                ? [employeeId, date, endTime, startTime, excludeAppointmentId]
-                : [employeeId, date, endTime, startTime]),
-        ]);
+        // 1. Check if date is blocked globally
+        const isBlocked = await (0, database_1.executeQueryOne)('SELECT id FROM blocked_dates WHERE blocked_date = ?', [date]);
         if (isBlocked) {
             conflicts.push('The selected date is blocked/unavailable.');
             return { available: false, conflicts };
         }
+        // 2. Check if date is a holiday for this location
+        const isHoliday = await (0, database_1.executeQueryOne)('SELECT id FROM location_holidays WHERE location_id = ? AND holiday_date = ?', [locationId, date]);
         if (isHoliday) {
             conflicts.push('The selected date is a holiday.');
             return { available: false, conflicts };
         }
-        if (!isAdmin && bizHours && bizHours.is_closed) {
-            conflicts.push('The business is closed on this day of the week.');
-            return { available: false, conflicts };
-        }
         if (!isAdmin) {
+            // 3. Check if business is closed on this day of week
+            const [year, month, day] = date.split('-').map(Number);
+            const dayOfWeek = new Date(year, month - 1, day).getDay();
+            const bizHours = await (0, database_1.executeQueryOne)('SELECT is_closed FROM business_hours WHERE location_id = ? AND day_of_week = ?', [locationId, dayOfWeek]);
+            if (bizHours && bizHours.is_closed) {
+                conflicts.push('The business is closed on this day of the week.');
+                return { available: false, conflicts };
+            }
+            // 4. Check if employee is scheduled/working on this day of week
+            const schedule = await (0, database_1.executeQueryOne)(`SELECT start_time, end_time, is_available FROM employee_schedules
+         WHERE employee_id = ? AND location_id = ? AND day_of_week = ?`, [employeeId, locationId, dayOfWeek]);
             if (!schedule || !schedule.is_available) {
                 conflicts.push('The specialist is not working on this day.');
                 return { available: false, conflicts };
             }
+            // 5. Check if the start/end times fall within the specialist's working hours
             const slotStartStr = startTime.slice(0, 5);
             const slotEndStr = endTime.slice(0, 5);
             const workStartStr = schedule.start_time.slice(0, 5);
@@ -62,6 +53,14 @@ class BookingService {
                 return { available: false, conflicts };
             }
         }
+        // 6. Check employee conflicts with existing appointments
+        const employeeConflict = await (0, database_1.executeQueryOne)(`SELECT id FROM appointments 
+       WHERE employee_id = ? AND scheduled_date = ? 
+       AND status NOT IN ('cancelled', 'no_show', 'pending')
+       AND start_time < ? AND end_time > ?
+       ${excludeAppointmentId ? 'AND id != ?' : ''}`, excludeAppointmentId
+            ? [employeeId, date, endTime, startTime, excludeAppointmentId]
+            : [employeeId, date, endTime, startTime]);
         if (employeeConflict) {
             conflicts.push('The selected specialist is not available at this time.');
         }
@@ -147,7 +146,24 @@ class BookingService {
             }
             const [apptRows] = await conn.execute('SELECT * FROM appointments WHERE id = ?', [appointmentId]);
             const appointment = apptRows[0];
-            // Confirmation email is sent after successful Fiserv payment (keeps checkout redirect fast).
+            // --- Send Email Confirmation via Resend ---
+            try {
+                const user = await (0, database_1.executeQueryOne)('SELECT first_name, email FROM users WHERE id = ?', [customerId]);
+                if (user && user.email) {
+                    const serviceNames = services.map(s => s.name || s.title || `Service ID: ${s.id}`);
+                    // Send asynchronously
+                    email_service_1.EmailService.sendBookingConfirmation(user.email, user.first_name || 'Valued Customer', {
+                        date: dto.scheduled_date,
+                        time: dto.start_time,
+                        serviceNames,
+                        totalPrice: totalAmountJmd
+                    }, confirmationCode).catch(err => logger_1.logger.error('Async email error:', err));
+                }
+            }
+            catch (e) {
+                logger_1.logger.error('Failed to send confirmation email', e);
+            }
+            // ------------------------------------------
             logger_1.logger.info(`[Booking] Appointment ${appointmentId} created for customer ${customerId}`);
             return appointment;
         });
@@ -314,15 +330,11 @@ class BookingService {
         // 4. Get employee schedule for this day
         const schedule = await (0, database_1.executeQueryOne)(`SELECT start_time, end_time, is_available FROM employee_schedules
        WHERE employee_id = ? AND location_id = ? AND day_of_week = ?`, [employeeId, locationId, dayOfWeek]);
-        const parseTime = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
-        const eStart = schedule ? parseTime(schedule.start_time) : 9 * 60; // 09:00 AM (540 mins)
-        const eEnd = schedule ? parseTime(schedule.end_time) : 17 * 60; // 05:00 PM (1020 mins)
-        const isAvailable = schedule ? Boolean(schedule.is_available) : true;
-        if (!isAvailable)
+        if (!schedule || !schedule.is_available)
             return [];
         // 5. Get dynamic interval setting
         const intervalSetting = await (0, database_1.executeQueryOne)(`SELECT setting_value FROM business_settings WHERE setting_key = 'booking_slot_interval'`);
-        let interval = 15; // 15 mins default
+        let interval = 15; // default to 15 mins
         if (intervalSetting) {
             try {
                 const parsed = parseInt(intervalSetting.setting_value.replace(/['"]/g, ''), 10);
@@ -337,14 +349,16 @@ class BookingService {
         const booked = await (0, database_1.executeQuery)(`SELECT start_time, end_time FROM appointments
        WHERE employee_id = ? AND scheduled_date = ? AND status NOT IN ('cancelled', 'no_show')`, [employeeId, date]);
         // 7. Calculate bounds (intersect business hours with employee schedule)
+        const parseTime = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
         const bOpen = bizHours && bizHours.open_time ? parseTime(bizHours.open_time) : 9 * 60; // default 9 AM
         const bClose = bizHours && bizHours.close_time ? parseTime(bizHours.close_time) : 17 * 60; // default 5 PM
+        const eStart = parseTime(schedule.start_time);
+        const eEnd = parseTime(schedule.end_time);
         let startMinutes = Math.max(bOpen, eStart);
         const endMinutes = Math.min(bClose, eEnd);
-        const maxStartMinutes = 16 * 60 + 30; // 4:30 PM (990 mins)
-        // 8. Generate slots dynamically from 9:00 AM to 4:30 PM in 15 min intervals
+        // 8. Generate slots dynamically
         const slots = [];
-        while (startMinutes <= maxStartMinutes && startMinutes + Math.min(durationMinutes, 15) <= endMinutes) {
+        while (startMinutes + durationMinutes <= endMinutes) {
             const sh = Math.floor(startMinutes / 60);
             const sm = startMinutes % 60;
             const slotStart = `${String(sh).padStart(2, '0')}:${String(sm).padStart(2, '0')}`;
