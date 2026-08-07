@@ -1,11 +1,19 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, ActivatedRoute } from '@angular/router';
+import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { ApiService } from '../../../core/services/api.service';
 import { Service } from '../../../core/models/models';
 import { treatments } from '../../../core/data/services.data';
+
+/** Legacy / Google-indexed slugs that are not real treatments */
+const LEGACY_SERVICE_SLUG_REDIRECTS = new Set([
+  'book-this-service',
+  'book_this_service',
+  'book-now',
+  'book',
+]);
 
 @Component({
   selector: 'app-service-detail',
@@ -166,6 +174,7 @@ import { treatments } from '../../../core/data/services.data';
 })
 export class ServiceDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private api = inject(ApiService);
 
   service = signal<Service | null>(null);
@@ -203,6 +212,12 @@ export class ServiceDetailComponent implements OnInit {
         this.service.set(null);
         return;
       }
+
+      if (LEGACY_SERVICE_SLUG_REDIRECTS.has(slug.toLowerCase())) {
+        this.router.navigate(['/services'], { replaceUrl: true });
+        return;
+      }
+
       this.loading.set(true);
       this.api.getServiceBySlug(slug).subscribe({
         next: (res) => {

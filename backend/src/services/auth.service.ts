@@ -154,7 +154,20 @@ export class AuthService {
 
   private async signInSupabase(email: string, password: string) {
     const anon = getSupabaseAnon();
-    const { data, error } = await anon.auth.signInWithPassword({ email, password });
+    let { data, error } = await anon.auth.signInWithPassword({ email, password });
+
+    // Gmail ignores dots in the local part. Older validators stripped them, so Auth
+    // may be stored as either "kake.101…" or "kake101…". Try the alternate form.
+    if ((error || !data.session || !data.user) && /@gmail\.com$/i.test(email)) {
+      const [local, domain] = email.split('@');
+      const alternate = local.includes('.')
+        ? `${local.replace(/\./g, '')}@${domain}`
+        : null; // can't reliably re-insert dots
+      if (alternate && alternate !== email) {
+        ({ data, error } = await anon.auth.signInWithPassword({ email: alternate, password }));
+      }
+    }
+
     if (error || !data.session || !data.user) {
       throw new AppError('Invalid email or password.', 401);
     }

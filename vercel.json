@@ -3,5 +3,42 @@
   "buildCommand": "NODE_OPTIONS=--max-old-space-size=6144 npm --prefix frontend run build:prod",
   "outputDirectory": "frontend/dist/hhc-laser-frontend/browser",
   "framework": null,
+  "redirects": [
+    {
+      "source": "/services/book-this-service",
+      "destination": "/services",
+      "permanent": true
+    },
+    {
+      "source": "/services/Book-This-Service",
+      "destination": "/services",
+      "permanent": true
+    },
+    {
+      "source": "/services/book_this_service",
+      "destination": "/services",
+      "permanent": true
+    },
+    {
+      "source": "/book-this-service",
+      "destination": "/services",
+      "permanent": true
+    },
+    {
+      "source": "/book-now",
+      "destination": "/services",
+      "permanent": true
+    },
+    {
+      "source": "/book",
+      "destination": "/services",
+      "permanent": true
+    },
+    {
+      "source": "/booking",
+      "destination": "/services",
+      "permanent": true
+    }
+  ],
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
