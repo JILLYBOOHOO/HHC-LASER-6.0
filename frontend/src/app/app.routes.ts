@@ -91,6 +91,14 @@ export const routes: Routes = [
           .then(m => m.PrivacyPolicyComponent),
         title: 'Privacy Policy — HHC LASER Jamaica',
       },
+      // ─── Legacy / Google-indexed URL redirects ──────────────────────────────
+      { path: 'locations', redirectTo: 'contact', pathMatch: 'full' },
+      { path: 'free-consultation', redirectTo: 'contact', pathMatch: 'full' },
+      { path: 'consultation', redirectTo: 'contact', pathMatch: 'full' },
+      { path: 'create-account', redirectTo: '/auth/register', pathMatch: 'full' },
+      { path: 'virtual-tour', redirectTo: 'gallery', pathMatch: 'full' },
+      { path: 'book-this-service', redirectTo: 'services', pathMatch: 'full' },
+
       {
         path: 'booking/success',
         loadComponent: () => import('./features/customer/booking/payment-success.component')
