@@ -20,6 +20,11 @@ export const routes: Routes = [
           .then(m => m.ServicesComponent),
         title: 'Medical Spa Services Kingston Jamaica | Laser Hair Removal, Botox, IV Therapy | HHC Laser',
       },
+      // Google sitelink "Book this service" indexes /services/book-this-service —
+      // must sit above services/:slug or it 404s as a missing treatment.
+      { path: 'services/book-this-service', redirectTo: 'services', pathMatch: 'full' },
+      { path: 'services/Book-This-Service', redirectTo: 'services', pathMatch: 'full' },
+      { path: 'services/book_this_service', redirectTo: 'services', pathMatch: 'full' },
       {
         path: 'services/:slug',
         loadComponent: () => import('./features/public/service-detail/service-detail.component')
