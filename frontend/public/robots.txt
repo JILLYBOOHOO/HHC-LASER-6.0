@@ -1,20 +1,27 @@
 User-agent: *
 Allow: /
 
-# Block private/authenticated routes from indexing
+# Block private/authenticated portals from indexing
 Disallow: /admin/
 Disallow: /customer/dashboard/
 Disallow: /employee/
 Disallow: /developer/
-Disallow: /auth/
 
-# Allow public booking & service paths
+# Block auth token/callback paths, but allow public login & register
+# (Google sitelinks point at Create an account → /auth/register)
+Disallow: /auth/
+Allow: /auth/login
+Allow: /auth/register
+Allow: /auth/forgot-password
+
+# Allow public marketing & booking paths
 Allow: /services
-Allow: /treatments/bookings
-Allow: /customer/book
+Allow: /products
 Allow: /about
 Allow: /contact
 Allow: /gallery
+Allow: /faq
+Allow: /customer/book
 
 # Sitemap location
 Sitemap: https://hhclaser.com/sitemap.xml
