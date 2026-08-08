@@ -38,6 +38,41 @@
       "source": "/booking",
       "destination": "/services",
       "permanent": true
+    },
+    {
+      "source": "/create-account",
+      "destination": "/auth/register",
+      "permanent": true
+    },
+    {
+      "source": "/create-an-account",
+      "destination": "/auth/register",
+      "permanent": true
+    },
+    {
+      "source": "/Create-An-Account",
+      "destination": "/auth/register",
+      "permanent": true
+    },
+    {
+      "source": "/create_account",
+      "destination": "/auth/register",
+      "permanent": true
+    },
+    {
+      "source": "/signup",
+      "destination": "/auth/register",
+      "permanent": true
+    },
+    {
+      "source": "/sign-up",
+      "destination": "/auth/register",
+      "permanent": true
+    },
+    {
+      "source": "/register",
+      "destination": "/auth/register",
+      "permanent": true
     }
   ],
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
