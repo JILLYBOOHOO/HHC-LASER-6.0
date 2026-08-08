@@ -15,23 +15,31 @@
   <!-- Treatments & Bookings -->
   <url>
     <loc>https://hhclaser.com/services</loc>
-    <lastmod>2026-07-31</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.95</priority>
-  </url>
-
-  <url>
-    <loc>https://hhclaser.com/treatments/bookings</loc>
-    <lastmod>2026-07-31</lastmod>
+    <lastmod>2026-08-08</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.95</priority>
   </url>
 
   <url>
     <loc>https://hhclaser.com/customer/book</loc>
-    <lastmod>2026-07-31</lastmod>
+    <lastmod>2026-08-08</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.95</priority>
+  </url>
+
+  <!-- Account (public) -->
+  <url>
+    <loc>https://hhclaser.com/auth/register</loc>
+    <lastmod>2026-08-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
+
+  <url>
+    <loc>https://hhclaser.com/auth/login</loc>
+    <lastmod>2026-08-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
   </url>
 
   <!-- About HHC Laser & Havendale Healthcare -->
